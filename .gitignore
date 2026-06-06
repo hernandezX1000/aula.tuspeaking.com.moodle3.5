@@ -64,10 +64,9 @@ cancelAcuity.php
 !/own_StyleOwnTemplate.css
 !/own_ZoomAPI.php
 !/tuspeaking-admin.css
-!/webhook_jotform_evaluaciones.php
 !/sso_redirect.php
 !/.gitignore
-
+!/CLAUDE.md
 # Re-aplicar exclusiones dentro de carpetas permitidas
 *.bak
 *.bak.*
@@ -78,7 +77,7 @@ __pycache__/
 *,
 =
 [*
-TuspeakingFix2025!
+# (patron de basura eliminado)
 
 # Ficheros con contrasena BD en duro (excluidos hasta refactorizar a secrets.php)
 
