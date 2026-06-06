@@ -41,6 +41,7 @@ cancelAcuity.php
 !/tus-tools/
 !/shared_content/
 !/api/
+!/docs/
 
 # === Permitir ficheros .php/.js/.css propios de la raíz ===
 !/acuitytypes.php
