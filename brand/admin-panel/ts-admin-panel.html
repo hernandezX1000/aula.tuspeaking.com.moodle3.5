@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tS Admin Panel - Plantilla</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="ts-admin-panel.css" rel="stylesheet">
+</head>
+<body>
+    <div class="ts-layout">
+        <!-- SIDEBAR -->
+        <nav class="ts-sidebar">
+            <div class="ts-sidebar-logo">
+                tuSpeaking
+                <small>Nombre del Sistema</small>
+            </div>
+            <ul class="ts-nav">
+                <li class="ts-nav-section">Principal</li>
+                <li><a href="#" class="active"><span class="material-icons">dashboard</span><span>Dashboard</span></a></li>
+                <li><a href="#"><span class="material-icons">list</span><span>Listado</span></a></li>
+                <li><a href="#"><span class="material-icons">people</span><span>Usuarios</span></a></li>
+                
+                <li class="ts-nav-section">Herramientas</li>
+                <li><a href="#"><span class="material-icons">download</span><span>Exportar</span></a></li>
+                <li><a href="#"><span class="material-icons">settings</span><span>Configuración</span></a></li>
+            </ul>
+        </nav>
+        
+        <!-- MAIN CONTENT -->
+        <main class="ts-main">
+            <!-- FILTROS -->
+            <div class="ts-filters">
+                <span class="material-icons" style="color:#666">date_range</span>
+                <input type="date" value="2026-01-01">
+                <span>a</span>
+                <input type="date" value="2026-01-31">
+                <button class="ts-btn ts-btn-primary">
+                    <span class="material-icons">filter_alt</span> Filtrar
+                </button>
+            </div>
+            
+            <!-- HEADER -->
+            <div class="ts-header">
+                <h1><span class="material-icons">dashboard</span> Dashboard</h1>
+                <button class="ts-btn ts-btn-success">
+                    <span class="material-icons">add</span> Nuevo
+                </button>
+            </div>
+            
+            <!-- KPIs -->
+            <div class="ts-kpis">
+                <div class="ts-kpi">
+                    <div class="ts-kpi-value">1,234</div>
+                    <div class="ts-kpi-label">Total Registros</div>
+                </div>
+                <div class="ts-kpi success">
+                    <div class="ts-kpi-value">92%</div>
+                    <div class="ts-kpi-label">Tasa Éxito</div>
+                </div>
+                <div class="ts-kpi warning">
+                    <div class="ts-kpi-value">15</div>
+                    <div class="ts-kpi-label">Pendientes</div>
+                </div>
+                <div class="ts-kpi danger">
+                    <div class="ts-kpi-value">3</div>
+                    <div class="ts-kpi-label">Errores</div>
+                </div>
+            </div>
+            
+            <!-- ALERTAS -->
+            <div class="ts-alert ts-alert-info">
+                <span class="material-icons">info</span>
+                <div>Esta es una alerta informativa con información relevante.</div>
+            </div>
+            
+            <!-- GRID 2 COLUMNAS -->
+            <div class="ts-grid-2">
+                <div class="ts-card">
+                    <h3><span class="material-icons">analytics</span> Estadísticas</h3>
+                    <table class="ts-table">
+                        <tr><td>Métrica 1</td><td><strong>456</strong></td></tr>
+                        <tr><td>Métrica 2</td><td><strong>789</strong></td></tr>
+                        <tr><td>Métrica 3</td><td><span class="ts-badge ts-badge-success">Activo</span></td></tr>
+                    </table>
+                </div>
+                <div class="ts-card">
+                    <h3><span class="material-icons">trending_up</span> Progreso</h3>
+                    <p style="margin-bottom:12px;">Objetivo mensual: 75%</p>
+                    <div class="ts-progress" style="height:20px;">
+                        <div class="ts-progress-fill" style="width:75%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TABLA -->
+            <div class="ts-card">
+                <h3><span class="material-icons">list</span> Listado de Ejemplo</h3>
+                <table class="ts-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001</td>
+                            <td>Elemento 1</td>
+                            <td><span class="ts-badge ts-badge-success">Activo</span></td>
+                            <td>06/01/2026</td>
+                            <td>
+                                <button class="ts-btn ts-btn-primary" style="padding:4px 8px;font-size:12px;">Editar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td>Elemento 2</td>
+                            <td><span class="ts-badge ts-badge-warning">Pendiente</span></td>
+                            <td>05/01/2026</td>
+                            <td>
+                                <button class="ts-btn ts-btn-primary" style="padding:4px 8px;font-size:12px;">Editar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>003</td>
+                            <td>Elemento 3</td>
+                            <td><span class="ts-badge ts-badge-danger">Error</span></td>
+                            <td>04/01/2026</td>
+                            <td>
+                                <button class="ts-btn ts-btn-primary" style="padding:4px 8px;font-size:12px;">Editar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- FORMULARIO -->
+            <div class="ts-card">
+                <h3><span class="material-icons">edit</span> Formulario de Ejemplo</h3>
+                <form style="max-width:400px;">
+                    <div class="ts-form-group">
+                        <label>Nombre</label>
+                        <input type="text" class="ts-input" placeholder="Escribe aquí...">
+                    </div>
+                    <div class="ts-form-group">
+                        <label>Email</label>
+                        <input type="email" class="ts-input" placeholder="email@ejemplo.com">
+                    </div>
+                    <div class="ts-form-group">
+                        <label>Estado</label>
+                        <select class="ts-input">
+                            <option>Activo</option>
+                            <option>Inactivo</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="ts-btn ts-btn-success">
+                        <span class="material-icons">save</span> Guardar
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

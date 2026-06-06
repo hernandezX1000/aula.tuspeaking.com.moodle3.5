@@ -1,0 +1,29 @@
+{
+  "iso_week": "2025-43",
+  "module": "AI in Daily Life",
+  "class_number": 1,
+  "total_classes_in_module": 2,
+  "title": "AI in Daily Life – From Smart Speakers to Self-Driving Dreams",
+  "level": "Intermediate",
+  "duration_minutes": 60,
+  "theme": "Artificial Intelligence and its applications in daily life",
+  "objectives": [
+    "Identify and use vocabulary related to Artificial Intelligence (algorithm, automation, chatbot).",
+    "Use future forms (will and going to) to talk about plans and predictions.",
+    "Discuss advantages and challenges of AI in society using appropriate structures."
+  ],
+  "materials": {
+    "pdf": "AI IN DAILY LIFE – Intermediate.pdf",
+    "pptx": "AI IN DAILY LIFE – Intermediate.pptx",
+    "h5p_grammar": "activity-grammar-section-96915.h5p",
+    "h5p_vocabulary": "activity-vocabulary-exercise-96916.h5p",
+    "teacher_notes": "Para trabajar con el profesor.html"
+  },
+  "self_study": {
+    "description": "Activities for students to complete independently after class.",
+    "h5p_grammar": "activity-grammar-section-96915.h5p",
+    "h5p_vocabulary": "activity-vocabulary-exercise-96916.h5p"
+  },
+  "notes": "This is the first of two lessons on AI in Daily Life (Part 1 of 2). Focused on vocabulary, grammar and speaking practice for 60 minutes."
+}
+

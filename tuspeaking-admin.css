@@ -1,0 +1,69 @@
+/**
+ * tuSpeaking Admin CSS
+ * Colores de marca: #008ba3, #00bcd4, #62eeff, #454545
+ * Uso: <link rel="stylesheet" href="./tuspeaking-admin.css">
+ */
+
+:root {
+    --tus-primary: #008ba3;
+    --tus-secondary: #00bcd4;
+    --tus-light: #62eeff;
+    --tus-dark: #454545;
+    --tus-bg: #f5f5f5;
+    --tus-success: #4CAF50;
+    --tus-warning: #ff9800;
+    --tus-danger: #f44336;
+}
+
+body { font-family: 'Segoe UI', sans-serif; background: var(--tus-bg); color: var(--tus-dark); margin: 0; }
+
+/* Header */
+.tus-header { background: linear-gradient(135deg, var(--tus-primary), var(--tus-secondary)); padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.tus-header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+.tus-logo { font-size: 26px; color: white; font-weight: 300; text-decoration: none; }
+.tus-logo span { font-weight: 600; }
+.tus-header h2 { color: white; font-size: 18px; font-weight: 400; margin: 0; }
+.tus-header-btn { color: white; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 4px; text-decoration: none; }
+.tus-header-btn:hover { background: rgba(255,255,255,0.3); color: white; }
+
+/* Main */
+.tus-main { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+
+/* Cards */
+.tus-card, fieldset { background: white; border: none; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.tus-card-header, legend { background: var(--tus-secondary); color: white; padding: 12px 20px; font-size: 15px; font-weight: 500; width: 100%; border-radius: 8px 8px 0 0; margin: 0; }
+.tus-card-body { padding: 15px 20px; }
+
+/* Forms */
+select, input[type="text"], input[type="number"], input[type="date"] { border: 1px solid #ddd; border-radius: 4px; padding: 8px 12px; }
+select:focus, input:focus { outline: none; border-color: var(--tus-secondary); box-shadow: 0 0 0 2px rgba(0,188,212,0.2); }
+
+/* Buttons */
+.tus-btn { border: none; padding: 10px 24px; border-radius: 4px; cursor: pointer; transition: all 0.3s; }
+.tus-btn-primary { background: var(--tus-primary); color: white; }
+.tus-btn-primary:hover { background: var(--tus-secondary); }
+.tus-btn-secondary { background: var(--tus-secondary); color: white; }
+
+/* Tables */
+.tus-table { width: 100%; border-collapse: collapse; }
+.tus-table th { background: var(--tus-bg); padding: 12px 15px; text-align: left; font-weight: 600; }
+.tus-table td { padding: 10px 15px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.tus-table tr:hover { background: #fafafa; }
+
+/* Filter bar */
+.tus-filter-bar { background: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.tus-filter-bar label { font-weight: 600; margin: 0; }
+
+/* Alerts */
+.tus-alert { padding: 15px 20px; border-radius: 4px; margin-bottom: 15px; }
+.tus-alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid var(--tus-success); }
+.tus-alert-warning { background: #fff3e0; color: #ef6c00; border-left: 4px solid var(--tus-warning); }
+.tus-alert-danger { background: #ffebee; color: #c62828; border-left: 4px solid var(--tus-danger); }
+
+/* Loading */
+.tus-loading { padding: 50px; text-align: center; color: #666; }
+
+/* Utils */
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+i.material-icons { cursor: pointer; color: #999; }
+i.material-icons:hover { color: var(--tus-secondary); }

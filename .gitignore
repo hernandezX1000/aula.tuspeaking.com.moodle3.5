@@ -1,2 +1,81 @@
-*.bak_*
+# === Estrategia: ignorar TODO y permitir solo lo propio ===
+/*
+/.*
+
+# --- Secretos: NUNCA versionar ---
+config.php
+misclases.php
+tutorias_con_profesor.php
+acuityapi.php
+own_ZoomAPIToken.php
+modifyAcuity.php
+modifyAndCreateAcuity.php
+modifyAndCreateAcuity_NUEVO.php
+cancelAcuity.php
+
+# --- Backups y temporales: fuera ---
 *.bak
+*.bak.*
+*.bak_*
+*.bak2_*
+*.broken-*
+*~
+
+# === Permitir (des-ignorar) carpetas propias ===
+!/_tszoom/
+!/brand/
+!/feedback/
+!/reportes_cesce/
+!/reportes_1to1/
+!/reportes_evaluaciones/
+!/reportes/
+!/admin-panel/
+!/empresas/
+!/evaluaciones/
+!/portal/
+!/plantillas_email/
+!/timelog/
+!/faq/
+!/contenido/
+!/tus-content/
+!/tus-tools/
+!/shared_content/
+!/api/
+
+# === Permitir ficheros .php/.js/.css propios de la raíz ===
+!/acuitytypes.php
+!/acuityrecursive.php
+!/acuityrecursive.js
+!/acuityrecursive.css
+!/askddbb.php
+!/coding_zoom_audit.php
+!/coding_zoom_import.php
+!/coding_fundae.php
+!/courseacuity.php
+!/reporte_1to1.php
+!/reporte_cesce.php
+!/reporte_empresas.php
+!/reporte_fundae_cesce.php
+!/reporte_profesores_cesce.php
+!/own_CourseAcuity.js
+!/own_MeetingData.php
+!/own_PrintZoom.js
+!/own_PrintZoom.php
+!/own_StyleOwnTemplate.css
+!/own_ZoomAPI.php
+!/tuspeaking-admin.css
+!/webhook_jotform_evaluaciones.php
+!/sso_redirect.php
+!/.gitignore
+
+# Re-aplicar exclusiones dentro de carpetas permitidas
+*.bak
+*.bak.*
+*.bak_*
+# Basura de scripts y temporales Python
+*.pyc
+__pycache__/
+*,
+=
+[*
+TuspeakingFix2025!

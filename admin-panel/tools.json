@@ -1,0 +1,364 @@
+{
+    "cesce": {
+        "title": "🏢 CESCE",
+        "order": 1,
+        "items": [
+            {
+                "name": "Reporte Asistencia Alumnos",
+                "url": "/app/moodle/reporte_cesce.php",
+                "icon": "📊"
+            },
+            {
+                "name": "Reporte Asistencia Profesores",
+                "url": "/app/moodle/reporte_profesores_cesce.php",
+                "icon": "👨‍🏫"
+            },
+            {
+                "name": "Reporte FUNDAE",
+                "url": "/app/moodle/reporte_fundae_cesce.php",
+                "icon": "📋",
+                "new": true
+            },
+            {
+                "name": "CSV Certificados",
+                "url": "/app/moodle/reportes_cesce/certificados_cesce_25.2_v2.csv",
+                "icon": "🎓"
+            },
+            {
+                "name": "Sistema Certificados",
+                "url": "/app/moodle/certificados/",
+                "icon": "🏆"
+            },
+            {
+                "name": "Panel Evaluaciones",
+                "url": "https://aula.tuspeaking.com/app/moodle/evaluaciones/",
+                "icon": "🔗"
+            }
+        ]
+    },
+    "calidad": {
+        "title": "⭐ Calidad y Satisfacción",
+        "order": 2,
+        "items": [
+            {
+                "name": "Feedback NPS",
+                "url": "/app/moodle/feedback/admin.php",
+                "icon": "⭐",
+                "new": true
+            },
+            {
+                "name": "Formulario Público",
+                "url": "/app/moodle/feedback/",
+                "icon": "📝",
+                "external": true
+            },
+            {
+                "name": "Dashboard NPS",
+                "url": "https://aula.tuspeaking.com/app/moodle/feedback/admin_nuevo.php?s=dashboard&desde=2025-05-01&hasta=2026-01-06",
+                "icon": "📊"
+            }
+        ]
+    },
+    "profesores": {
+        "title": "👨‍🏫 Profesores",
+        "order": 3,
+        "items": [
+            {
+                "name": "Gestión Profesores",
+                "url": "/app/moodle/feedback/profesores.php",
+                "icon": "⚙️",
+                "new": true
+            },
+            {
+                "name": "Hojas de Facturación",
+                "url": "#",
+                "icon": "📄",
+                "pending": true
+            },
+            {
+                "name": "Contratos",
+                "url": "#",
+                "icon": "📝",
+                "pending": true
+            },
+            {
+                "name": "Panel de Registro de Timelogs",
+                "url": "https://aula.tuspeaking.com/app/moodle/timelog/",
+                "icon": "📊"
+            }
+        ]
+    },
+    "moodle": {
+        "title": "🎓 Moodle Admin",
+        "order": 4,
+        "items": [
+            {
+                "name": "Administración del sitio",
+                "url": "/app/moodle/admin/search.php",
+                "icon": "⚙️"
+            },
+            {
+                "name": "Categorías de cursos",
+                "url": "/app/moodle/course/management.php",
+                "icon": "📂"
+            },
+            {
+                "name": "Listado de cursos",
+                "url": "/app/moodle/course/index.php",
+                "icon": "📚"
+            },
+            {
+                "name": "Buscar participantes",
+                "url": "/app/moodle/admin/user.php",
+                "icon": "👥"
+            },
+            {
+                "name": "Alta Manual Usuarios",
+                "url": "/app/moodle/user/editadvanced.php?id=-1",
+                "icon": "👤"
+            }
+        ]
+    },
+    "zoom": {
+        "title": "🎥 Zoom / Acuity",
+        "order": 5,
+        "items": [
+            {
+                "name": "Monitor Ingesta Zoom",
+                "url": "/app/moodle/monitor_zoom.php",
+                "icon": "📊",
+                "new": true
+            },
+            {
+                "name": "Importación Manual Zoom",
+                "url": "/app/moodle/coding_zoom_import.php",
+                "icon": "📥"
+            },
+            {
+                "name": "Auditoría Datos Zoom",
+                "url": "/app/moodle/coding_zoom_audit.php",
+                "icon": "🔍"
+            },
+            {
+                "name": "Appointment Types",
+                "url": "/app/moodle/acuitytypes.php",
+                "icon": "📅"
+            },
+            {
+                "name": "Vinculación Curso-Appointment",
+                "url": "/app/moodle/courseacuity.php",
+                "icon": "🔗"
+            }
+        ]
+    },
+    "reportes": {
+        "title": "📊 Reportes Empresas",
+        "order": 6,
+        "items": [
+            {
+                "name": "Reporte 1-to-1 (Tekia, OHmyBox)",
+                "url": "/app/moodle/reporte_1to1.php",
+                "icon": "👤",
+                "new": true,
+                "coding": true
+            },
+            {
+                "name": "Reporte Empresas General",
+                "url": "/app/moodle/reporte_empresas.php",
+                "icon": "🏢",
+                "coding": true
+            },
+            {
+                "name": "Ver Reportes Generados",
+                "url": "/app/moodle/reportes_1to1/",
+                "icon": "📁"
+            }
+        ]
+    },
+    "general": {
+        "title": "⚙️ General",
+        "order": 7,
+        "items": [
+            {
+                "name": "Codificación FUNDAE",
+                "url": "/app/moodle/coding_fundae.php",
+                "icon": "🏷️"
+            },
+            {
+                "name": "Asana",
+                "url": "https://app.asana.com/0/home",
+                "icon": "✅",
+                "external": true
+            },
+            {
+                "name": "Panel Empresas y Ediciones",
+                "url": "https://aula.tuspeaking.com/app/moodle/empresas/admin.php?s=dashboard",
+                "icon": "🔗"
+            },
+            {
+                "name": "Ficha de empresa (Operaciones)",
+                "url": "https://aula.tuspeaking.com/app/moodle/empresas/operaciones.php?s=fichas",
+                "icon": "🔧"
+            }
+        ]
+    },
+    "contenidos": {
+        "title": "📚 Contenidos",
+        "order": 8,
+        "items": [
+            {
+                "name": "CMS Gestión Contenidos",
+                "url": "/app/moodle/csv/cmseligetopic.php?lvl=0",
+                "icon": "📝"
+            },
+            {
+                "name": "Generador Info Curso",
+                "url": "/app/moodle/tus-tools/course_info_generator.php?token=ts_2025_plans_9f3b1c0a7d7a4d82",
+                "icon": "ℹ️"
+            }
+        ]
+    },
+    "externos": {
+        "title": "🔗 Enlaces Externos",
+        "order": 9,
+        "items": [
+            {
+                "name": "Portal TuSpeaking",
+                "url": "https://tuspeaking.com/",
+                "icon": "🌐",
+                "external": true
+            },
+            {
+                "name": "Moodle CESCE",
+                "url": "https://cesce.tuspeaking.com",
+                "icon": "🎓",
+                "external": true
+            },
+            {
+                "name": "Acuity Scheduling",
+                "url": "https://secure.acuityscheduling.com/appointments.php",
+                "icon": "📅",
+                "external": true
+            },
+            {
+                "name": "Zoom",
+                "url": "https://www.zoom.us/meeting",
+                "icon": "🎥",
+                "external": true
+            },
+            {
+                "name": "JotForm",
+                "url": "https://eu.jotform.com/workspace/",
+                "icon": "📝",
+                "external": true
+            },
+            {
+                "name": "Holded",
+                "url": "https://app.holded.com/home",
+                "icon": "💼",
+                "external": true
+            },
+            {
+                "name": "Brevo",
+                "url": "https://app.brevo.com/",
+                "icon": "📧",
+                "external": true
+            },
+            {
+                "name": "Microsoft Teams",
+                "url": "https://teams.microsoft.com/v2/",
+                "icon": "💬",
+                "external": true
+            },
+            {
+                "name": "Microsoft Admin Center",
+                "url": "https://admin.cloud.microsoft/",
+                "icon": "🔧",
+                "external": true
+            },
+            {
+                "name": "Drive Cursos 2024-25",
+                "url": "https://drive.google.com/drive/u/0/folders/1Dz-EBnCYlg8hfxPPvSmkWmXqXAfZgulm",
+                "icon": "📁",
+                "external": true
+            },
+            {
+                "name": "Drive Cursos 2026",
+                "url": "https://drive.google.com/drive/u/0/folders/13J5v4A3di8NMaBGXToOymk0Qe-wldFAs",
+                "icon": "📁",
+                "external": true
+            }
+        ]
+    },
+    "marketing": {
+        "title": "📈 Marketing & Ventas",
+        "order": 10,
+        "items": [
+            {
+                "name": "LinkedIn - Hansel",
+                "url": "https://www.linkedin.com/in/hanselfernandez/",
+                "icon": "💼",
+                "external": true
+            },
+            {
+                "name": "Sales Navigator",
+                "url": "https://www.linkedin.com/sales/home",
+                "icon": "🎯",
+                "external": true
+            },
+            {
+                "name": "Google Ads",
+                "url": "https://ads.google.com/aw/overview?ocid=105712583",
+                "icon": "📢",
+                "external": true
+            },
+            {
+                "name": "Buffer",
+                "url": "https://publish.buffer.com/all-channels",
+                "icon": "📱",
+                "external": true
+            },
+            {
+                "name": "LinkedIn cuenta 2",
+                "url": "#",
+                "icon": "💼",
+                "pending": true
+            },
+            {
+                "name": "LinkedIn Ads",
+                "url": "#",
+                "icon": "📣",
+                "pending": true
+            }
+        ]
+    },
+    "dev": {
+        "title": "🛠️ Herramientas Dev",
+        "order": 11,
+        "items": [
+            {
+                "name": "Visor de Logs",
+                "url": "/app/moodle/admin-panel/log_viewer.php",
+                "icon": "📜"
+            },
+            {
+                "name": "Editor de Panel",
+                "url": "/app/moodle/admin-panel/editor.php",
+                "icon": "✏️",
+                "new": true
+            }
+        ]
+    },
+    "demos": {
+        "title": "🎯 Demos Comerciales",
+        "order": 0,
+        "items": [
+            {
+                "name": "Gestor de Demos",
+                "url": "/app/moodle/admin-panel/demo_manager.php",
+                "icon": "🎯",
+                "new": true
+            }
+        ]
+    }
+}

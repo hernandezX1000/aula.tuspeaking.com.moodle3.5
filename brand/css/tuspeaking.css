@@ -1,0 +1,16 @@
+/* tuSpeaking - CSS Base Corporativo */
+:root {
+    --ts-primary: #008ba3;
+    --ts-secondary: #00bcd4;
+    --ts-gradient: linear-gradient(135deg, #008ba3, #00bcd4);
+    --ts-success: #27ae60;
+    --ts-warning: #f39c12;
+    --ts-danger: #e74c3c;
+    --ts-dark: #333333;
+    --ts-gray: #666666;
+    --ts-light-gray: #f5f5f5;
+    --ts-border: #e0e0e0;
+    --ts-white: #ffffff;
+    --ts-font: 'Segoe UI', Arial, sans-serif;
+    --ts-radius: 8px;
+}

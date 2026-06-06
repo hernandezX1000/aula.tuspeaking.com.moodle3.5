@@ -1,0 +1,428 @@
+/**
+ * tuSpeaking Admin Panel - Sistema de Diseño v1.0
+ * ================================================
+ * 
+ * Nombre: tS Admin Panel
+ * Descripción: Panel de administración con sidebar lateral, KPIs, cards y tablas
+ * Fecha creación: 6 enero 2026
+ * Proyecto original: Sistema Feedback NPS
+ * 
+ * USO:
+ * 1. Incluir este CSS en tu página
+ * 2. Incluir Material Icons: <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+ * 3. Usar la estructura HTML documentada en ts-admin-panel.html
+ * 
+ * COLORES CORPORATIVOS:
+ * --ts-primary: #008ba3 (turquesa principal)
+ * --ts-secondary: #00bcd4 (turquesa claro)
+ * --ts-success: #27ae60 (verde)
+ * --ts-warning: #f39c12 (amarillo/naranja)
+ * --ts-danger: #e74c3c (rojo)
+ * --ts-dark: #1a1a2e (sidebar oscuro)
+ */
+
+/* ==================== VARIABLES ==================== */
+:root {
+    --ts-primary: #008ba3;
+    --ts-secondary: #00bcd4;
+    --ts-success: #27ae60;
+    --ts-warning: #f39c12;
+    --ts-danger: #e74c3c;
+    --ts-info: #1976d2;
+    --ts-dark: #1a1a2e;
+    --ts-light: #f5f5f5;
+    --ts-white: #ffffff;
+    --ts-text: #333333;
+    --ts-text-muted: #666666;
+    --ts-text-light: #999999;
+    --ts-border: #eeeeee;
+    --ts-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --ts-radius: 12px;
+    --ts-radius-sm: 8px;
+    --ts-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --ts-shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* ==================== RESET ==================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--ts-font);
+    background: var(--ts-light);
+    line-height: 1.6;
+    color: var(--ts-text);
+}
+
+/* ==================== LAYOUT ==================== */
+.ts-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ==================== SIDEBAR ==================== */
+.ts-sidebar {
+    width: 240px;
+    background: linear-gradient(135deg, var(--ts-primary), var(--ts-secondary));
+    padding: 20px 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.ts-sidebar-dark {
+    background: var(--ts-dark);
+}
+
+.ts-sidebar-logo {
+    color: var(--ts-white);
+    font-size: 22px;
+    font-weight: 700;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.ts-sidebar-logo small {
+    display: block;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 400;
+    margin-top: 4px;
+}
+
+.ts-nav {
+    list-style: none;
+    margin-top: 20px;
+}
+
+.ts-nav-section {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 20px 20px 8px;
+    letter-spacing: 1px;
+}
+
+.ts-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.ts-nav a:hover,
+.ts-nav a.active {
+    background: rgba(255,255,255,0.15);
+    color: var(--ts-white);
+}
+
+.ts-nav .material-icons {
+    font-size: 22px;
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.ts-main {
+    margin-left: 240px;
+    flex: 1;
+    padding: 24px;
+    max-width: 1200px;
+}
+
+.ts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.ts-header h1 {
+    color: var(--ts-text);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ts-header h1 .material-icons {
+    color: var(--ts-primary);
+}
+
+/* ==================== FILTERS ==================== */
+.ts-filters {
+    background: var(--ts-white);
+    padding: 16px;
+    border-radius: var(--ts-radius-sm);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: var(--ts-shadow);
+}
+
+.ts-filters input,
+.ts-filters select {
+    padding: 8px 12px;
+    border: 1px solid var(--ts-border);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: var(--ts-font);
+}
+
+.ts-filters input:focus,
+.ts-filters select:focus {
+    outline: none;
+    border-color: var(--ts-primary);
+}
+
+/* ==================== KPIs ==================== */
+.ts-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.ts-kpi {
+    background: var(--ts-white);
+    padding: 20px;
+    border-radius: var(--ts-radius);
+    text-align: center;
+    box-shadow: var(--ts-shadow);
+}
+
+.ts-kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ts-primary);
+}
+
+.ts-kpi-label {
+    font-size: 13px;
+    color: var(--ts-text-muted);
+    margin-top: 4px;
+}
+
+.ts-kpi-sub {
+    font-size: 11px;
+    color: var(--ts-text-light);
+    margin-top: 4px;
+}
+
+.ts-kpi.success .ts-kpi-value { color: var(--ts-success); }
+.ts-kpi.warning .ts-kpi-value { color: var(--ts-warning); }
+.ts-kpi.danger .ts-kpi-value { color: var(--ts-danger); }
+
+/* ==================== CARDS ==================== */
+.ts-card {
+    background: var(--ts-white);
+    border-radius: var(--ts-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--ts-shadow);
+}
+
+.ts-card h3 {
+    color: var(--ts-text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+.ts-card h3 .material-icons {
+    color: var(--ts-primary);
+    font-size: 20px;
+}
+
+.ts-card-highlight {
+    background: #e3f2fd;
+    border-left: 4px solid var(--ts-primary);
+}
+
+/* ==================== TABLES ==================== */
+.ts-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ts-table th,
+.ts-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--ts-border);
+}
+
+.ts-table th {
+    color: var(--ts-text-muted);
+    font-weight: 500;
+    font-size: 13px;
+    background: #f9f9f9;
+}
+
+.ts-table tr:hover {
+    background: var(--ts-light);
+}
+
+/* ==================== BADGES ==================== */
+.ts-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ts-badge-success { background: #e8f5e9; color: var(--ts-success); }
+.ts-badge-warning { background: #fff8e1; color: var(--ts-warning); }
+.ts-badge-danger { background: #ffebee; color: var(--ts-danger); }
+.ts-badge-info { background: #e3f2fd; color: var(--ts-info); }
+.ts-badge-primary { background: #e0f7fa; color: var(--ts-primary); }
+
+/* ==================== BUTTONS ==================== */
+.ts-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: var(--ts-font);
+}
+
+.ts-btn-primary { background: var(--ts-primary); color: var(--ts-white); }
+.ts-btn-primary:hover { background: #007a91; }
+
+.ts-btn-success { background: var(--ts-success); color: var(--ts-white); }
+.ts-btn-success:hover { background: #229954; }
+
+.ts-btn-danger { background: var(--ts-danger); color: var(--ts-white); }
+.ts-btn-danger:hover { background: #c0392b; }
+
+.ts-btn-warning { background: var(--ts-warning); color: var(--ts-white); }
+.ts-btn-warning:hover { background: #e67e22; }
+
+.ts-btn .material-icons { font-size: 18px; }
+
+/* ==================== FORMS ==================== */
+.ts-form-group {
+    margin-bottom: 16px;
+}
+
+.ts-form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ts-text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.ts-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--ts-border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--ts-font);
+}
+
+.ts-input:focus {
+    outline: none;
+    border-color: var(--ts-primary);
+    box-shadow: 0 0 0 3px rgba(0,139,163,0.1);
+}
+
+/* ==================== PROGRESS ==================== */
+.ts-progress {
+    height: 8px;
+    background: var(--ts-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ts-progress-fill {
+    height: 100%;
+    background: var(--ts-primary);
+    transition: width 0.3s;
+}
+
+/* ==================== ALERTS ==================== */
+.ts-alert {
+    padding: 16px;
+    border-radius: var(--ts-radius-sm);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.ts-alert-success { background: #e8f5e9; color: #2e7d32; }
+.ts-alert-warning { background: #fff8e1; color: #f57c00; }
+.ts-alert-danger { background: #ffebee; color: #c62828; }
+.ts-alert-info { background: #e3f2fd; color: #1565c0; }
+
+.ts-alert .material-icons { font-size: 20px; margin-top: 2px; }
+
+/* ==================== GRID ==================== */
+.ts-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.ts-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.ts-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+    .ts-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .ts-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .ts-sidebar {
+        width: 60px;
+    }
+    .ts-sidebar-logo,
+    .ts-nav span:not(.material-icons),
+    .ts-nav-section {
+        display: none;
+    }
+    .ts-main {
+        margin-left: 60px;
+        padding: 16px;
+    }
+    .ts-grid-2,
+    .ts-grid-3,
+    .ts-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .ts-sidebar { display: none; }
+    .ts-main { margin-left: 0; }
+    .ts-kpis { grid-template-columns: repeat(2, 1fr); }
+}

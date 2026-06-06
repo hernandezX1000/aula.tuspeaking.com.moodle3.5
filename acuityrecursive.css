@@ -1,0 +1,215 @@
+html {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none;
+}
+header {
+	height: 100px;
+	padding-top: 30px;
+}
+header span {
+	font-weight: normal;
+}
+#profesores, #dayhour, #progresscircle, #repetitions, #confirmdays {
+	max-width: 700px;
+	margin: auto;
+	border: lightgrey 1px solid;
+	padding: 10px;
+}
+#progresscircle {
+	border: 0px;
+}
+#dayhour, #repetitions, #confirmdays {
+	border-top: 0px;
+}
+.teacher-group {
+	max-width: 95%;
+	margin: auto;
+}
+.teacher.active {
+	background-color: #97f2ff;
+}
+.teacher {
+	cursor: pointer;
+	padding-bottom: 5px;
+	padding-top: 5px;
+	padding-left: 5px;
+	margin-top: 5px;
+	border: whitesmoke 0.5px solid;
+}
+.teacher:hover {
+	background-color: #f7f7f7;
+}
+.teacher.active:hover {
+	background-color: #97f2ff;
+}
+#progresscircle div div p {
+	display: inline-block;
+	padding-left: 20px;
+}
+#dayhour table {
+	width: 100%;
+}
+#dayhour table thead {
+	background-color: whitesmoke;
+}
+#dayhour table thead span {
+	font-weight: normal;
+}
+#dayhour table tbody td.hourtable {
+	padding: 8px;
+}
+#dayhour table tbody td.hourtable span {
+	cursor: pointer;
+	padding: 5px 10px;
+	border-radius: 7.5px;
+}
+#dayhour table tbody td.hourtable span:hover {
+	border: #00bcd4 2px solid;
+	color: #00bcd4;
+	margin: -2px;
+}
+#dayhour table tbody td.hourtable span.hourselected {
+	background-color: #00bcd4;
+	color: white;
+}
+#dayhour table tbody td.hourtable span.hourselected:hover {
+	border: none;
+	color: white;
+}
+#otherdays {
+    display: flex;
+    justify-content: space-between;
+	padding-bottom: 10px;
+}
+#moredays {
+	text-align: right;
+	color: grey;
+	text-decoration: underline;
+}
+#lessdays {
+	text-align: right;
+	color: grey;
+	text-decoration: underline;
+}
+#moredays span, #lessdays span {
+	cursor: pointer;
+}
+#moredays span i {
+	top: 6px;
+    position: relative;
+    right: 6px;
+    font-weight: bold;
+}
+#lessdays span i {
+	top: 6px;
+    position: relative;
+    left: 6px;
+    font-weight: bold;
+}
+div.selecteddays {
+	padding: 3px 10px;
+	margin: 1px;
+}
+div.lesssized {
+	width: 400px;
+	display: inline-block;
+}
+div.isvalid {
+	background-color: #5b9c5b;
+}
+div.isnotvalid {
+	background-color: #ff7676;
+}
+div.deleted {
+	background-color: black;
+}
+i.restore {
+	color: white;
+}
+div.selecteddays i {
+	float: right;
+}
+div.selecteddays i:hover {
+	cursor: pointer;
+}
+.hide {
+	display: none;
+}
+.center {
+	text-align: center;
+}
+
+
+/* Progress circle */
+
+.circular {
+  animation: rotate 2s linear infinite;
+  width: 50px;
+  height: 50px;
+}
+
+.path {
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+  stroke-linecap: round;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
+@keyframes color {
+  100%, 0% ,40% ,66% ,80%, 90% {
+    stroke: grey;
+  }
+}
+/**/
+
+@media only screen and (max-width: 600px) {
+	thead {
+		font-size: 15px;
+	}
+	#dayhour<div {
+		text-align: left;
+	}
+	#seltimezone {
+		width: 280px;
+	}
+	#dayhour table tbody td.hourtable {
+		padding: 8px 0px;
+	}
+	#confirmdays {
+		font-size: 14px;
+	}
+	div.lesssized {
+		width: 320px;
+	}
+	div.lesssized i {
+		font-size: 20px;
+	}
+	#editedday-button, #editeddayhour-button {
+		margin-bottom: 10px;
+	}
+}
