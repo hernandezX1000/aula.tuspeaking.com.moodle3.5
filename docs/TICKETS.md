@@ -48,3 +48,31 @@ Pendientes técnicos. Marcar [x] al completar.
 - [ ] Crear un token nuevo (sin compartirlo en ningún sitio)
 - [ ] Actualizar ~/.git-credentials con el token nuevo
 - [ ] Revocar el token expuesto en https://github.com/settings/tokens
+
+---
+
+## TICKET #4 — Contraseñas de BD en crontab (MEDIA)
+
+**Estado:** [ ] Pendiente
+**Prioridad:** Media (parte del #1)
+
+**Problema:** El crontab tiene las contraseñas de las dos BD en texto plano
+en los comandos mysqldump (BD principal y BD CESCE remota).
+
+**Solución:** crear ~/.my.cnf con permisos 600:
+    [client]
+    user=moodle35
+    password=<password>
+y cambiar los mysqldump a `mysqldump --defaults-extra-file=~/.my.cnf ...`
+sin la contraseña en la línea. Hacer junto con la rotación del #1.
+
+---
+
+## TICKET #5 — Vigilancia de disco y swap (BAJA)
+
+**Estado:** [ ] Pendiente
+**Prioridad:** Baja (vigilancia)
+
+- Disco al 75% (junio 2026), creciendo. filedir = 247 GB de archivos de cursos.
+  Cuando llegue ~90%, archivar/eliminar cursos antiguos DESDE Moodle (no a mano).
+- Swap en 0 B: sin colchón si la RAM se llena. Valorar añadir swapfile.
