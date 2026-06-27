@@ -93,6 +93,76 @@ def fetch_grades_last_24h(conn):
         return cur.fetchall()
 
 
+def fetch_quiz_grades_last_24h(conn):
+    """Quiz essays calificados en las últimas 24h por el quiz grader (userid=14)."""
+    sql = """
+        SELECT
+            qas.timecreated,
+            FROM_UNIXTIME(qas.timecreated)  AS graded_at,
+            qas.fraction,
+            qas.state,
+            qat.maxmark,
+            q.questiontext                  AS question_text,
+            u.firstname,
+            u.lastname,
+            u.email                         AS student_email,
+            c.fullname                      AS course_name,
+            qz.name                         AS quiz_name,
+            neg.value                       AS feedback
+        FROM mdl_question_attempt_steps qas
+        JOIN mdl_question_attempt_step_data neg
+            ON neg.attemptstepid = qas.id AND neg.name = '-comment'
+        JOIN mdl_question_attempts qat ON qat.id = qas.questionattemptid
+        JOIN mdl_question q             ON q.id  = qat.questionid
+        JOIN mdl_quiz_attempts qa       ON qa.uniqueid = qat.questionusageid
+        JOIN mdl_quiz qz                ON qz.id = qa.quiz
+        JOIN mdl_course c               ON c.id  = qz.course
+        JOIN mdl_user u                 ON u.id  = qa.userid
+        WHERE qas.userid IN (14)
+          AND qas.state IN ('mangrright', 'mangrpartial', 'mangrwrong')
+          AND qas.timecreated >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 24 HOUR))
+        ORDER BY qas.timecreated DESC
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
+def fetch_quiz_pending_new(conn):
+    """Nuevos quiz attempts con essays en needsgrading recibidos en las últimas 24h."""
+    sql = """
+        SELECT
+            qa.id                           AS quiz_attempt_id,
+            FROM_UNIXTIME(qa.timestart)     AS started_at,
+            COUNT(DISTINCT qat.id)          AS essay_count,
+            u.firstname,
+            u.lastname,
+            c.fullname                      AS course_name,
+            qz.name                         AS quiz_name
+        FROM mdl_quiz_attempts qa
+        JOIN mdl_quiz qz                ON qz.id = qa.quiz
+        JOIN mdl_course c               ON c.id  = qz.course
+        JOIN mdl_user u                 ON u.id  = qa.userid
+        JOIN mdl_question_attempts qat  ON qat.questionusageid = qa.uniqueid
+        JOIN mdl_question q             ON q.id = qat.questionid AND q.qtype = 'essay'
+        JOIN mdl_question_attempt_steps last_step
+            ON last_step.questionattemptid = qat.id
+            AND last_step.sequencenumber = (
+                SELECT MAX(s2.sequencenumber)
+                FROM mdl_question_attempt_steps s2
+                WHERE s2.questionattemptid = qat.id
+            )
+        WHERE qa.state = 'finished'
+          AND last_step.state = 'needsgrading'
+          AND qa.timestart >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 24 HOUR))
+        GROUP BY qa.id, u.firstname, u.lastname, c.fullname, qz.name, qa.timestart
+        ORDER BY qa.timestart DESC
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return cur.fetchall()
+
+
 def fetch_ips_last_24h(conn):
     """IPs registradas en mdl_logstore_standard_log para las correcciones del autocorrector."""
     sql = """
@@ -181,7 +251,115 @@ def truncate(text, n=120):
     return text[:n] + '…' if len(text) > n else text
 
 
-def build_html(grades, ip_index, errors, runs_ok, runs_error, log_lines):
+def build_quiz_section(quiz_grades, quiz_pending):
+    """Genera la sección HTML de quiz essays para el digest."""
+    COLOR_HDR    = '#2c3e50'
+    COLOR_OK     = '#27ae60'
+    COLOR_WARN   = '#e67e22'
+    COLOR_ERR    = '#e74c3c'
+    COLOR_ROW    = '#f9f9f9'
+
+    STATE_LABELS = {
+        'mangrright':   ('✔ Correcto',  COLOR_OK),
+        'mangrpartial': ('◑ Parcial',   COLOR_WARN),
+        'mangrwrong':   ('✗ Incorrecto', COLOR_ERR),
+    }
+
+    # Tabla de essays corregidos
+    if not quiz_grades:
+        graded_table = '<p style="color:#aaa">Sin quiz essays calificados en las últimas 24 horas.</p>'
+    else:
+        rows = ''
+        for i, g in enumerate(quiz_grades):
+            bg         = '#ffffff' if i % 2 == 0 else COLOR_ROW
+            state_lbl, state_color = STATE_LABELS.get(g['state'], (g['state'], '#999'))
+            fraction   = float(g['fraction'] or 0)
+            maxmark    = float(g['maxmark'] or 1)
+            mark_str   = str(round(fraction * maxmark, 2)) + '/' + str(maxmark)
+            graded_ts  = str(g['graded_at'])[:16] if g['graded_at'] else '—'
+            q_short    = truncate(g['question_text'], 60)
+            feedback   = truncate(g['feedback'], 100)
+
+            rows += (
+                '<tr style="background:' + bg + '">'
+                '<td style="padding:8px 10px">' + graded_ts + '</td>'
+                '<td style="padding:8px 10px"><strong>' + g['firstname'] + ' ' + g['lastname'] + '</strong><br>'
+                '<span style="color:#666;font-size:12px">' + g['student_email'] + '</span></td>'
+                '<td style="padding:8px 10px;font-size:12px">' + g['course_name'] + '<br>'
+                '<em>' + g['quiz_name'] + '</em></td>'
+                '<td style="padding:8px 10px;font-size:12px;color:#555">' + q_short + '</td>'
+                '<td style="padding:8px 10px;text-align:center;font-weight:bold">' + mark_str + '</td>'
+                '<td style="padding:8px 10px;color:' + state_color + ';font-size:12px">' + state_lbl + '</td>'
+                '<td style="padding:8px 10px;font-size:12px;color:#555">' + feedback + '</td>'
+                '</tr>'
+            )
+
+        graded_table = (
+            '<div style="overflow-x:auto">'
+            '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+            '<thead><tr style="background:' + COLOR_HDR + ';color:#fff">'
+            '<th style="padding:10px;text-align:left;white-space:nowrap">Timestamp</th>'
+            '<th style="padding:10px;text-align:left">Alumno</th>'
+            '<th style="padding:10px;text-align:left">Curso / Quiz</th>'
+            '<th style="padding:10px;text-align:left">Pregunta</th>'
+            '<th style="padding:10px;text-align:center">Nota</th>'
+            '<th style="padding:10px;text-align:left">Estado</th>'
+            '<th style="padding:10px;text-align:left">Feedback</th>'
+            '</tr></thead>'
+            '<tbody>' + rows + '</tbody>'
+            '</table></div>'
+        )
+
+    # Tabla de nuevas entregas pendientes
+    if not quiz_pending:
+        pending_table = '<p style="color:#aaa">Sin nuevos quiz attempts con essays pendientes en 24h.</p>'
+    else:
+        rows_p = ''
+        for i, p in enumerate(quiz_pending):
+            bg = '#ffffff' if i % 2 == 0 else COLOR_ROW
+            started = str(p['started_at'])[:16] if p['started_at'] else '—'
+            rows_p += (
+                '<tr style="background:' + bg + '">'
+                '<td style="padding:8px 10px">' + started + '</td>'
+                '<td style="padding:8px 10px"><strong>' + p['firstname'] + ' ' + p['lastname'] + '</strong></td>'
+                '<td style="padding:8px 10px;font-size:12px">' + p['course_name'] + '<br>'
+                '<em>' + p['quiz_name'] + '</em></td>'
+                '<td style="padding:8px 10px;text-align:center;color:' + COLOR_WARN + ';font-weight:bold">'
+                + str(p['essay_count']) + ' preguntas</td>'
+                '</tr>'
+            )
+        pending_table = (
+            '<div style="overflow-x:auto">'
+            '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+            '<thead><tr style="background:#555;color:#fff">'
+            '<th style="padding:10px;text-align:left">Recibido</th>'
+            '<th style="padding:10px;text-align:left">Alumno</th>'
+            '<th style="padding:10px;text-align:left">Curso / Quiz</th>'
+            '<th style="padding:10px;text-align:center">Essays pendientes</th>'
+            '</tr></thead>'
+            '<tbody>' + rows_p + '</tbody>'
+            '</table></div>'
+        )
+
+    n_graded  = len(quiz_grades)
+    n_pending = len(quiz_pending)
+
+    return (
+        '<div style="padding:24px 28px;border-top:2px solid #eee">'
+        '<h2 style="margin:0 0 6px;font-size:16px;color:' + COLOR_HDR + '">Quiz Essays — Calificados 24h</h2>'
+        '<p style="margin:0 0 16px;font-size:13px;color:#666">'
+        + str(n_graded) + ' preguntas essay calificadas por hansel_quiz_grader</p>'
+        + graded_table +
+        '<h2 style="margin:24px 0 6px;font-size:16px;color:' + COLOR_HDR + '">Quiz Essays — Nuevas entregas pendientes</h2>'
+        '<p style="margin:0 0 16px;font-size:13px;color:#666">'
+        + str(n_pending) + ' quiz attempts con essays sin calificar llegados en 24h</p>'
+        + pending_table +
+        '</div>'
+    )
+
+
+def build_html(grades, ip_index, errors, runs_ok, runs_error, log_lines,
+               quiz_grades=None, quiz_pending=None):
     today = datetime.now().strftime('%d/%m/%Y')
     total = len(grades)
 
@@ -306,6 +484,9 @@ def build_html(grades, ip_index, errors, runs_ok, runs_error, log_lines):
 
         + errors_html +
 
+        '<!-- Quiz essays -->'
+        + build_quiz_section(quiz_grades or [], quiz_pending or []) +
+
         '<!-- Footer -->'
         '<div style="background:#f4f4f4;padding:14px 28px;font-size:11px;color:#999;border-top:1px solid #eee">'
         'Script: /home/aulatuspeaking/scripts/hansel_autocorrect.py &nbsp;·&nbsp;'
@@ -373,18 +554,23 @@ def main():
     # 2. Consultar BD
     try:
         conn = get_conn()
-        grades   = fetch_grades_last_24h(conn)
-        ip_index = fetch_ips_last_24h(conn)
+        grades       = fetch_grades_last_24h(conn)
+        ip_index     = fetch_ips_last_24h(conn)
+        quiz_grades  = fetch_quiz_grades_last_24h(conn)
+        quiz_pending = fetch_quiz_pending_new(conn)
         conn.close()
-        print(f"  BD: {len(grades)} entregas procesadas en 24h")
+        print(f"  BD: {len(grades)} entregas assign | {len(quiz_grades)} quiz essays calificados | {len(quiz_pending)} quiz pendientes nuevos")
     except Exception as e:
         print(f"  ERROR conectando BD: {e}")
-        grades   = []
-        ip_index = {}
+        grades       = []
+        ip_index     = {}
+        quiz_grades  = []
+        quiz_pending = []
         errors.append(f"[ERROR BD] {e}")
 
     # 3. Construir HTML
-    html = build_html(grades, ip_index, errors, runs_ok, runs_error, log_lines)
+    html = build_html(grades, ip_index, errors, runs_ok, runs_error, log_lines,
+                      quiz_grades=quiz_grades, quiz_pending=quiz_pending)
 
     # 4. Guardar copia local para debug
     debug_path = '/home/aulatuspeaking/logs/hansel_digest_last.html'
