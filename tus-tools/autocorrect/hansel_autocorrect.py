@@ -26,33 +26,45 @@ import time
 import sys
 import re
 import json
+import os
 from datetime import datetime
 
 # ──────────────────────────────────────────────────────────────
-# CONFIGURATION
+# CONFIGURATION — loaded from /home/aulatuspeaking/.env
 # ──────────────────────────────────────────────────────────────
+
+def _load_env(path='/home/aulatuspeaking/.env'):
+    """Load key=value pairs from .env into os.environ (does not override existing vars)."""
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+
+_load_env()
 
 DB_CONFIG = {
     'host':      'localhost',
-    'user':      'moodle35',
-    'password':  'TuspeakingFix2025!',
-    'database':  'aulatuspeaking35',
+    'user':      os.environ.get('MOODLE_DB_USER', 'moodle35'),
+    'password':  os.environ.get('MOODLE_DB_PASSWORD', ''),
+    'database':  os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35'),
     'charset':   'utf8mb4',
     'collation': 'utf8mb4_unicode_ci',
     'autocommit': False,
 }
 
-# API key: set via environment variable ANTHROPIC_API_KEY
-# On server: add to ~/.bashrc → export ANTHROPIC_API_KEY='sk-ant-...'
-import os as _os
-CLAUDE_API_KEY = _os.environ.get('ANTHROPIC_API_KEY', '')
+CLAUDE_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 
 # Model: haiku = fastest/cheapest for grading; sonnet for higher quality
 CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
 # Moodle REST API
 MOODLE_WS_URL   = 'https://aula.tuspeaking.com/app/moodle/webservice/rest/server.php'
-MOODLE_WS_TOKEN = '7d20a2f47d0721c57889e5e6b2819de9'  # hfernandez (user 14)
+MOODLE_WS_TOKEN = os.environ.get('MOODLE_WS_TOKEN', '')  # hfernandez (user 14)
 
 # Moodle user IDs for graders
 GRADER_HANSEL   = 14    # hfernandez@tuspeaking.com
@@ -539,7 +551,10 @@ You receive the automatic transcription of a student's recording.
 STRICT RULES:
 - Grade: 1.0-10.0 (steps of 0.5). For French/Portuguese courses multiply by 10 (caller handles scaling).
 - Feedback: 2-4 sentences, no emojis, do not mention the grade number.
-- Be encouraging. Mention one concrete strength and one area to improve.
+- MANDATORY: Reference something the student actually said — quote a word, phrase, or specific idea from the transcription.
+- MANDATORY: If there is a grammar or vocabulary error in the transcription, quote it and give the correction in the format: Correction: "wrong phrase" → "correct phrase".
+- If no clear errors exist, name a specific aspect of what they said that could be expanded or improved.
+- NEVER use generic phrases that could apply to any student ("speak more slowly", "add more details") unless tied to something specific in this transcription.
 - If transcription is empty or incoherent (< 10 words), grade 3.0 and say the audio could not be assessed.
 - Evaluate: fluency, vocabulary range, grammar, task completion, clarity.
 
@@ -566,7 +581,7 @@ def call_claude_audio(transcription: str, level: str, assign_name: str, lang: st
 
     response = client.messages.create(
         model=CLAUDE_MODEL,
-        max_tokens=300,
+        max_tokens=450,
         system=AUDIO_GRADING_SYSTEM,
         messages=[{'role': 'user', 'content': user_message}],
     )
