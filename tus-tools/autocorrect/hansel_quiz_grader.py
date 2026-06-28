@@ -36,14 +36,27 @@ import json
 import os
 
 # ──────────────────────────────────────────────────────────────
-# CONFIGURATION
+# CONFIGURATION — cargada desde /home/aulatuspeaking/.env
 # ──────────────────────────────────────────────────────────────
+
+def _load_env(path='/home/aulatuspeaking/.env'):
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+
+_load_env()
 
 DB_CONFIG = {
     'host':     'localhost',
-    'user':     'moodle35',
-    'password': 'TuspeakingFix2025!',
-    'database': 'aulatuspeaking35',
+    'user':     os.environ.get('MOODLE_DB_USER', 'moodle35'),
+    'password': os.environ.get('MOODLE_DB_PASSWORD', ''),
+    'database': os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35'),
     'charset':  'utf8mb4',
     'autocommit': False,
 }

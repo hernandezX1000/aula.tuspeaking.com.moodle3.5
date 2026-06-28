@@ -18,13 +18,26 @@ from email.mime.text import MIMEText
 import pymysql
 
 # ──────────────────────────────────────────────────────────────
-# CONFIGURACIÓN
+# CONFIGURACIÓN — cargada desde /home/aulatuspeaking/.env
 # ──────────────────────────────────────────────────────────────
 
+def _load_env(path='/home/aulatuspeaking/.env'):
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            k, v = line.split('=', 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+
+_load_env()
+
 DB_HOST     = 'localhost'
-DB_USER     = 'moodle35'
-DB_PASS     = 'TuspeakingFix2025!'
-DB_NAME     = 'aulatuspeaking35'
+DB_USER     = os.environ.get('MOODLE_DB_USER', 'moodle35')
+DB_PASS     = os.environ.get('MOODLE_DB_PASSWORD', '')
+DB_NAME     = os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35')
 
 LOG_FILE    = '/home/aulatuspeaking/logs/hansel_autocorrect.log'
 DIGEST_TO   = 'hfernandez@tuspeaking.com'
