@@ -351,7 +351,7 @@ The student has written translations of Spanish phrases into English.
 Evaluate if each translation is correct, natural, and appropriate for the level.
 
 Return ONLY a valid JSON object:
-{"fraction": 0.8, "feedback": "Good effort. Most translations are accurate and natural. 'Town hall' is more common than 'council house' in British English."}
+{"fraction": 0.8, "feedback": "Most translations are accurate and natural. Correction: \"la reunion del ayuntamiento\" → \"the town hall meeting\" is more natural than \"the council house meeting\"."}
 
 fraction rules:
 - 1.0 = all or nearly all translations correct and natural
@@ -361,8 +361,11 @@ fraction rules:
 feedback rules:
 - 1-3 sentences in English
 - No emojis
-- Mention one strength and one area to improve
+- MANDATORY: Quote at least one specific translation from the student's answer and comment on it.
+- MANDATORY: If there is an error, use the format: Correction: "wrong phrase" → "correct phrase".
+- If all translations are correct, quote one and explain why it is natural or what could be even more idiomatic.
 - Do NOT state the numeric score
+- NEVER write generic feedback not tied to a specific phrase in this submission.
 """
 
 WRITING_SYSTEM = """\
@@ -370,7 +373,7 @@ You are an English language teacher at a corporate academy (tuSpeaking).
 The student has answered a short writing or description question in a quiz.
 
 Return ONLY a valid JSON object:
-{"fraction": 0.75, "feedback": "Your description is clear and uses good vocabulary for this level. Work on adding more detail and varying sentence structure."}
+{"fraction": 0.75, "feedback": "Your use of 'however' to contrast ideas shows good cohesion. Correction: \"I am agree\" → \"I agree\" — 'agree' is not used with 'am'."}
 
 fraction rules:
 - 1.0 = excellent, task completed fully, appropriate vocabulary and grammar
@@ -382,7 +385,10 @@ fraction rules:
 feedback rules:
 - 2-3 sentences in English
 - No emojis
-- Mention one strength and one improvement
+- MANDATORY: Quote a specific word or phrase from the student's answer to anchor your feedback.
+- MANDATORY: If there is a grammar or vocabulary error, quote it and give the correction in the format: Correction: "wrong phrase" → "correct phrase".
+- If no errors, quote something specific and explain what could be expanded or improved.
+- NEVER write generic feedback not tied to something in this specific answer.
 - Do NOT state the numeric score
 """
 

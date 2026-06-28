@@ -478,7 +478,10 @@ STRICT RULES:
 - Feedback must be 2 to 4 sentences in English.
 - NO emojis anywhere in the feedback.
 - Do NOT mention the numeric grade in the feedback text.
-- Be encouraging but honest. Mention one specific strength and one area to improve.
+- MANDATORY: Quote a specific word, phrase, or sentence from the student's text to anchor your feedback.
+- MANDATORY: If there is a grammar or vocabulary error, quote it and give the correction in the format: Correction: "wrong phrase" → "correct phrase".
+- If no clear errors exist, quote a specific phrase they wrote and explain what could be expanded or improved.
+- NEVER use generic phrases not tied to this specific text ("use more vocabulary", "improve your grammar") without quoting an example from this submission.
 - Focus on: task completion, vocabulary range, grammar accuracy, coherence.
 
 Respond ONLY with a valid JSON object in this exact format (no extra text):
