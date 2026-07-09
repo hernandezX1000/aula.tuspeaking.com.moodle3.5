@@ -125,3 +125,26 @@ curl -s -u "<ACUITY_USER>:<ACUITY_KEY>" \
 
 **Relacionado:** blindar el sync contra la reversión de slots "multi-slot fantasma"
 (estado 3 al reprocesar el slot hijo sin datos propios en Zoom).
+
+---
+
+## TICKET #8 — Clases atascadas en "Verificando asistencia" (ALTA) — reproceso hecho, prevención pendiente
+
+**Estado:** [x] Reproceso puntual hecho (2026-07-09) · [ ] Prevención pendiente
+**Prioridad:** Alta
+
+**Problema:** clases dadas figuran como pendientes (estado 3) porque el sync (a) filtra
+por fecha de reserva, no de clase, y (b) solo re-baja participantes de un puñado de
+reuniones por corrida. La asistencia existe en Zoom pero no se importa. Infla las
+"pendientes" de los paneles (detonante: e2y 2026.2).
+
+**Reproceso aplicado:** de 252 atascadas → **48 acreditadas** (asistencia real verificada
+contra Zoom), 104 no-show reales, 79 con 404 (no celebradas/purgadas). Herramienta:
+`docs/ops/reverify_stuck_classes.py`. Detalle y `apply_credit.sql`:
+`docs/2026-07-09-reproceso-verificando.md`.
+
+**Prevención (pendiente):**
+- [ ] Programar `reverify_stuck_classes.py` + apply como cron nocturno tras el sync (05:30).
+- [ ] Corregir el sync: incluir clases pasadas en estado 3 por `acuity_datetime`, y re-bajar
+  participantes de TODAS las reuniones pasadas sin participantes (no solo un puñado).
+- [ ] Ampliar `check_zoom_sync.sh` para alertar si hay demasiadas clases estado 3 con fecha pasada.
