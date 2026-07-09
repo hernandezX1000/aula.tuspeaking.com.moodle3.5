@@ -76,3 +76,52 @@ sin la contraseña en la línea. Hacer junto con la rotación del #1.
 - Disco al 75% (junio 2026), creciendo. filedir = 247 GB de archivos de cursos.
   Cuando llegue ~90%, archivar/eliminar cursos antiguos DESDE Moodle (no a mano).
 - Swap en 0 B: sin colchón si la RAM se llena. Valorar añadir swapfile.
+
+---
+
+## TICKET #6 — Charset utf8mb4 en el flujo de ingesta Zoom/Acuity (ALTA) — RESUELTO
+
+**Estado:** [x] Resuelto (2026-07-09)
+**Prioridad:** Alta
+
+**Problema:** las 5 tablas del sync (`mdl_i3code_acuityZoom`, `_participants`,
+`_informe`, `own_acuity`, `own_acuity_course`) estaban en `latin1`. El sync diario
+fallaba al escribir filas con caracteres no-latin1 (nombres chinos de Rubi) y las
+saltaba → esos alumnos sin panel. Venía fallando ~12-142 filas/día desde 2023.
+
+**Fix aplicado:** `ALTER TABLE ... CONVERT TO CHARACTER SET utf8mb4` en las 5 tablas.
+Migración: `docs/migrations/2026-07-09-charset-utf8mb4.sql`. Doc completo:
+`docs/2026-07-09-fix-sync-ingesta.md`. Monitor actualizado: `docs/ops/check_zoom_sync.sh`.
+
+**Residual (bajo impacto):** ~14 clases antiguas fallan al insertar (no charset, no
+longitud; causa exacta sin determinar). No afecta paneles. Alerta con umbral.
+
+---
+
+## TICKET #7 — Feeder de own_acuity no importa reservas nuevas/reprogramadas (MEDIA)
+
+**Estado:** [ ] Pendiente
+**Prioridad:** Media
+
+**Problema:** `i3code_download_zoomdata.php` solo procesa lo que ya está en
+`own_acuity` (`WHERE lastmodified >= hace 60 días`); **no inserta citas nuevas** de
+Acuity. Cuando un alumno crea/reprograma una reserva después del alta y esa cita no
+llega a `own_acuity`, queda invisible para el sync → clases dadas que no constan.
+Caso real: Martin Specht (IberAssekuranz), 6 clases dadas insertadas a mano el 2026-07-08.
+
+**Diagnóstico (Acuity vs own_acuity):**
+```
+curl -s -u "<ACUITY_USER>:<ACUITY_KEY>" \
+  "https://acuityscheduling.com/api/v1/appointments?email=<email>&minDate=<d>&maxDate=<d>&max=50"
+-- comparar con: SELECT acuityid FROM own_acuity WHERE studentid=<uid>;
+```
+
+**Solución propuesta (job de reconciliación):**
+- [ ] Localizar el proceso/webhook que rellena `own_acuity` y por qué no captura las reprogramaciones.
+- [ ] Añadir un job (o ampliar el sync) que consulte la Acuity API por rango de fechas
+  (por calendario/tipo) e **inserte en `own_acuity`** las citas que falten, para que el
+  sync nocturno las recoja solo. Reusa `getAcuityAPI` y la conexión de BD de Moodle.
+- [ ] Idempotente (no duplicar por `acuityid`), con `--dry-run` por defecto.
+
+**Relacionado:** blindar el sync contra la reversión de slots "multi-slot fantasma"
+(estado 3 al reprocesar el slot hijo sin datos propios en Zoom).
