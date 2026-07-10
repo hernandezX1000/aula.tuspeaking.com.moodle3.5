@@ -53,6 +53,21 @@ Estado actual: **Fase 1 en producción** (corrección automática de writings �
 
 ---
 
+## 6. Migración a Hetzner (proyecto grande)
+
+**Objetivo:** sacar todo del hosting viejo (Dinaserver `vl24689`) al servidor Hetzner `tuspeaking-lms` (CPX22, 46.225.232.27, Ubuntu 24.04, 400 GB volumen). Migrar: **aula.tuspeaking.com** (Moodle 3.5), **cesce.tuspeaking.com** (misma caja actual) y **baiwingin** (WordPress antiguo, genera emails de profesores, hoy en Cloudflare solo para reenvío).
+
+**Estado de la caja Hetzner (revisado 10-jul):** segura y sólida (ufw activo 22/80/443, SSH solo por clave, sin root login). **PERO ya en producción**: Apache 80/443, MariaDB 10.11, contenedores Docker (8080/3307/3308), 265 GB usados en el volumen → identificar qué corre ya antes de migrar.
+
+**Bloqueos / decisiones clave:**
+- ✅ **PHP resuelto por Docker.** El PHP 8.3 del host NO afecta: el stack Docker de la caja (gestionado por "core") da PHP por sitio, así que Moodle 3.5 corre en su contenedor con PHP 7.x. (Confirmado por Hansel, 10-jul.)
+- ⚠️ **Sin swap** (3.7 GB RAM) → añadir swapfile 2-4 GB antes de meter Moodle+MariaDB (más aún compartiendo caja).
+- Convivencia con el sitio/contenedores ya existentes en la caja (Docker en 8080/3307/3308, MariaDB, Apache).
+
+**Ventaja ya conseguida:** el backup offsite deja la BD de aula/cesce ya en el Hetzner cada noche → semilla para la migración.
+
+**Repo de ops del Hetzner (pendiente):** crear repo git para versionar scripts/config de ops de la caja (docker-compose, vhosts sanitizados, backups, un CLAUDE.md que documente la infra), con clon local, igual que el de Moodle.
+
 ### Horizonte sugerido
 
 - **Ahora (esta semana):** NOT-1/NOT-2 (notificaciones), SEC-1 (token), OPS-1/OPS-2 (recuperaciones E2Y).
