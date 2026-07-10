@@ -42,8 +42,8 @@ CHECKS = [
              path=f'{HL}/hansel_autocorrect.log', max_h=3, tail_done=True),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
              path=f'{HL}/hansel_quiz_grader.log', max_h=5),
-        dict(t='log',  name='Moodle cron (4:15)',        why='tareas internas Moodle',
-             path=f'{HL}/cron_logs/moodle_cron.log', max_h=26),
+        dict(t='moodle_cron', name='Moodle cron (4:15)',  why='tareas programadas internas',
+             max_h=26),
     ]),
     ("🟢 BACKUPS Y SEGURIDAD", [
         dict(t='file', name='Backup BD principal (2:00)', why='recuperación ante desastre',
@@ -114,6 +114,40 @@ def check_file(c):
     return 'OK', f'{os.path.basename(hits[0])} ({kb/1024:.1f} MB)'
 
 
+def check_moodle_cron(c):
+    """El cron interno de Moodle no deja log fiable; se comprueba en la BD
+    (mdl_task_scheduled.lastruntime), que es la fuente autoritativa."""
+    try:
+        import mysql.connector
+        env = {}
+        p = '/home/aulatuspeaking/.env'
+        if os.path.exists(p):
+            for line in open(p):
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    k, v = line.split('=', 1)
+                    env[k.strip()] = v.strip().strip('"\'')
+        conn = mysql.connector.connect(
+            host='localhost',
+            user=env.get('MOODLE_DB_USER', 'moodle35'),
+            password=env.get('MOODLE_DB_PASSWORD', ''),
+            database=env.get('MOODLE_DB_NAME', 'aulatuspeaking35'))
+        cur = conn.cursor()
+        cur.execute("SELECT MAX(lastruntime) FROM mdl_task_scheduled")
+        row = cur.fetchone()
+        cur.close(); conn.close()
+        if not row or not row[0]:
+            return 'FAIL', 'sin datos de lastruntime'
+        age = NOW - int(row[0])
+        if age <= c['max_h'] * 3600:
+            return 'OK', f'última tarea hace {_fmt_age(age)}'
+        if age <= 2 * c['max_h'] * 3600:
+            return 'WARN', f'hace {_fmt_age(age)} (esperado <{c["max_h"]}h)'
+        return 'FAIL', f'sin correr hace {_fmt_age(age)}'
+    except Exception as e:
+        return 'WARN', f'no verificable ({e})'
+
+
 ICON = {'OK': '✅', 'WARN': '⚠️', 'FAIL': '❌'}
 
 
@@ -129,6 +163,8 @@ def build_report():
                 st, detail = check_log(c)
             elif c['t'] == 'file':
                 st, detail = check_file(c)
+            elif c['t'] == 'moodle_cron':
+                st, detail = check_moodle_cron(c)
             else:
                 st, detail = c.get('status', 'OK'), c.get('msg', '')
             n_ok   += st == 'OK'
