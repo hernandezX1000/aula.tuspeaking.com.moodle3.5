@@ -9,6 +9,7 @@ Dónde va cada cosa. El objetivo es tener **una sola fuente** para cada tipo de 
 | **sessions/** | Bitácora por sesión de trabajo (`YYYY-MM-DD.md`): qué se hizo, qué se decidió, qué quedó. | Al final de cada sesión relevante. |
 | **tickets/** | Detalle largo de un ticket concreto (SQL de diagnóstico, hipótesis…). Referenciado desde BACKLOG. | Cuando un ítem del backlog necesita más que una fila. |
 | **incidents/** | Partes de incidencia (qué pasó, causa raíz, fix). | Tras una caída o incidente. |
+| **runbooks/** | Cómo-se-hace operativo: consultar asistencia, estados, duración Zoom, cierres. | Procedimientos que se consultan a menudo. |
 | **reference/** | Documentación estable: auditoría, FUNDAE, sistema de corrección, pendientes técnicos Fase 2. | Documentación que no cambia a diario. |
 
 ## Flujo de trabajo (Moodle)
@@ -18,7 +19,7 @@ Los ficheros con secretos (config.php, scripts con API keys) están en `.gitigno
 
 ## IDs del backlog
 
-`AREA-nn`: **SEC** (seguridad), **ING** (ingesta/asistencia), **AC** (autocorrector), **NOT** (notificaciones), **SUC** (Success/paneles), **REPO** (infra del repo), **MON** (monitor), **OPS** (operación/docente).
+`AREA-nn`: **SEC** (seguridad), **ING** (ingesta/asistencia), **AC** (autocorrector), **COMP** (completion/finalización), **NOT** (notificaciones), **SUC** (Success/paneles), **REPO** (infra del repo), **MON** (monitor), **OPS** (operación/docente).
 
 ## Histórico
 

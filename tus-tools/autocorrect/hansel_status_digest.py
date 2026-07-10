@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""
+hansel_status_digest.py — informe consolidado del estado de los crons.
+
+Revisa cada proceso (por frescura de su log o por un check concreto), lo agrupa
+y manda UN email por Gmail SMTP. Pensado para correr a las 8:00 y 20:00.
+
+Cron:
+    0 8,20 * * * /usr/bin/python3 /home/aulatuspeaking/scripts/hansel_status_digest.py >> /home/aulatuspeaking/hansel_logs/status_digest.log 2>&1
+
+Uso manual:
+    python3 hansel_status_digest.py            # calcula y envía
+    python3 hansel_status_digest.py --print     # solo imprime, NO envía (para probar)
+
+Sin dependencias externas (stdlib + send_alert.py en el mismo dir).
+"""
+import os, sys, time, glob
+from datetime import datetime
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from send_alert import send_alert
+except Exception:
+    send_alert = None
+
+HL   = '/home/aulatuspeaking/hansel_logs'
+ZLOG = '/home/aulatuspeaking/.ftp-users/moodle/admin/cli/logs/i3code_download_zoomdata'
+BK   = '/home/aulatuspeaking/backups/db_daily'
+NOW  = time.time()
+
+# ── Definición de checks ─────────────────────────────────────────────
+# tipo 'log'  : ok si el log se escribió hace menos de max_h horas
+# tipo 'file' : ok si existe hoy un fichero que casa con el patrón (y pesa > min_kb)
+# tipo 'note' : informativo/manual (estado fijo)
+CHECKS = [
+    ("🟢 DATOS Y ASISTENCIA", [
+        dict(t='log',  name='Ingesta Zoom (4:05)',      why='actualiza asistencias',
+             path=f'{ZLOG}/log_%Y%m%d.log', max_h=26),
+        dict(t='log',  name='Sync asistencia (cada 15m)', why='refresca asistió/ausencia',
+             path=f'{HL}/asistencia_zoom.log', max_h=1),
+        dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
+             path=f'{HL}/hansel_autocorrect.log', max_h=3, tail_done=True),
+        dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
+             path=f'{HL}/hansel_quiz_grader.log', max_h=5),
+        dict(t='log',  name='Moodle cron (4:15)',        why='tareas internas Moodle',
+             path=f'{HL}/cron_logs/moodle_cron.log', max_h=26),
+    ]),
+    ("🟢 BACKUPS Y SEGURIDAD", [
+        dict(t='file', name='Backup BD principal (2:00)', why='recuperación ante desastre',
+             pat=f'{BK}/db_%Y%m%d.sql.gz', min_kb=1000),
+        dict(t='file', name='Backup BD CESCE (2:05)',     why='recuperación CESCE',
+             pat=f'{BK}/db_cesce_%Y%m%d.sql.gz', min_kb=100),
+    ]),
+    ("🟢 REPORTES", [
+        dict(t='log',  name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
+             path='/home/aulatuspeaking/feedback_cron.log', max_h=2),
+    ]),
+    ("🟢 MONITOR", [
+        dict(t='log',  name='Heartbeat (cada hora)',      why='vigila que los crons corran',
+             path=f'{HL}/heartbeat.log', max_h=2, tail_last=True),
+        dict(t='note', name='monitor_carga (cada 10m)',   why='vigila carga/disco',
+             status='WARN', msg='roto: falta paquete bc (BACKLOG NOT-3)'),
+    ]),
+]
+
+
+def _fmt_age(secs):
+    h = secs / 3600.0
+    if h < 1:   return f'{int(secs/60)} min'
+    if h < 48:  return f'{h:.1f} h'
+    return f'{h/24:.1f} d'
+
+
+def _last_line(path, needle=None):
+    try:
+        with open(path, errors='ignore') as f:
+            lines = [l.strip() for l in f if l.strip()]
+        if needle:
+            for l in reversed(lines):
+                if needle in l:
+                    return l
+        return lines[-1] if lines else ''
+    except Exception:
+        return ''
+
+
+def check_log(c):
+    path = datetime.now().strftime(c['path']) if '%' in c['path'] else c['path']
+    if not os.path.exists(path):
+        return 'FAIL', 'sin log (no existe)'
+    age = NOW - os.path.getmtime(path)
+    extra = ''
+    if c.get('tail_done'):
+        d = _last_line(path, 'DONE')
+        if d:
+            extra = ' · ' + d.split('DONE')[-1].strip(' —')[:48]
+    if c.get('tail_last'):
+        extra = ' · ' + _last_line(path)[-40:]
+    if age <= c['max_h'] * 3600:
+        return 'OK', f'última hace {_fmt_age(age)}{extra}'
+    if age <= 2 * c['max_h'] * 3600:
+        return 'WARN', f'última hace {_fmt_age(age)} (esperado <{c["max_h"]}h){extra}'
+    return 'FAIL', f'sin correr hace {_fmt_age(age)} (esperado <{c["max_h"]}h)'
+
+
+def check_file(c):
+    pat = datetime.now().strftime(c['pat'])
+    hits = glob.glob(pat)
+    if not hits:
+        return 'FAIL', 'no existe el backup de hoy'
+    kb = os.path.getsize(hits[0]) / 1024.0
+    if kb < c.get('min_kb', 0):
+        return 'WARN', f'existe pero pequeño ({kb/1024:.1f} MB)'
+    return 'OK', f'{os.path.basename(hits[0])} ({kb/1024:.1f} MB)'
+
+
+ICON = {'OK': '✅', 'WARN': '⚠️', 'FAIL': '❌'}
+
+
+def build_report():
+    n_ok = n_warn = n_fail = 0
+    out = [f'ESTADO tuSpeaking — {datetime.now().strftime("%d/%m %H:%M")}',
+           '=' * 44]
+    for group, checks in CHECKS:
+        out.append('')
+        out.append(group)
+        for c in checks:
+            if c['t'] == 'log':
+                st, detail = check_log(c)
+            elif c['t'] == 'file':
+                st, detail = check_file(c)
+            else:
+                st, detail = c.get('status', 'OK'), c.get('msg', '')
+            n_ok   += st == 'OK'
+            n_warn += st == 'WARN'
+            n_fail += st == 'FAIL'
+            out.append(f'  {ICON[st]} {c["name"]} — {c["why"]}. {detail}')
+    out.append('')
+    out.append('=' * 44)
+    out.append(f'Resumen: {n_ok+n_warn+n_fail} procesos · {n_ok} OK · {n_warn} aviso · {n_fail} fallo')
+    return '\n'.join(out), n_ok, n_warn, n_fail
+
+
+def main():
+    report, n_ok, n_warn, n_fail = build_report()
+    tag = '🔴' if n_fail else ('🟡' if n_warn else '🟢')
+    subject = f'{tag} Estado tuSpeaking {datetime.now().strftime("%d/%m %H:%M")} — {n_fail} fallo, {n_warn} aviso'
+
+    if '--print' in sys.argv or send_alert is None:
+        print(report)
+        if send_alert is None:
+            print('\n[send_alert no disponible — solo impresión]')
+        return
+    send_alert(subject, report)
+    print(f'Digest enviado. {subject}')
+
+
+if __name__ == '__main__':
+    main()

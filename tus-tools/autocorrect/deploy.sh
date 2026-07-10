@@ -21,7 +21,8 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DST_DIR="/home/aulatuspeaking/scripts"
 BACKUP_DIR="$DST_DIR/_backups/$(date +%Y%m%d_%H%M%S)"
 
-SCRIPTS=(hansel_autocorrect.py hansel_digest.py hansel_quiz_grader.py transcribe_whisper.py)
+SCRIPTS=(hansel_autocorrect.py hansel_digest.py hansel_quiz_grader.py transcribe_whisper.py \
+         send_alert.py hansel_status_digest.py)
 
 if [[ "${1:-}" == "--deps" ]]; then
     echo "== Instalando dependencias pip (--user) =="
