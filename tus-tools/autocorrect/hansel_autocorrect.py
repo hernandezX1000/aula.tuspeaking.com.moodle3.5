@@ -337,7 +337,7 @@ def fetch_pending_file_writings(conn):
       AND asub.latest = 1
       AND asub.status = 'submitted'
       AND asub.timecreated >= UNIX_TIMESTAMP('2026-01-01')
-      AND (ao.onlinetext IS NULL OR LENGTH(TRIM(ao.onlinetext)) <= 10)
+      AND (ao.onlinetext IS NULL OR LENGTH(TRIM(ao.onlinetext)) < {MIN_WRITING_CHARS})
       AND EXISTS (
           SELECT 1 FROM mdl_files f
           WHERE f.itemid    = asub.id
@@ -614,6 +614,35 @@ AI_FEEDBACK_ES = (
 AI_SCORE_THRESHOLD = 85  # 0-100, above this → AI warning
 
 
+def _extract_grade_data(raw: str) -> dict:
+    """Parseo tolerante del JSON de Claude (grade/feedback/ai_score).
+    Claude a veces devuelve JSON con saltos de línea o comillas sin escapar;
+    esto evita que un fallo de parseo tumbe la corrección (AC-3)."""
+    match = re.search(r'\{.*\}', raw, re.DOTALL)
+    if not match:
+        raise ValueError(f"Claude returned non-JSON: {raw[:200]}")
+    blob = match.group()
+    # 1) intento estándar  2) tolerante a caracteres de control (saltos de línea)
+    for kwargs in ({}, {'strict': False}):
+        try:
+            return json.loads(blob, **kwargs)
+        except json.JSONDecodeError:
+            pass
+    # 3) fallback: extraer campos por regex (tolera comillas sin escapar en feedback)
+    data = {}
+    m = re.search(r'"ai_score"\s*:\s*(\d+)', blob)
+    data['ai_score'] = int(m.group(1)) if m else 0
+    m = re.search(r'"grade"\s*:\s*([\d.]+)', blob)
+    if m:
+        data['grade'] = float(m.group(1))
+    m = re.search(r'"feedback"\s*:\s*"(.+)"', blob, re.DOTALL)  # greedy → hasta la última comilla
+    if m:
+        data['feedback'] = re.sub(r'\s+', ' ', m.group(1)).strip()
+    if 'grade' not in data or 'feedback' not in data:
+        raise ValueError(f"No se pudo parsear el JSON de Claude: {blob[:200]}")
+    return data
+
+
 def call_claude_writing(student_text: str, level: str, assign_name: str) -> dict:
     """
     Call Claude API to grade a writing submission.
@@ -640,12 +669,7 @@ def call_claude_writing(student_text: str, level: str, assign_name: str) -> dict
 
     raw = response.content[0].text.strip()
 
-    # Extract JSON — Claude sometimes adds trailing text
-    match = re.search(r'\{[^{}]+\}', raw, re.DOTALL)
-    if not match:
-        raise ValueError(f"Claude returned non-JSON: {raw[:200]}")
-
-    data = json.loads(match.group())
+    data = _extract_grade_data(raw)
 
     ai_score = int(data.get('ai_score', 0))
     grade    = float(data.get('grade', 0))
@@ -707,10 +731,7 @@ def call_claude_audio(transcription: str, level: str, assign_name: str, lang: st
         messages=[{'role': 'user', 'content': user_message}],
     )
     raw = response.content[0].text.strip()
-    match = re.search(r'\{[^{}]+\}', raw, re.DOTALL)
-    if not match:
-        raise ValueError(f"Claude audio returned non-JSON: {raw[:200]}")
-    data  = json.loads(match.group())
+    data  = _extract_grade_data(raw)
     grade = float(data.get('grade', 5.0))
     feedback = str(data.get('feedback', '')).strip()
     if not (1.0 <= grade <= 10.0):

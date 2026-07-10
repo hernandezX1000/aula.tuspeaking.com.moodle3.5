@@ -1,4 +1,13 @@
 
+## 2026-07-10 — Robustez autocorrector (AC-2, AC-3)
+
+- **AC-2:** `fetch_pending_file_writings` ahora coge entregas con `onlinetext` corto
+  (<80 chars, `MIN_WRITING_CHARS`) que llevan adjunto — antes caían entre los dos
+  pipelines (texto las saltaba por cortas, fichero las excluía por tener algo de texto).
+- **AC-3:** parseo tolerante del JSON de Claude (`_extract_grade_data`): intento estándar
+  → `strict=False` (tolera saltos de línea) → fallback por regex (tolera comillas sin
+  escapar en el feedback). Un JSON malformado ya no tumba la corrección (caso Raquel 10-jul).
+
 ## 2026-07-10 — Corregir writings subidos como fichero (rama dev)
 
 ### hansel_autocorrect.py — leer adjuntos, no solo texto pegado
