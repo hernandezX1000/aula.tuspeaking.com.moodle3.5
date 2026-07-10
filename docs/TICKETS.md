@@ -1,5 +1,8 @@
 # Tickets de desarrollo — aula.tuspeaking.com
 
+> ⚠️ **Histórico.** La fuente viva es ahora **`docs/BACKLOG.md`** (TICKET #1-8 ya migrados allí como SEC/ING/REPO/MON).
+> Se conserva por el detalle; no añadir aquí ítems nuevos.
+
 Pendientes técnicos. Marcar [x] al completar.
 
 ---

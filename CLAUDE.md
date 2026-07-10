@@ -58,27 +58,59 @@ Purgar tras cambios de config:
     php /home/aulatuspeaking/www/app/moodle/admin/cli/purge_caches.php
 (El warning de Zend OPcache es inofensivo.)
 
-## Flujo de trabajo Git
+## Flujo de trabajo (INVIOLABLE — no saltárselo sin permiso expreso de Hansel)
+
+Como en tuspeaking-platform: se desarrolla en **local** sobre `dev`, se prueba, se mergea
+a `main` y se despliega al server. **Nunca editar producción a mano** (nada de nano/sed en
+el server) salvo hotfix acordado. Esto garantiza que todo funcione siempre igual.
 
 Repo: https://github.com/hernandezX1000/aula.tuspeaking.com.moodle3.5 (privado)
-Rama: main · Credenciales guardadas en ~/.git-credentials (chmod 600, fuera del repo)
+Ramas: **`dev`** (desarrollo) → **`main`** (producción). Credenciales en `~/.git-credentials` (600).
 
-Guardar cambios:
-    cd /home/aulatuspeaking/www/app/moodle/
-    git add -A
-    git commit -m "descripción del cambio"
-    git push
+1. **Desarrollo** (local, Mac) — SIEMPRE sobre `dev`:
 
-Ver estado / historial:
-    git status
-    git log --oneline
+       cd ~/Proyectos/aula.tuspeaking.com.moodle3.5
+       git checkout dev
+       # ...editar ficheros...
+       git add -A && git commit -m "..." && git push
 
-ANTES de commitear ficheros nuevos, comprobar que no llevan secretos:
-    git grep -l "<CONTRASEÑA_BD>" $(git diff --cached --name-only)
-(debe salir vacío)
+2. **Prueba** (server, sin tocar producción) — traer solo el fichero de `dev` y probar en seco:
 
-## Pendientes (mejoras futuras, no urgentes)
+       git fetch origin
+       git show origin/dev:ruta/al/script > /tmp/script_dev.py
+       python3 /tmp/script_dev.py --dry-run
 
-1. Refactorizar la contraseña de BD en duro a un secrets.php (51 ficheros).
-2. .pptx grandes en contenido/business_english/ (>50MB): valorar Git LFS o excluir.
-3. Rotar API key de Acuity y secret de Zoom (llevan tiempo en el servidor).
+3. **Publicar** — merge `dev→main`:
+
+       git checkout main && git merge dev && git push
+
+4. **Desplegar** (server):
+
+       cd /home/aulatuspeaking/www/app/moodle && git pull
+       bash tus-tools/autocorrect/deploy.sh     # copia scripts a ~/scripts/ con backup
+
+   Los ficheros con secretos (config.php, scripts con API keys) están en `.gitignore` y se
+   despliegan a mano.
+
+ANTES de commitear, comprobar que no hay secretos:
+
+       git grep -l "<CONTRASEÑA_BD>" $(git diff --cached --name-only)   # debe salir vacío
+
+**Regla de oro:** rama `dev` → `main`, nunca editar el server a pelo. Saltarse esto requiere
+permiso expreso de Hansel.
+
+## Documentación y planificación (docs/)
+
+Un sitio para cada cosa (detalle en `docs/README.md`):
+
+- **docs/BACKLOG.md** — FUENTE ÚNICA de tareas/bugs/desarrollos abiertos (tabla priorizada, IDs `AREA-nn`). Aquí se mira qué hacer y aquí se cierra.
+- **docs/ROADMAP.md** — desarrollos previstos por tema (el "qué construir").
+- **docs/sessions/YYYY-MM-DD.md** — bitácora por sesión (qué se hizo / se decidió / quedó abierto).
+- **docs/tickets/ · docs/incidents/ · docs/reference/** — detalle largo, referenciado desde BACKLOG.
+
+Cómo se trabaja: se planifica en **ROADMAP** → se prioriza en **BACKLOG** → se ejecuta y se
+registra en **sessions/**. Los dos `TICKETS.md` antiguos son histórico; la fuente viva es `BACKLOG.md`.
+
+## Pendientes
+
+Ver **docs/BACKLOG.md** (fuente única). No mantener listas de pendientes sueltas en este fichero.
