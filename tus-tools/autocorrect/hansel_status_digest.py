@@ -50,6 +50,8 @@ CHECKS = [
              pat=f'{BK}/db_%Y%m%d.sql.gz', min_kb=1000),
         dict(t='file', name='Backup BD CESCE (2:05)',     why='recuperación CESCE',
              pat=f'{BK}/db_cesce_%Y%m%d.sql.gz', min_kb=100),
+        dict(t='log',  name='Backup offsite Hetzner (3:00)', why='copia fuera del server',
+             path=f'{HL}/backup_offsite.log', max_h=26),
     ]),
     ("🟢 REPORTES", [
         dict(t='log',  name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
@@ -58,8 +60,12 @@ CHECKS = [
     ("🟢 MONITOR", [
         dict(t='log',  name='Heartbeat (cada hora)',      why='vigila que los crons corran',
              path=f'{HL}/heartbeat.log', max_h=2, tail_last=True),
-        dict(t='note', name='monitor_carga (cada 10m)',   why='vigila carga/disco',
-             status='WARN', msg='roto: falta paquete bc (BACKLOG NOT-3)'),
+    ]),
+    ("🔒 SEGURIDAD Y RECURSOS", [
+        dict(t='disk', name='Disco',        why='si se llena, se cae todo en silencio', path='/'),
+        dict(t='swap', name='Swap',         why='memoria virtual'),
+        dict(t='ssl',  name='Certificado SSL', why='si caduca, la web deja de cargar',
+             host='aula.tuspeaking.com'),
     ]),
 ]
 
@@ -114,6 +120,56 @@ def check_file(c):
     return 'OK', f'{os.path.basename(hits[0])} ({kb/1024:.1f} MB)'
 
 
+def check_disk(c):
+    import shutil
+    t, u, f = shutil.disk_usage(c.get('path', '/'))
+    pct = u / t * 100
+    free_gb = f / 1e9
+    detail = f'{pct:.0f}% usado · {free_gb:.1f} GB libres'
+    if pct >= 95:
+        return 'FAIL', detail
+    if pct >= 85:
+        return 'WARN', detail
+    return 'OK', detail
+
+
+def check_swap(c):
+    try:
+        mem = {}
+        for line in open('/proc/meminfo'):
+            k, _, v = line.partition(':')
+            mem[k.strip()] = v.strip()
+        total = int(mem.get('SwapTotal', '0 kB').split()[0])
+        free = int(mem.get('SwapFree', '0 kB').split()[0])
+        if total == 0:
+            return 'OK', 'sin swap configurado'
+        used = (total - free) / total * 100
+        return ('WARN' if used >= 90 else 'OK'), f'{used:.0f}% usado'
+    except Exception as e:
+        return 'WARN', f'no verificable ({e})'
+
+
+def check_ssl(c):
+    import ssl as _ssl, socket
+    from datetime import datetime as dt
+    host = c.get('host', 'aula.tuspeaking.com')
+    try:
+        ctx = _ssl.create_default_context()
+        with socket.create_connection((host, 443), timeout=8) as sock:
+            with ctx.wrap_socket(sock, server_hostname=host) as ss:
+                cert = ss.getpeercert()
+        exp = dt.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')
+        days = (exp - dt.utcnow()).days
+        detail = f'caduca en {days} d ({exp:%d/%m/%Y})'
+        if days <= 7:
+            return 'FAIL', detail
+        if days <= 21:
+            return 'WARN', detail
+        return 'OK', f'válido {days} d (hasta {exp:%d/%m/%Y})'
+    except Exception as e:
+        return 'WARN', f'no verificable ({e})'
+
+
 def check_moodle_cron(c):
     """El cron interno de Moodle no deja log fiable; se comprueba en la BD
     (mdl_task_scheduled.lastruntime), que es la fuente autoritativa."""
@@ -165,6 +221,12 @@ def build_report():
                 st, detail = check_file(c)
             elif c['t'] == 'moodle_cron':
                 st, detail = check_moodle_cron(c)
+            elif c['t'] == 'disk':
+                st, detail = check_disk(c)
+            elif c['t'] == 'swap':
+                st, detail = check_swap(c)
+            elif c['t'] == 'ssl':
+                st, detail = check_ssl(c)
             else:
                 st, detail = c.get('status', 'OK'), c.get('msg', '')
             n_ok   += st == 'OK'
