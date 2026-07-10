@@ -6,6 +6,9 @@ Detects pending Moodle writing and audio submissions,
 evaluates writings via Claude API, assigns grades and feedback,
 and marks activities as complete.
 
+Writings are picked up whether pasted into the online text box OR
+uploaded as a file attachment (docx/pdf/odt/txt/rtf).
+
 Usage:
     python3 hansel_autocorrect.py              # Run once (live)
     python3 hansel_autocorrect.py --dry-run    # Preview — no DB writes
@@ -16,7 +19,8 @@ Cron (run every 2 hours):
     0 */2 * * * /usr/bin/python3 /home/aulatuspeaking/scripts/hansel_autocorrect.py >> /home/aulatuspeaking/logs/hansel_autocorrect.log 2>&1
 
 Dependencies:
-    pip3 install --user mysql-connector-python anthropic faster-whisper
+    pip3 install --user mysql-connector-python anthropic faster-whisper \
+        python-docx pypdf odfpy striprtf
 """
 
 import mysql.connector
@@ -190,6 +194,56 @@ def contains_emoji(text: str) -> bool:
 
 
 # ──────────────────────────────────────────────────────────────
+# FILE-ATTACHMENT WRITINGS — text extraction
+# ──────────────────────────────────────────────────────────────
+# Some students upload their writing as a file (docx/pdf/odt/txt/rtf)
+# instead of pasting it into the online text box. Those submissions have
+# empty onlinetext, so fetch_pending_writings never sees them. We extract
+# the text from the attachment and grade it through the same pipeline.
+
+DOC_EXTENSIONS   = ('docx', 'pdf', 'odt', 'txt', 'rtf', 'doc')
+AUDIO_EXTENSIONS = ('wav', 'mp3', 'm4a', 'ogg', 'webm', 'aac', 'flac')
+
+
+def file_ext(filename: str) -> str:
+    return filename.rsplit('.', 1)[-1].lower() if '.' in (filename or '') else ''
+
+
+def extract_text_from_file(filepath: str, filename: str) -> str:
+    """Extract plain text from a writing attachment.
+    Supports docx, pdf, odt, txt, rtf. Returns '' on failure/unsupported
+    (e.g. scanned PDF with no text layer, or missing parser library)."""
+    ext = file_ext(filename)
+    try:
+        if ext == 'txt':
+            with open(filepath, 'r', errors='ignore') as f:
+                return f.read().strip()
+        if ext == 'docx':
+            import docx  # python-docx
+            d = docx.Document(filepath)
+            return '\n'.join(p.text for p in d.paragraphs).strip()
+        if ext == 'pdf':
+            from pypdf import PdfReader
+            reader = PdfReader(filepath)
+            return '\n'.join((page.extract_text() or '') for page in reader.pages).strip()
+        if ext == 'odt':
+            from odf.opendocument import load as odf_load
+            from odf.text import P
+            from odf import teletype
+            doc = odf_load(filepath)
+            return '\n'.join(teletype.extractText(p) for p in doc.getElementsByType(P)).strip()
+        if ext == 'rtf':
+            from striprtf.striprtf import rtf_to_text
+            with open(filepath, 'r', errors='ignore') as f:
+                return rtf_to_text(f.read()).strip()
+        log.warning(f"  Unsupported writing file type: .{ext}")
+        return ''
+    except Exception as e:
+        log.error(f"  Text extraction failed (.{ext}): {e}")
+        return ''
+
+
+# ──────────────────────────────────────────────────────────────
 # DATABASE
 # ──────────────────────────────────────────────────────────────
 
@@ -232,6 +286,70 @@ def fetch_pending_writings(conn):
       AND ao.onlinetext != ''
       AND LENGTH(TRIM(ao.onlinetext)) > 10
       AND asub.timecreated >= UNIX_TIMESTAMP('2026-01-01')
+      AND c.fullname NOT LIKE '%DEMO%'
+      AND c.fullname NOT LIKE '%demo%'
+      AND c.fullname NOT LIKE '%Prueba de nivel%'
+      AND c.fullname NOT LIKE '%prueba de nivel%'
+      AND c.fullname NOT LIKE '%Prueba Nivel%'
+      AND c.fullname NOT LIKE '%prueba nivel%'
+      AND c.fullname NOT LIKE '%Italiano%'
+      AND c.fullname NOT LIKE '%italiano%'
+    ORDER BY asub.timecreated ASC
+    LIMIT 20
+    """
+    cur = conn.cursor(dictionary=True)
+    cur.execute(sql)
+    rows = cur.fetchall()
+    cur.close()
+    return rows
+
+
+def fetch_pending_file_writings(conn):
+    """
+    Returns writing submissions delivered as an ATTACHED FILE
+    (docx/pdf/odt/txt/rtf/doc) with no grade yet, where the online text box
+    is empty or too short. Complements fetch_pending_writings (which only
+    reads pasted online text). Audio-delivery assignments are excluded here
+    (handled by fetch_pending_audio).
+    """
+    like_docs = " OR ".join([f"LOWER(f.filename) LIKE '%.{e}'" for e in DOC_EXTENSIONS])
+    sql = f"""
+    SELECT
+        asub.assignment                 AS assignment,
+        asub.userid                     AS userid,
+        a.name                          AS assign_name,
+        c.id                            AS course_id,
+        c.fullname                      AS course_name,
+        c.shortname                     AS course_shortname,
+        u.firstname                     AS firstname,
+        u.lastname                      AS lastname,
+        asub.timecreated                AS submitted_at
+    FROM mdl_assign_submission asub
+    JOIN mdl_assign a  ON a.id  = asub.assignment
+    JOIN mdl_course c  ON c.id  = a.course
+    JOIN mdl_user   u  ON u.id  = asub.userid
+    LEFT JOIN mdl_assign_grades ag
+        ON  ag.assignment = asub.assignment
+        AND ag.userid     = asub.userid
+    LEFT JOIN mdl_assignsubmission_onlinetext ao
+        ON  ao.submission = asub.id
+    WHERE ag.id IS NULL
+      AND asub.latest = 1
+      AND asub.status = 'submitted'
+      AND asub.timecreated >= UNIX_TIMESTAMP('2026-01-01')
+      AND (ao.onlinetext IS NULL OR LENGTH(TRIM(ao.onlinetext)) <= 10)
+      AND EXISTS (
+          SELECT 1 FROM mdl_files f
+          WHERE f.itemid    = asub.id
+            AND f.component  = 'assignsubmission_file'
+            AND f.filearea   = 'submission_files'
+            AND f.filesize   > 0
+            AND ({like_docs})
+      )
+      AND a.name NOT LIKE '%ENTREGA DE AUDIO%'
+      AND a.name NOT LIKE '%Audio Delivery%'
+      AND a.name NOT LIKE '%AUDIO DELIVERY%'
+      AND a.name NOT LIKE '%entrega de audio%'
       AND c.fullname NOT LIKE '%DEMO%'
       AND c.fullname NOT LIKE '%demo%'
       AND c.fullname NOT LIKE '%Prueba de nivel%'
@@ -695,6 +813,84 @@ def process_writings(conn) -> int:
     return processed
 
 
+def process_file_writings(conn) -> int:
+    """Grade writings that were uploaded as a file (docx/pdf/odt/txt/rtf)."""
+    rows = fetch_pending_file_writings(conn)
+    log.info(f"Pending file-writings found: {len(rows)}")
+
+    processed = 0
+    skipped   = 0
+
+    for row in rows:
+        assign_id   = row['assignment']
+        userid      = row['userid']
+        course      = row['course_name']
+        assign_name = row['assign_name']
+        firstname   = row['firstname']
+        lastname    = row['lastname']
+        level       = detect_level(course)
+        grader      = get_grader(course)
+        nota_max    = get_nota_max(course)
+        days_old    = round((time.time() - row['submitted_at']) / 86400, 1)
+
+        log.info(
+            f"File-writing: {firstname} {lastname} | {course} | {assign_name} | "
+            f"level={level} grader={grader} nota_max={nota_max} ({days_old}d old)"
+        )
+
+        # Guard: manually excluded (confirmed AI or invalid)
+        if (assign_id, userid) in EXCLUDED_SUBMISSIONS:
+            log.warning(f"  SKIP — manually excluded (confirmed AI or invalid)")
+            skipped += 1
+            continue
+
+        try:
+            # 1. Resolve the physical file (reuses the generic file lookup)
+            file_info = fetch_audio_file(conn, assign_id, userid)
+            if not file_info:
+                log.warning(f"  SKIP — no attached file found in mdl_files")
+                skipped += 1
+                continue
+
+            log.info(f"  File: {file_info['filename']} ({file_info['filesize']} bytes)")
+
+            # 2. Extract plain text from the document
+            plain_text = extract_text_from_file(file_info['filepath'], file_info['filename'])
+            if len(plain_text) < MIN_WRITING_CHARS:
+                log.warning(f"  SKIP — extracted text too short ({len(plain_text)} chars)")
+                skipped += 1
+                continue
+
+            # 3. Grade through the same writing pipeline
+            result   = call_claude_writing(plain_text, level, assign_name)
+            grade_10 = result['grade']
+            feedback = result['feedback']
+            ai_score = result['ai_score']
+
+            if ai_score >= AI_SCORE_THRESHOLD:
+                grade_final = 40.0 if nota_max == 100.0 else 4.0
+                feedback    = AI_FEEDBACK_ES
+                log.warning(f"  AI DETECTED (score={ai_score}) — grade={grade_final} + aviso en espanol")
+            else:
+                grade_final = round(grade_10 * 10, 5) if nota_max == 100.0 else grade_10
+                log.info(f"  ai_score={ai_score} | Grade: {grade_final}/{nota_max} | {feedback[:70]}...")
+
+            if not DRY_RUN:
+                moodle_save_grade(assign_id, userid, grade_final, feedback)
+
+            processed += 1
+            time.sleep(API_CALL_DELAY)
+
+        except anthropic.APIError as e:
+            log.error(f"  Claude API error: {e}")
+            time.sleep(5)
+        except Exception as e:
+            log.error(f"  Error processing file-writing assign={assign_id} user={userid}: {e}")
+
+    log.info(f"File-writings — processed: {processed} | skipped: {skipped}")
+    return processed
+
+
 def process_audio(conn) -> int:
     rows = fetch_pending_audio(conn)
     log.info(f"Pending audio found: {len(rows)}")
@@ -776,17 +972,19 @@ def main():
 
     conn = get_db()
     try:
-        total_w = 0
-        total_a = 0
+        total_w  = 0
+        total_fw = 0
+        total_a  = 0
 
         if not ONLY_AUDIO:
-            total_w = process_writings(conn)
+            total_w  = process_writings(conn)
+            total_fw = process_file_writings(conn)
 
         if not ONLY_WRITINGS:
             total_a = process_audio(conn)
 
         log.info("=" * 60)
-        log.info(f"DONE — Writings: {total_w} | Audio: {total_a}")
+        log.info(f"DONE — Writings: {total_w} | File-writings: {total_fw} | Audio: {total_a}")
         log.info("=" * 60)
 
     except Exception as e:
