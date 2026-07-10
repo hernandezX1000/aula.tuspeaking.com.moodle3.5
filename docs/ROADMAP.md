@@ -66,7 +66,7 @@ Estado actual: **Fase 1 en producción** (corrección automática de writings �
 
 **Ventaja ya conseguida:** el backup offsite deja la BD de aula/cesce ya en el Hetzner cada noche → semilla para la migración.
 
-**Repo de ops del Hetzner (pendiente):** crear repo git para versionar scripts/config de ops de la caja (docker-compose, vhosts sanitizados, backups, un CLAUDE.md que documente la infra), con clon local, igual que el de Moodle.
+**Repo de ops del Hetzner ✅ (10-jul):** creado `tuspeaking-lms` (privado, GitHub, monorepo, distinto de `tuspeaking-platform`=learn). Versiona `services/moodle35-staging/` (compose, Dockerfile, scripts de sync/verify, vhost, cnf, README, CHANGELOG); secretos (`.env`, `config-staging.php`) gitignored. Clon local en `~/Proyectos/tuspeaking-lms`. Pendiente menor: renombrar la carpeta física `tuspeaking-platform`→`tuspeaking-lms` en la caja (rompe el mount del contenedor si no se actualiza el compose; hacer con cuidado). Añadir `services/cesce` y `services/baiwingin` cuando migren.
 
 ### Horizonte sugerido
 
