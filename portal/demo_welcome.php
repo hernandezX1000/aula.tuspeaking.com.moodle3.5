@@ -41,13 +41,13 @@ echo $OUTPUT->header();
     </div>
 
     <div class="demo-cards">
-        <a href="/app/moodle/course/view.php?id=1866" class="demo-card">
+        <a href="/course/view.php?id=1866" class="demo-card">
             <div class="demo-card-icon">📚</div>
             <div class="demo-card-title">Mi Curso</div>
             <div class="demo-card-desc">Accede a tu contenido de formación, ejercicios y recursos</div>
         </a>
 
-        <a href="/app/moodle/misclases.php" class="demo-card">
+        <a href="/misclases.php" class="demo-card">
             <div class="demo-card-icon">📅</div>
             <div class="demo-card-title">Mis Clases</div>
             <div class="demo-card-desc">Consulta tu historial, asistencia y próximas clases</div>
@@ -56,7 +56,7 @@ echo $OUTPUT->header();
 
 
         <?php if ($is_rrhh): ?>
-        <a href="/app/moodle/portal/dashboard_rrhh.php" class="demo-card">
+        <a href="/portal/dashboard_rrhh.php" class="demo-card">
             <div class="demo-card-icon">📊</div>
             <div class="demo-card-title">Dashboard RRHH</div>
             <div class="demo-card-desc">Panel de seguimiento para responsables de formación</div>

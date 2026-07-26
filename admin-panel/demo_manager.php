@@ -29,7 +29,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_demo') {
         $CATEGORY_CONTEXT_ID = 575444;
         $TEACHER_ID = 10;
         $CONFIGDATA = 'Tzo4OiJzdGRDbGFzcyI6Mzp7czo0OiJ0ZXh0IjtzOjEyMDoiPGlmcmFtZSBzcmM9Ii9hcHAvbW9vZGxlL2Jsb2Nrcy9odG1sL2Rhc2hib2FyZF93ZWxjb21lLnBocCIgc3R5bGU9IndpZHRoOjEwMCU7IG1pbi1oZWlnaHQ6MzIwcHg7IGJvcmRlcjpub25lOyI+PC9pZnJhbWU+IjtzOjU6InRpdGxlIjtzOjA6IiI7czo2OiJmb3JtYXQiO2k6MTt9';
-        $DEMO_WELCOME = '/home/aulatuspeaking/www/app/moodle/portal/demo_welcome.php';
+        $DEMO_WELCOME = '/var/www/html/app/moodle/portal/demo_welcome.php';
 
         // 1. Verificar que no existe
         $stmt = $pdo->prepare("SELECT id FROM mdl_user WHERE username=? OR email=?");
@@ -93,7 +93,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_demo') {
         }
 
         // 11. Purgar caché
-        exec('php /home/aulatuspeaking/www/app/moodle/admin/cli/purge_caches.php 2>&1');
+        exec('php /var/www/html/app/moodle/admin/cli/purge_caches.php 2>&1');
 
         // 12. Registrar demo
         $pdo->exec("CREATE TABLE IF NOT EXISTS own_demos (
@@ -118,7 +118,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_demo') {
 
         $message = "✅ Demo creada para <strong>$empresa</strong><br><br>";
         $message .= "<table style='border-collapse:collapse;width:100%'>";
-        $message .= "<tr><td style='padding:8px;border:1px solid #444;color:#aaa'>URL</td><td style='padding:8px;border:1px solid #444'><a href='https://aula.tuspeaking.com/app/moodle/portal/demo_welcome.php' target='_blank'>aula.tuspeaking.com/.../demo_welcome.php</a></td></tr>";
+        $message .= "<tr><td style='padding:8px;border:1px solid #444;color:#aaa'>URL</td><td style='padding:8px;border:1px solid #444'><a href='https://aula.tuspeaking.com/portal/demo_welcome.php' target='_blank'>aula.tuspeaking.com/.../demo_welcome.php</a></td></tr>";
         $message .= "<tr><td style='padding:8px;border:1px solid #444;color:#aaa'>Usuario</td><td style='padding:8px;border:1px solid #444'>$email</td></tr>";
         $message .= "<tr><td style='padding:8px;border:1px solid #444;color:#aaa'>Contraseña</td><td style='padding:8px;border:1px solid #444'>$password</td></tr>";
         $message .= "<tr><td style='padding:8px;border:1px solid #444;color:#aaa'>RRHH</td><td style='padding:8px;border:1px solid #444'>success.tuspeaking.com (user: $username)</td></tr>";
@@ -154,7 +154,7 @@ $demos = $pdo->query("SELECT * FROM own_demos ORDER BY created_at DESC")->fetchA
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" type="image/svg+xml" href="/app/moodle/brand/icons/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/brand/icons/favicon.svg">
 <title>Gestor de Demos - tuSpeaking</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -201,7 +201,7 @@ tr:hover{background:rgba(255,255,255,.03)}
 </head>
 <body>
 <div class="container">
-<a href="/app/moodle/admin-panel/" class="back">← Volver al Panel</a>
+<a href="/admin-panel/" class="back">← Volver al Panel</a>
 <header>
 <h1>🎯 Gestor de Demos</h1>
 <p>Crear y gestionar demos para empresas</p>

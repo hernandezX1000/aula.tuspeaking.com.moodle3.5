@@ -1,6 +1,6 @@
 <?php
 define('CLI_SCRIPT', true);
-require_once('/home/aulatuspeaking/www/app/moodle/config.php');
+require_once('/var/www/html/app/moodle/config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
 echo "Moodle cargado OK\n";

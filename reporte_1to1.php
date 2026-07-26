@@ -1,5 +1,5 @@
 <?php
-$reportes_dir = '/home/aulatuspeaking/www/app/moodle/reportes_1to1/';
+$reportes_dir = '/var/www/html/app/moodle/reportes_1to1/';
 $script_path = $reportes_dir . 'generar_reporte_1to1.sh';
 
 $empresas = [

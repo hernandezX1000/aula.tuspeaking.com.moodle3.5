@@ -12,7 +12,7 @@ $error = '';
 $archivo_generado = null;
 
 if (isset($_GET['descargar']) && isset($_GET['archivo'])) {
-    $archivo = '/home/aulatuspeaking/www/app/moodle/reportes_cesce/' . basename($_GET['archivo']);
+    $archivo = '/var/www/html/app/moodle/reportes_cesce/' . basename($_GET['archivo']);
     if (file_exists($archivo) && pathinfo($archivo, PATHINFO_EXTENSION) === 'xlsx') {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . basename($archivo) . '"');
@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha_inicio = $_POST['fecha_inicio'] ?? '2025-09-01';
     $fecha_fin = $_POST['fecha_fin'] ?? '2025-12-31';
     
-    $script = '/home/aulatuspeaking/www/app/moodle/reportes_cesce/reporte_fundae_cesce.py';
+    $script = '/var/www/html/app/moodle/reportes_cesce/reporte_fundae_cesce.py';
     
     if (file_exists($script)) {
-        $cmd = "cd /home/aulatuspeaking/www/app/moodle/reportes_cesce && PYTHONPATH=/home/aulatuspeaking/.local/lib/python3.9/site-packages /usr/bin/python3 " . escapeshellarg($script) . " " . escapeshellarg($fecha_inicio) . " " . escapeshellarg($fecha_fin) . " 2>&1";
+        $cmd = "cd /var/www/html/app/moodle/reportes_cesce && PYTHONPATH=/home/aulatuspeaking/.local/lib/python3.9/site-packages /usr/bin/python3 " . escapeshellarg($script) . " " . escapeshellarg($fecha_inicio) . " " . escapeshellarg($fecha_fin) . " 2>&1";
         
         $output = array();
         $return_var = 0;
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="https://aula.tuspeaking.com/app/moodle/theme/image.php/lambda/theme/1547126939/favicon">
+    <link rel="shortcut icon" href="https://aula.tuspeaking.com/theme/image.php/lambda/theme/1547126939/favicon">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" crossorigin="anonymous">
     <title>Reporte FUNDAE CESCE | tuSpeaking</title>

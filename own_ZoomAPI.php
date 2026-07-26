@@ -2,7 +2,7 @@
 function getZoom(string $url) : string
 {
     
-    require_once '/home/aulatuspeaking/www/app/moodle/own_ZoomAPIToken.php';
+    require_once '/var/www/html/app/moodle/own_ZoomAPIToken.php';
     $token = generateTokenOAuth();
 
     $curl = curl_init();
@@ -31,7 +31,7 @@ function getZoom(string $url) : string
 function patchZoom(string $url, string $data) : string
 {
     
-    require_once '/home/aulatuspeaking/www/app/moodle/own_ZoomAPIToken.php';
+    require_once '/var/www/html/app/moodle/own_ZoomAPIToken.php';
     $token = generateTokenOAuth();
 
     $curl = curl_init();

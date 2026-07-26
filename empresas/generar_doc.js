@@ -79,7 +79,7 @@ const doc = new Document({
                 width: { size: 100, type: WidthType.PERCENTAGE },
                 rows: [
                     createRow(["Componente", "Detalle"], true),
-                    createRow(["URL Principal", "https://aula.tuspeaking.com/app/moodle/empresas/admin.php"]),
+                    createRow(["URL Principal", "https://aula.tuspeaking.com/empresas/admin.php"]),
                     createRow(["Empresas Activas", "10"]),
                     createRow(["Ediciones Totales", "17"]),
                     createRow(["Cursos Configurados", "3,019"]),
@@ -149,9 +149,9 @@ const doc = new Document({
                 width: { size: 100, type: WidthType.PERCENTAGE },
                 rows: [
                     createRow(["Función", "URL"], true),
-                    createRow(["Panel Empresas", "https://aula.tuspeaking.com/app/moodle/empresas/admin.php"]),
-                    createRow(["Panel Feedback", "https://aula.tuspeaking.com/app/moodle/feedback/admin.php"]),
-                    createRow(["Course-Acuity", "https://aula.tuspeaking.com/app/moodle/courseacuity.php"]),
+                    createRow(["Panel Empresas", "https://aula.tuspeaking.com/empresas/admin.php"]),
+                    createRow(["Panel Feedback", "https://aula.tuspeaking.com/feedback/admin.php"]),
+                    createRow(["Course-Acuity", "https://aula.tuspeaking.com/courseacuity.php"]),
                 ]
             }),
             
@@ -183,6 +183,6 @@ const doc = new Document({
 });
 
 Packer.toBuffer(doc).then(buffer => {
-    fs.writeFileSync('/home/aulatuspeaking/www/app/moodle/empresas/Documentacion_Panel_Empresas.docx', buffer);
+    fs.writeFileSync('/var/www/html/app/moodle/empresas/Documentacion_Panel_Empresas.docx', buffer);
     console.log('OK');
 });

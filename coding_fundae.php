@@ -52,7 +52,7 @@ body{background:#f5f5f5}
 </style>
 </head><body>
 <div class="hdr"><div class="container">
-<a href="/app/moodle/my/" style="color:#fff;opacity:.8"><i class="fas fa-arrow-left"></i> Volver</a>
+<a href="/my/" style="color:#fff;opacity:.8"><i class="fas fa-arrow-left"></i> Volver</a>
 <h1 class="mt-2"><i class="fas fa-file-invoice"></i> Reportes FUNDAE</h1>
 <p>Genera PDF/Excel con formato corporativo tuSpeaking</p>
 </div></div>

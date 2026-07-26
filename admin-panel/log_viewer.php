@@ -4,8 +4,8 @@
  */
 
 $logs = array(
-    'Limpieza CESCE' => '/home/aulatuspeaking/www/app/moodle/reportes_cesce/limpieza.log',
-    'Panel Admin' => '/home/aulatuspeaking/www/app/moodle/admin-panel/panel.log',
+    'Limpieza CESCE' => '/var/www/html/app/moodle/reportes_cesce/limpieza.log',
+    'Panel Admin' => '/var/www/html/app/moodle/admin-panel/panel.log',
 );
 
 $selected = isset($_GET['log']) ? $_GET['log'] : 'Limpieza CESCE';
@@ -48,7 +48,7 @@ if ($logFile && file_exists($logFile)) {
 }
 
 // Log de acceso
-$panelLog = '/home/aulatuspeaking/www/app/moodle/admin-panel/panel.log';
+$panelLog = '/var/www/html/app/moodle/admin-panel/panel.log';
 @file_put_contents($panelLog, date('Y-m-d H:i:s') . " - Vista: $selected\n", FILE_APPEND);
 ?>
 <!DOCTYPE html>

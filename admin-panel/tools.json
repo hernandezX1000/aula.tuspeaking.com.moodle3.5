@@ -5,33 +5,33 @@
         "items": [
             {
                 "name": "Reporte Asistencia Alumnos",
-                "url": "/app/moodle/reporte_cesce.php",
+                "url": "/reporte_cesce.php",
                 "icon": "📊"
             },
             {
                 "name": "Reporte Asistencia Profesores",
-                "url": "/app/moodle/reporte_profesores_cesce.php",
+                "url": "/reporte_profesores_cesce.php",
                 "icon": "👨‍🏫"
             },
             {
                 "name": "Reporte FUNDAE",
-                "url": "/app/moodle/reporte_fundae_cesce.php",
+                "url": "/reporte_fundae_cesce.php",
                 "icon": "📋",
                 "new": true
             },
             {
                 "name": "CSV Certificados",
-                "url": "/app/moodle/reportes_cesce/certificados_cesce_25.2_v2.csv",
+                "url": "/reportes_cesce/certificados_cesce_25.2_v2.csv",
                 "icon": "🎓"
             },
             {
                 "name": "Sistema Certificados",
-                "url": "/app/moodle/certificados/",
+                "url": "/certificados/",
                 "icon": "🏆"
             },
             {
                 "name": "Panel Evaluaciones",
-                "url": "https://aula.tuspeaking.com/app/moodle/evaluaciones/",
+                "url": "https://aula.tuspeaking.com/evaluaciones/",
                 "icon": "🔗"
             }
         ]
@@ -42,19 +42,19 @@
         "items": [
             {
                 "name": "Feedback NPS",
-                "url": "/app/moodle/feedback/admin.php",
+                "url": "/feedback/admin.php",
                 "icon": "⭐",
                 "new": true
             },
             {
                 "name": "Formulario Público",
-                "url": "/app/moodle/feedback/",
+                "url": "/feedback/",
                 "icon": "📝",
                 "external": true
             },
             {
                 "name": "Dashboard NPS",
-                "url": "https://aula.tuspeaking.com/app/moodle/feedback/admin_nuevo.php?s=dashboard&desde=2025-05-01&hasta=2026-01-06",
+                "url": "https://aula.tuspeaking.com/feedback/admin_nuevo.php?s=dashboard&desde=2025-05-01&hasta=2026-01-06",
                 "icon": "📊"
             }
         ]
@@ -65,7 +65,7 @@
         "items": [
             {
                 "name": "Gestión Profesores",
-                "url": "/app/moodle/feedback/profesores.php",
+                "url": "/feedback/profesores.php",
                 "icon": "⚙️",
                 "new": true
             },
@@ -83,7 +83,7 @@
             },
             {
                 "name": "Panel de Registro de Timelogs",
-                "url": "https://aula.tuspeaking.com/app/moodle/timelog/",
+                "url": "https://aula.tuspeaking.com/timelog/",
                 "icon": "📊"
             }
         ]
@@ -94,27 +94,27 @@
         "items": [
             {
                 "name": "Administración del sitio",
-                "url": "/app/moodle/admin/search.php",
+                "url": "/admin/search.php",
                 "icon": "⚙️"
             },
             {
                 "name": "Categorías de cursos",
-                "url": "/app/moodle/course/management.php",
+                "url": "/course/management.php",
                 "icon": "📂"
             },
             {
                 "name": "Listado de cursos",
-                "url": "/app/moodle/course/index.php",
+                "url": "/course/index.php",
                 "icon": "📚"
             },
             {
                 "name": "Buscar participantes",
-                "url": "/app/moodle/admin/user.php",
+                "url": "/admin/user.php",
                 "icon": "👥"
             },
             {
                 "name": "Alta Manual Usuarios",
-                "url": "/app/moodle/user/editadvanced.php?id=-1",
+                "url": "/user/editadvanced.php?id=-1",
                 "icon": "👤"
             }
         ]
@@ -125,28 +125,28 @@
         "items": [
             {
                 "name": "Monitor Ingesta Zoom",
-                "url": "/app/moodle/monitor_zoom.php",
+                "url": "/monitor_zoom.php",
                 "icon": "📊",
                 "new": true
             },
             {
                 "name": "Importación Manual Zoom",
-                "url": "/app/moodle/coding_zoom_import.php",
+                "url": "/coding_zoom_import.php",
                 "icon": "📥"
             },
             {
                 "name": "Auditoría Datos Zoom",
-                "url": "/app/moodle/coding_zoom_audit.php",
+                "url": "/coding_zoom_audit.php",
                 "icon": "🔍"
             },
             {
                 "name": "Appointment Types",
-                "url": "/app/moodle/acuitytypes.php",
+                "url": "/acuitytypes.php",
                 "icon": "📅"
             },
             {
                 "name": "Vinculación Curso-Appointment",
-                "url": "/app/moodle/courseacuity.php",
+                "url": "/courseacuity.php",
                 "icon": "🔗"
             }
         ]
@@ -157,20 +157,20 @@
         "items": [
             {
                 "name": "Reporte 1-to-1 (Tekia, OHmyBox)",
-                "url": "/app/moodle/reporte_1to1.php",
+                "url": "/reporte_1to1.php",
                 "icon": "👤",
                 "new": true,
                 "coding": true
             },
             {
                 "name": "Reporte Empresas General",
-                "url": "/app/moodle/reporte_empresas.php",
+                "url": "/reporte_empresas.php",
                 "icon": "🏢",
                 "coding": true
             },
             {
                 "name": "Ver Reportes Generados",
-                "url": "/app/moodle/reportes_1to1/",
+                "url": "/reportes_1to1/",
                 "icon": "📁"
             }
         ]
@@ -181,7 +181,7 @@
         "items": [
             {
                 "name": "Codificación FUNDAE",
-                "url": "/app/moodle/coding_fundae.php",
+                "url": "/coding_fundae.php",
                 "icon": "🏷️"
             },
             {
@@ -192,12 +192,12 @@
             },
             {
                 "name": "Panel Empresas y Ediciones",
-                "url": "https://aula.tuspeaking.com/app/moodle/empresas/admin.php?s=dashboard",
+                "url": "https://aula.tuspeaking.com/empresas/admin.php?s=dashboard",
                 "icon": "🔗"
             },
             {
                 "name": "Ficha de empresa (Operaciones)",
-                "url": "https://aula.tuspeaking.com/app/moodle/empresas/operaciones.php?s=fichas",
+                "url": "https://aula.tuspeaking.com/empresas/operaciones.php?s=fichas",
                 "icon": "🔧"
             }
         ]
@@ -208,12 +208,12 @@
         "items": [
             {
                 "name": "CMS Gestión Contenidos",
-                "url": "/app/moodle/csv/cmseligetopic.php?lvl=0",
+                "url": "/csv/cmseligetopic.php?lvl=0",
                 "icon": "📝"
             },
             {
                 "name": "Generador Info Curso",
-                "url": "/app/moodle/tus-tools/course_info_generator.php?token=ts_2025_plans_9f3b1c0a7d7a4d82",
+                "url": "/tus-tools/course_info_generator.php?token=ts_2025_plans_9f3b1c0a7d7a4d82",
                 "icon": "ℹ️"
             }
         ]
@@ -338,12 +338,12 @@
         "items": [
             {
                 "name": "Visor de Logs",
-                "url": "/app/moodle/admin-panel/log_viewer.php",
+                "url": "/admin-panel/log_viewer.php",
                 "icon": "📜"
             },
             {
                 "name": "Editor de Panel",
-                "url": "/app/moodle/admin-panel/editor.php",
+                "url": "/admin-panel/editor.php",
                 "icon": "✏️",
                 "new": true
             }
@@ -355,7 +355,7 @@
         "items": [
             {
                 "name": "Gestor de Demos",
-                "url": "/app/moodle/admin-panel/demo_manager.php",
+                "url": "/admin-panel/demo_manager.php",
                 "icon": "🎯",
                 "new": true
             }

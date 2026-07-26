@@ -250,7 +250,7 @@ function getrepetitions(){
 	var maxclass;
 	var classdone;
 	$.ajax({
-		url: 'https://aula.tuspeaking.com/app/moodle/askddbb.php',
+		url: 'https://aula.tuspeaking.com/askddbb.php',
 		data: {type: 'ask', sql: "SELECT COUNT(own_acuity.id) as cuenta, own_acuity_course.classnmbr FROM own_acuity, own_acuity_course WHERE own_acuity_course.courseid = " + extrainfo.courseID + " AND own_acuity.studentid = " + extrainfo.userID + " AND own_acuity.courseid = " + extrainfo.courseID + " AND (own_acuity.iscancelled = 'f' OR own_acuity.isteached = 't')"},
 		type: "POST",
 		success: function(result){
@@ -668,7 +668,7 @@ function sendmail(saveddays){
 		+'<body>'
 			+'<div style="max-width: 500px; margin: auto; border: #efefef 1px solid;font-family: sans-serif;">'
 				+'<div style="text-align: center;">'
-					+'<img src="https://aula.tuspeaking.com/app/moodle/tuSpeaking.png" width="119" height="51" alt="tuSpeaking">'
+					+'<img src="https://aula.tuspeaking.com/tuSpeaking.png" width="119" height="51" alt="tuSpeaking">'
 				+'</div>'
 				+'<div style="text-align: center; color:#999999; font-size: 30px; font-weight: bold;">'
 					+'<p>Sesiones Programadas</p>'
@@ -685,7 +685,7 @@ function sendmail(saveddays){
 					+'<div style="text-align:left; color:#333333; display:inline-block; padding-left:5px; padding-top:20px; width:84%;">';
 					for (i = 0; i < Object.keys(saveddays).length; i++){
 						d = new Date(saveddays[i].date);
-						mailcontent += '<div>' + getDayName(d.getDay()) + ', ' + d.getDate() + ' ' + getMonthName(d.getMonth()) + ', ' + d.getFullYear() + " " + saveddays[i].time + ' \xAD<a href="' + saveddays[i].confirmationPage +'"><img src="https://aula.tuspeaking.com/app/moodle/edit.png" alt="edit" width="20" heigth="20"></a><a href="' + saveddays[i].location.split(" ")[1] + '"><img src="https://d24cgw3uvb9a9h.cloudfront.net/zoom.ico" alt="zoom" width="20" height="20"></a></div>';
+						mailcontent += '<div>' + getDayName(d.getDay()) + ', ' + d.getDate() + ' ' + getMonthName(d.getMonth()) + ', ' + d.getFullYear() + " " + saveddays[i].time + ' \xAD<a href="' + saveddays[i].confirmationPage +'"><img src="https://aula.tuspeaking.com/edit.png" alt="edit" width="20" heigth="20"></a><a href="' + saveddays[i].location.split(" ")[1] + '"><img src="https://d24cgw3uvb9a9h.cloudfront.net/zoom.ico" alt="zoom" width="20" height="20"></a></div>';
 					}
 					mailcontent += '(' + saveddays[0].duration + ' minutos)'
 					+ '</div>'
@@ -698,7 +698,7 @@ function sendmail(saveddays){
 		+'</html>';
 		
 	$.ajax({
-		url: 'https://aula.tuspeaking.com/app/moodle/mailsender.php',
+		url: 'https://aula.tuspeaking.com/mailsender.php',
 		data: {email: extrainfo.email, subject: mailsubject, content: mailcontent},
 		type: "POST",
 		success: function(result){

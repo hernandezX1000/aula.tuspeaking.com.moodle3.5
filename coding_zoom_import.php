@@ -1,7 +1,7 @@
 <?php
 /**
  * Panel de Importación de Datos Zoom
- * URL: https://aula.tuspeaking.com/app/moodle/coding_zoom_import.php
+ * URL: https://aula.tuspeaking.com/coding_zoom_import.php
  */
 require('config.php');
 
@@ -178,7 +178,7 @@ $total_participants = $DB->count_records('coding_zoom_participants');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="https://aula.tuspeaking.com/app/moodle/theme/image.php/lambda/theme/1547126939/favicon">
+    <link rel="shortcut icon" href="https://aula.tuspeaking.com/theme/image.php/lambda/theme/1547126939/favicon">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" crossorigin="anonymous">
     <title>Importar Datos Zoom | tuSpeaking</title>

@@ -11,7 +11,7 @@ $mensaje = '';
 $archivo_generado = null;
 
 if (isset($_GET['descargar']) && isset($_GET['archivo'])) {
-    $archivo = '/home/aulatuspeaking/www/app/moodle/reportes_cesce/' . basename($_GET['archivo']);
+    $archivo = '/var/www/html/app/moodle/reportes_cesce/' . basename($_GET['archivo']);
     if (file_exists($archivo) && pathinfo($archivo, PATHINFO_EXTENSION) === 'xlsx') {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . basename($archivo) . '"');
@@ -25,7 +25,7 @@ if (isset($_POST['generar'])) {
     $fecha_inicio = isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : '2025-09-01';
     $fecha_fin = isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : date('Y-m-d');
     
-    $script = '/home/aulatuspeaking/www/app/moodle/reportes_cesce/generar_reporte_alumnos.sh';
+    $script = '/var/www/html/app/moodle/reportes_cesce/generar_reporte_alumnos.sh';
     
     if (file_exists($script)) {
         $cmd = "PYTHONPATH=/home/aulatuspeaking/.local/lib/python3.9/site-packages /bin/bash " . escapeshellarg($script) . " " . escapeshellarg($fecha_inicio) . " " . escapeshellarg($fecha_fin) . " 2>&1";
@@ -37,7 +37,7 @@ if (isset($_POST['generar'])) {
         $output_text = implode("\n", $output);
         
         if ($return_var === 0) {
-            $archivo_esperado = "/home/aulatuspeaking/www/app/moodle/reportes_cesce/Reporte_CESCE_{$fecha_inicio}_a_{$fecha_fin}.xlsx";
+            $archivo_esperado = "/var/www/html/app/moodle/reportes_cesce/Reporte_CESCE_{$fecha_inicio}_a_{$fecha_fin}.xlsx";
             if (file_exists($archivo_esperado)) {
                 $archivo_generado = $archivo_esperado;
                 $mensaje = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Reporte generado correctamente</div>';
@@ -57,7 +57,7 @@ if (isset($_POST['generar'])) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="https://aula.tuspeaking.com/app/moodle/theme/image.php/lambda/theme/1547126939/favicon">
+    <link rel="shortcut icon" href="https://aula.tuspeaking.com/theme/image.php/lambda/theme/1547126939/favicon">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" crossorigin="anonymous">
     <title>Reporte Asistencia CESCE | tuSpeaking</title>

@@ -9,7 +9,7 @@ if ($is_cli) {
     define('CLI_SCRIPT', true);
 }
 
-require_once('/home/aulatuspeaking/www/app/moodle/config.php');
+require_once('/var/www/html/app/moodle/config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/accesslib.php');
 require_once(__DIR__ . '/config.php');

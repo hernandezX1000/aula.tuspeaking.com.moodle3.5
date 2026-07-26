@@ -132,12 +132,12 @@ code{background:#f5f5f5;padding:2px 6px;border-radius:3px;font-size:13px;color:#
         <div class="card">
             <table>
                 <tr><th>Función</th><th>URL</th></tr>
-                <tr><td>Panel Empresas</td><td><code>https://aula.tuspeaking.com/app/moodle/empresas/admin.php</code></td></tr>
+                <tr><td>Panel Empresas</td><td><code>https://aula.tuspeaking.com/empresas/admin.php</code></td></tr>
                 <tr><td>Dashboard</td><td><code>...admin.php?s=dashboard</code></td></tr>
                 <tr><td>Empresas</td><td><code>...admin.php?s=empresas</code></td></tr>
                 <tr><td>Ediciones</td><td><code>...admin.php?s=ediciones</code></td></tr>
-                <tr><td>Panel Feedback</td><td><code>https://aula.tuspeaking.com/app/moodle/feedback/admin.php</code></td></tr>
-                <tr><td>Course-Acuity</td><td><code>https://aula.tuspeaking.com/app/moodle/courseacuity.php</code></td></tr>
+                <tr><td>Panel Feedback</td><td><code>https://aula.tuspeaking.com/feedback/admin.php</code></td></tr>
+                <tr><td>Course-Acuity</td><td><code>https://aula.tuspeaking.com/courseacuity.php</code></td></tr>
             </table>
         </div>
     </section>

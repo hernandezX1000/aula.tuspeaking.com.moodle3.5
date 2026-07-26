@@ -1,5 +1,5 @@
 <?php
-require_once '/home/aulatuspeaking/www/app/moodle/own_ZoomAPI.php';
+require_once '/var/www/html/app/moodle/own_ZoomAPI.php';
 class MeetingData {
     private $meetingID;
     public function __construct(

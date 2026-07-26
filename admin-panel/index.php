@@ -25,7 +25,7 @@ uasort($tools, function($a, $b) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="icon" type="image/svg+xml" href="/app/moodle/brand/icons/favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/brand/icons/favicon.svg">
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Panel Admin - TuSpeaking</title>
 <style>
