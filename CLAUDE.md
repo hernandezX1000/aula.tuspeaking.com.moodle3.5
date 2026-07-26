@@ -3,6 +3,35 @@
 > Este fichero NO contiene secretos. Las contraseñas/tokens viven fuera del repo.
 > Sirve como mapa de la infraestructura para consulta rápida.
 
+---
+
+## ⚠️ MIGRADO A HETZNER (26-jul-2026) — LEER ESTO PRIMERO
+
+**aula.tuspeaking.com ya NO está en Dinahosting.** Se migró a Hetzner el 26-jul-2026 (cutover completo). El Dinaserver se cancela el **4-ago-2026**. Todo lo que hay debajo de este bloque que mencione `vl24689.dinaserver.com` o rutas `/home/aulatuspeaking/...` es **HISTÓRICO** — la realidad actual es esta:
+
+- **Servidor:** Hetzner `tuspeaking-lms`, IP **46.225.232.27**, SSH usuario **`coreadmin`** (Ubuntu 24.04). ⚠️ NO confundir con el Hetzner de la plataforma nueva (`178.104.12.31`, learn/teach/success).
+- **aula corre en Docker:** contenedor **`moodle35-app`** (Apache 2.4.38 / PHP 7.3.33). Monta:
+  - Código: `/mnt/moodle-data/moodle-code` → `/var/www/html/app/moodle` (dueño `www-data`/33).
+  - moodledata: `/mnt/moodle-data/moodledata` → `/var/moodledata`.
+  - config: `config-staging.php` (vive en el repo **`tuspeaking-lms`**, es infra) → `config.php`.
+- **wwwroot** = `https://aula.tuspeaking.com` (raíz, sin subpath — ojo: en el Hetzner las rutas `/app/moodle/...` hardcodeadas dan 404, se sirve en raíz).
+- **BD:** contenedor `moodle35-db` (MariaDB, `127.0.0.1:3307`), BD `aulatuspeaking35`, user `moodle35`.
+- **Scripts Python** (autocorrector/digest/quiz): runtime en **`/home/coreadmin/scripts/`**; crons en el crontab de `coreadmin`.
+
+### Flujo de despliegue NUEVO (sustituye al de Dina de más abajo)
+El código sigue viniendo de **este repo** (dev→main, igual que antes). Solo cambia el destino:
+1. Local (Mac): desarrollar en `dev` → probar → merge a `main` → push.
+2. En el Hetzner: `cd /home/coreadmin/aula-repo && git pull` → `bash deploy-aula.sh` (sincroniza el código custom al volumen del contenedor con `chown 33:33`, copia los scripts Python a `/home/coreadmin/scripts`, y purga cachés).
+- Purga manual: `docker exec -u www-data moodle35-app php /var/www/html/app/moodle/admin/cli/purge_caches.php`.
+- ⚠️ **PENDIENTE de activar en el server:** clonar este repo en `/home/coreadmin/aula-repo` y probar `deploy-aula.sh` (aún NO ejecutado en producción — ver el script en la raíz del repo).
+
+### Repos (roles — no mezclar)
+- **Este repo (`aula.tuspeaking.com.moodle3.5`)** = CÓDIGO de la app (custom Moodle + scripts). Core gitignorado.
+- **`tuspeaking-lms`** = INFRAESTRUCTURA del Hetzner (Docker compose, Dockerfile, vhosts, `config-staging.php`, docs de migración: `CUTOVER-AULA-2026-07-26.md`, `MIGRACION-DINAHOSTING.md`).
+- **`tuspeaking-platform`** = plataforma NUEVA (learn/teach/success), OTRO Hetzner — no tiene que ver con aula.
+
+---
+
 ## Servidor
 
 - Host: vl24689.dinaserver.com (Dinaserver)
