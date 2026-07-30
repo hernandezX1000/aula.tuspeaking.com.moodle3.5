@@ -345,13 +345,41 @@ def save_quiz_grade(conn, question_attempt_id: int, quiz_attempt_id: int,
 # CLAUDE API — QUIZ GRADERS
 # ──────────────────────────────────────────────────────────────
 
-TRANSLATION_SYSTEM = """\
+def detect_translation_target(question_text: str) -> str:
+    """
+    For a translation question, returns the language the ANSWER must be in:
+    'es' (Spanish) or 'en' (English), inferred from the prompt wording.
+    Fixes the bug where an English->Spanish task rejected a correct Spanish answer.
+    Default 'en' (English course => translate into English).
+    """
+    qt = question_text.lower()
+    if any(k in qt for k in ['to spanish', 'into spanish', 'in spanish',
+                             'al español', 'al espanol', 'al castellano',
+                             'en español', 'en espanol', 'a español', 'a castellano']):
+        return 'es'
+    if any(k in qt for k in ['to english', 'into english', 'in english', 'put into english',
+                             'al inglés', 'al ingles', 'en inglés', 'en ingles']):
+        return 'en'
+    return 'en'
+
+
+def translation_system(target: str) -> str:
+    """Grader prompt for a translation question, aware of the target language."""
+    if target == 'es':
+        direction = ("The student has translated English phrases into SPANISH. "
+                     "A correct answer is written in Spanish — this is EXPECTED; "
+                     "NEVER penalize an answer for being in Spanish or ask for it in English.")
+        note = "Evaluate if each Spanish translation is correct, natural and faithful to the English original."
+    else:
+        direction = "The student has translated Spanish phrases into English."
+        note = "Evaluate if each translation is correct, natural, and appropriate for the level."
+    return f"""\
 You are an English language teacher at a corporate academy.
-The student has written translations of Spanish phrases into English.
-Evaluate if each translation is correct, natural, and appropriate for the level.
+{direction}
+{note}
 
 Return ONLY a valid JSON object:
-{"fraction": 0.8, "feedback": "Most translations are accurate and natural. Correction: \"la reunion del ayuntamiento\" → \"the town hall meeting\" is more natural than \"the council house meeting\"."}
+{{"fraction": 0.8, "feedback": "Most translations are accurate and natural. Correction: \\"wrong phrase\\" -> \\"correct phrase\\"."}}
 
 fraction rules:
 - 1.0 = all or nearly all translations correct and natural
@@ -362,8 +390,8 @@ feedback rules:
 - 1-3 sentences in English
 - No emojis
 - MANDATORY: Quote at least one specific translation from the student's answer and comment on it.
-- MANDATORY: If there is an error, use the format: Correction: "wrong phrase" → "correct phrase".
-- If all translations are correct, quote one and explain why it is natural or what could be even more idiomatic.
+- MANDATORY: If there is an error, use the format: Correction: "wrong phrase" -> "correct phrase".
+- If all translations are correct, quote one and explain why it is natural or accurate.
 - Do NOT state the numeric score
 - NEVER write generic feedback not tied to a specific phrase in this submission.
 """
@@ -401,7 +429,11 @@ def call_claude_quiz(question_text: str, student_answer: str,
     """
     client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-    system = TRANSLATION_SYSTEM if question_type == 'translation' else WRITING_SYSTEM
+    if question_type == 'translation':
+        # Direction-aware: e.g. "translate from English to Spanish" expects a Spanish answer.
+        system = translation_system(detect_translation_target(question_text))
+    else:
+        system = WRITING_SYSTEM
 
     user_msg = (
         f"Level: {level}\n"
