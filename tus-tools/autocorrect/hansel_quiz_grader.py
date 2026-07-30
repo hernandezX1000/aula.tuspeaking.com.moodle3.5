@@ -205,6 +205,7 @@ def fetch_pending_quiz_essays(conn, attempt_id=None):
         u.lastname              AS lastname,
         c.fullname              AS course_name,
         qz.name                 AS quiz_name,
+        qz.intro                AS quiz_intro,
         ans_step.id             AS answer_step_id,
         ans_data.value          AS student_answer,
         qa.uniqueid             AS usage_id
@@ -368,55 +369,38 @@ def save_quiz_grade(conn, question_attempt_id: int, quiz_attempt_id: int,
 # CLAUDE API — QUIZ GRADERS
 # ──────────────────────────────────────────────────────────────
 
-def detect_translation_target(question_text: str) -> str:
+def translation_system() -> str:
     """
-    For a translation question, returns the language the ANSWER must be in:
-    'es' (Spanish) or 'en' (English), inferred from the prompt wording.
-    Fixes the bug where an English->Spanish task rejected a correct Spanish answer.
-    Default 'en' (English course => translate into English).
+    Grader prompt for a TRANSLATION exercise — DIRECTION-AGNOSTIC.
+    El alumno pudo traducir INTO English o INTO Spanish; se juzga la fidelidad,
+    NUNCA se penaliza por el idioma en que está escrita la respuesta.
     """
-    qt = question_text.lower()
-    if any(k in qt for k in ['to spanish', 'into spanish', 'in spanish',
-                             'al español', 'al espanol', 'al castellano',
-                             'en español', 'en espanol', 'a español', 'a castellano']):
-        return 'es'
-    if any(k in qt for k in ['to english', 'into english', 'in english', 'put into english',
-                             'al inglés', 'al ingles', 'en inglés', 'en ingles']):
-        return 'en'
-    return 'en'
+    return """\
+You are a language teacher grading a TRANSLATION exercise at a corporate academy.
+The student was given a phrase (shown in the question) and had to translate it INTO THE OTHER language.
+The exercise may go English->Spanish OR Spanish->English — both directions are valid.
 
-
-def translation_system(target: str) -> str:
-    """Grader prompt for a translation question, aware of the target language."""
-    if target == 'es':
-        direction = ("The student has translated English phrases into SPANISH. "
-                     "A correct answer is written in Spanish — this is EXPECTED; "
-                     "NEVER penalize an answer for being in Spanish or ask for it in English.")
-        note = "Evaluate if each Spanish translation is correct, natural and faithful to the English original."
-    else:
-        direction = "The student has translated Spanish phrases into English."
-        note = "Evaluate if each translation is correct, natural, and appropriate for the level."
-    return f"""\
-You are an English language teacher at a corporate academy.
-{direction}
-{note}
+CRITICAL: Judge ONLY whether the answer is a faithful, natural translation of the given phrase.
+NEVER penalize an answer for "being in Spanish" or "being in English", and never ask the student to
+answer in a different language — the target language is whatever the exercise requires. If the answer
+renders the meaning of the source phrase correctly in the other language, it is correct. An answer that
+merely repeats the phrase in the SAME language as the source is NOT a translation (mark it wrong).
 
 Return ONLY a valid JSON object:
-{{"fraction": 0.8, "feedback": "Most translations are accurate and natural. Correction: \\"wrong phrase\\" -> \\"correct phrase\\"."}}
+{"fraction": 0.8, "feedback": "Faithful and natural. Correction: \\"wrong phrase\\" -> \\"correct phrase\\"."}
 
 fraction rules:
-- 1.0 = all or nearly all translations correct and natural
+- 1.0 = faithful and natural translation
 - 0.5 = partially correct, some errors or unnatural phrasing
-- 0.0 = mostly incorrect or incomprehensible
+- 0.0 = wrong meaning, or not a translation (e.g. same language as the source)
 
 feedback rules:
-- 1-3 sentences in English
+- 1-3 sentences. Write the feedback in the SAME language as the student's answer, so they understand.
 - No emojis
-- MANDATORY: Quote at least one specific translation from the student's answer and comment on it.
-- MANDATORY: If there is an error, use the format: Correction: "wrong phrase" -> "correct phrase".
-- If all translations are correct, quote one and explain why it is natural or accurate.
+- MANDATORY: Quote a specific part of the answer and comment on it.
+- If there is an error, use the format: Correction: "wrong phrase" -> "correct phrase".
 - Do NOT state the numeric score
-- NEVER write generic feedback not tied to a specific phrase in this submission.
+- NEVER write generic feedback not tied to a specific phrase in this answer.
 """
 
 WRITING_SYSTEM = """\
@@ -453,8 +437,7 @@ def call_claude_quiz(question_text: str, student_answer: str,
     client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
     if question_type == 'translation':
-        # Direction-aware: e.g. "translate from English to Spanish" expects a Spanish answer.
-        system = translation_system(detect_translation_target(question_text))
+        system = translation_system()
     else:
         system = WRITING_SYSTEM
 
@@ -511,12 +494,16 @@ def process_quiz_essays(conn) -> int:
         lastname           = row['lastname']
         course             = row['course_name']
         quiz_name          = row['quiz_name']
+        quiz_intro         = strip_html(row.get('quiz_intro') or '')
         question_text      = row['question_text'] or ''
         student_answer     = row['student_answer'] or ''
         maxmark            = float(row['maxmark'] or 1.0)
         usage_id           = row['usage_id']
         level              = detect_level(course)
-        q_type             = detect_question_type(question_text)
+        # Tipo con TODO el contexto: la instrucción "Translate ... to Spanish" suele estar en el
+        # nombre/intro del quiz, no en el texto de la pregunta (que es solo la frase a traducir).
+        detect_ctx         = f"{quiz_name} {quiz_intro} {strip_html(question_text)}"
+        q_type             = detect_question_type(detect_ctx)
 
         log.info(
             f"Quiz essay: {firstname} {lastname} | {course} | "
