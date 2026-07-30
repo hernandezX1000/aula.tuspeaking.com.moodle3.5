@@ -53,7 +53,10 @@ def _load_env(path='/home/aulatuspeaking/.env'):
 _load_env()
 
 DB_CONFIG = {
-    'host':     'localhost',
+    # Post-migración: la BD del aula vive en Docker (TCP 127.0.0.1:3307), no en el
+    # socket local. pymysql con host='localhost' iría por socket (Access denied 1698).
+    'host':     os.environ.get('MOODLE_DB_HOST', '127.0.0.1'),
+    'port':     int(os.environ.get('MOODLE_DB_PORT', '3307')),
     'user':     os.environ.get('MOODLE_DB_USER', 'moodle35'),
     'password': os.environ.get('MOODLE_DB_PASSWORD', ''),
     'database': os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35'),
@@ -80,6 +83,20 @@ EXCLUDED_QA = set()
 # ──────────────────────────────────────────────────────────────
 
 DRY_RUN = '--dry-run' in sys.argv
+
+
+def _parse_attempt_arg():
+    """--attempt <mdl_quiz_attempts.id>: re-corrige ese intento aunque ya esté calificado."""
+    for i, a in enumerate(sys.argv):
+        if a == '--attempt' and i + 1 < len(sys.argv):
+            try:
+                return int(sys.argv[i + 1])
+            except ValueError:
+                return None
+    return None
+
+
+ATTEMPT_ID = _parse_attempt_arg()
 
 # ──────────────────────────────────────────────────────────────
 # LOGGING
@@ -159,13 +176,23 @@ def get_db():
     return pymysql.connect(**DB_CONFIG, cursorclass=pymysql.cursors.DictCursor)
 
 
-def fetch_pending_quiz_essays(conn):
+def fetch_pending_quiz_essays(conn, attempt_id=None):
     """
-    Returns one row per essay question that is in 'needsgrading' state.
-    Includes the student answer (from the 'complete' step), question text,
-    course name, and quiz attempt info needed to write back the grade.
+    Devuelve una fila por pregunta essay. Normalmente solo las que están en
+    'needsgrading'; si se pasa attempt_id, coge TODAS las de ese intento aunque
+    ya estén calificadas (re-corrección — save_quiz_grade añade un paso nuevo).
     """
-    sql = """
+    if attempt_id is not None:
+        where_extra = "AND qa.id = %s"
+    else:
+        where_extra = (
+            "AND last_step.state = 'needsgrading' "
+            "AND qa.timestart >= UNIX_TIMESTAMP('2026-01-01') "
+            "AND c.fullname NOT LIKE '%DEMO%' AND c.fullname NOT LIKE '%demo%' "
+            "AND c.fullname NOT LIKE '%Prueba de nivel%' AND c.fullname NOT LIKE '%prueba de nivel%' "
+            "AND c.fullname NOT LIKE '%Italiano%' AND c.fullname NOT LIKE '%italiano%'"
+        )
+    sql = f"""
     SELECT
         qa.id                   AS quiz_attempt_id,
         qa.quiz                 AS quiz_id,
@@ -208,19 +235,15 @@ def fetch_pending_quiz_essays(conn):
         ON ans_data.attemptstepid = ans_step.id
         AND ans_data.name = 'answer'
     WHERE qa.state = 'finished'
-      AND last_step.state = 'needsgrading'
-      AND qa.timestart >= UNIX_TIMESTAMP('2026-01-01')
-      AND c.fullname NOT LIKE '%DEMO%'
-      AND c.fullname NOT LIKE '%demo%'
-      AND c.fullname NOT LIKE '%Prueba de nivel%'
-      AND c.fullname NOT LIKE '%prueba de nivel%'
-      AND c.fullname NOT LIKE '%Italiano%'
-      AND c.fullname NOT LIKE '%italiano%'
+      {where_extra}
     ORDER BY qa.timestart ASC
     LIMIT 30
     """
     with conn.cursor() as cur:
-        cur.execute(sql)
+        if attempt_id is not None:
+            cur.execute(sql, (attempt_id,))
+        else:
+            cur.execute(sql)
         return cur.fetchall()
 
 
@@ -473,7 +496,7 @@ def call_claude_quiz(question_text: str, student_answer: str,
 # ──────────────────────────────────────────────────────────────
 
 def process_quiz_essays(conn) -> int:
-    rows = fetch_pending_quiz_essays(conn)
+    rows = fetch_pending_quiz_essays(conn, ATTEMPT_ID)
     log.info(f"Pending quiz essays found: {len(rows)}")
 
     processed = 0
