@@ -64,7 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $notes = $_POST['notes'] ?? '';
         $az = $DB->get_record_sql("SELECT * FROM mdl_i3code_acuityZoom WHERE id = ?", [$az_id]);
         if ($az) {
-            $DB->execute("UPDATE mdl_i3code_acuityZoom SET zoom_clasecompletada = 1 WHERE id = ?", [$az_id]);
+            // manual_override=1: la ingesta NO volvera a tocar el estado de esta clase.
+            $DB->execute("UPDATE mdl_i3code_acuityZoom SET zoom_clasecompletada = 1, manual_override = 1, manual_motivo = ?, manual_fecha = NOW() WHERE id = ?", [$notes, $az_id]);
             $log = new stdClass();
             $log->acuityzoom_id = $az_id;
             $log->zoom_meetingid = $az->zoom_meetingid;
@@ -86,6 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $notes = $_POST['notes'] ?? '';
         $az = $DB->get_record_sql("SELECT * FROM mdl_i3code_acuityZoom WHERE id = ?", [$az_id]);
         if ($az) {
+            // "No asistio": marca ausencia (comp=2) y protege con manual_override=1.
+            $DB->execute("UPDATE mdl_i3code_acuityZoom SET zoom_clasecompletada = 2, manual_override = 1, manual_motivo = ?, manual_fecha = NOW() WHERE id = ?", [$notes, $az_id]);
             $log = new stdClass();
             $log->acuityzoom_id = $az_id;
             $log->zoom_meetingid = $az->zoom_meetingid;
