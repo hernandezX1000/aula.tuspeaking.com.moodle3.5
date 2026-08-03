@@ -4,7 +4,6 @@
 
 # --- Secretos: NUNCA versionar ---
 config.php
-misclases.php
 tutorias_con_profesor.php
 acuityapi.php
 own_ZoomAPIToken.php
@@ -145,3 +144,9 @@ reportes_cesce/reporte_asistencia_cesce_v2025.py.bak
 reportes_cesce/enviar_recordatorio_notas_v2.php
 reportes_cesce/reporte_profesores_formato_v2025.py.bak
 reportes_cesce/reporte_asistencia_cesce.py.bak
+
+# === MisClases (recuperado 3-ago-2026, ya versionado) ===
+!/misclases.php
+!/reservaclase.php
+!/modificaclase.php
+!/cancelaclase.php
