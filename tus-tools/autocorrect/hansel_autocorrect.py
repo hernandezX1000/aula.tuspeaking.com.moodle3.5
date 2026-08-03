@@ -360,6 +360,7 @@ def fetch_pending_file_writings(conn):
       AND a.name NOT LIKE '%Audio Delivery%'
       AND a.name NOT LIKE '%AUDIO DELIVERY%'
       AND a.name NOT LIKE '%entrega de audio%'
+      AND a.name NOT LIKE '%Entrega: Audio%'
       AND c.fullname NOT LIKE '%DEMO%'
       AND c.fullname NOT LIKE '%demo%'
       AND c.fullname NOT LIKE '%Prueba de nivel%'
@@ -381,7 +382,8 @@ def fetch_pending_file_writings(conn):
 def fetch_pending_audio(conn):
     """
     Returns audio delivery submissions with no grade.
-    Matches assignments whose name contains 'ENTREGA DE AUDIO' or 'Audio Delivery'.
+    Matches assignments whose name contains 'ENTREGA DE AUDIO', 'Audio Delivery',
+    'Entrega: Audio' o 'Entrega: Pitch Audio'.
     """
     sql = """
     SELECT
@@ -414,6 +416,8 @@ def fetch_pending_audio(conn):
        OR a.name LIKE '%Audio Delivery%'
        OR a.name LIKE '%AUDIO DELIVERY%'
        OR a.name LIKE '%entrega de audio%'
+       OR a.name LIKE '%Entrega: Audio%'
+       OR a.name LIKE '%Entrega: Pitch Audio%'
       )
     ORDER BY asub.timecreated ASC
     LIMIT 20
