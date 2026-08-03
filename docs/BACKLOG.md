@@ -28,7 +28,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | SEC-4 | Rotar API key Acuity + secret Zoom (llevan tiempo en el server) | Seguridad | Media | 🔴 | CLAUDE.md pendientes |
 | SEC-5 | Swapfile 2-4 GB en el Hetzner (prep migración) | Seguridad | Media | 🔴 | 3.7 GB RAM sin swap |
 | ING-1 | Feeder `own_acuity` no importa reservas nuevas/reprogramadas | Ingesta | Media | 🔴 | TICKET #7 |
-| AC-4 | Pipeline audio no reconoce "Entrega: Audio" (solo "ENTREGA DE AUDIO"/"Audio Delivery") | Autocorrector | Media | 🔴 | 03-ago-2026. 6 audios .m4a de Nicolás (GDES Frances B2) sin procesar. Fix: añadir `OR a.name LIKE '%Entrega: Audio%'` a `fetch_pending_audio` + excluirlo de file-writings. |
+| AC-4 | Pipeline audio no reconoce "Entrega: Audio" (solo "ENTREGA DE AUDIO"/"Audio Delivery") | Autocorrector | Media | 🟢 | 03-ago-2026. Fix: `OR a.name LIKE '%Entrega: Audio%'` y `'%Entrega: Pitch Audio%'` en `fetch_pending_audio`. 7 audios Nicolás procesados. |
 | AC-3 | Endurecer parseo JSON en `call_claude_writing` (fallo transitorio) | Autocorrector | Media | 🔴 | Sesión 10-jul |
 | REPO-1 | `.pptx` grandes en `contenido/business_english/` → Git LFS o excluir | Infra repo | Media | 🔴 | TICKET #2 |
 | REPO-2 | Ignorar caché FUNDAE + log de limpieza (dejan sucio el árbol de prod) | Infra repo | Baja | 🔴 | Sesión 17-jul |
