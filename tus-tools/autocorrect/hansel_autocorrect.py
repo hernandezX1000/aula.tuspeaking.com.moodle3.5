@@ -37,17 +37,24 @@ from datetime import datetime
 # CONFIGURATION — loaded from /home/aulatuspeaking/.env
 # ──────────────────────────────────────────────────────────────
 
-def _load_env(path='/home/aulatuspeaking/.env'):
-    """Load key=value pairs from .env into os.environ (does not override existing vars)."""
-    if not os.path.exists(path):
-        return
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            k, v = line.split('=', 1)
-            os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+def _load_env(path=None):
+    """Load key=value pairs from .env into os.environ (does not override existing vars).
+    Busca en varias rutas para compatibilidad Dinahosting→Hetzner."""
+    candidates = [
+        path,
+        '/home/coreadmin/.env',          # Hetzner (nuevo)
+        '/home/aulatuspeaking/.env',     # Dinahosting (histórico)
+    ]
+    for p in candidates:
+        if p and os.path.exists(p):
+            with open(p) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#') or '=' not in line:
+                        continue
+                    k, v = line.split('=', 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+            break  # primera que exista, parar
 
 _load_env()
 
