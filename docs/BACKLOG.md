@@ -18,6 +18,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | SEC-2 | Sacar credenciales BD en duro (~51 ficheros propios) + rotar contraseña | Seguridad | **Alta** | 🔴 | TICKET #1 / BUG-002 |
 | COMP-1 | Verificar que las actividades finalizadas muestran el completion correcto | Completion | **Alta** | 🔴 | Caso Enrique Saña (Tekia B2): 66% vs 75% necesario |
 | COMP-2 | Frances B2 (GDES 2026.2, course 3242): 42 Páginas con `completion=2` sin `completionview` → no se marcaban | Completion | **Alta** | 🟡 | Reportado por Daniela (Nicolás 5822) y Guillaume (Luis Miguel 5823). **FIX aplicado 29-jul**: `completionview=1` en las 42 Páginas + backfill de 29 vistas ya hechas. Verificado en Success (Nicolás 11%→31%, Luis Miguel 16%→33%). **PENDIENTE**: barrido de prevención (otros cursos / curso maestro). `docs/incidents/2026-07-29-nicolas-bilanin-completion.md` |
+| COMP-3 | HVP con grade_items duplicados en course 3242 (GDES Frances B2) — completion nunca se activa aunque el alumno tenga nota | Completion | **Alta** | 🔴 | 03-ago-2026. Instancias 275096–275101 (cmids 530444/530445/530454/530455/530464/530465): cada una tiene 2 grade_items (313xxx vacíos + 320xxx donde H5P escribe la nota). Completion lee 313xxx → ve NULL → nunca completa. Fix: borrar los grade_items 313307/313308/313311/313312/313315/313316 (vacíos) y purgar cachés. Verificar que no hay grade_grades apuntando a ellos antes de borrar. Afecta a todos los alumnos del curso. |
 | ING-2 | Prevenir clases atascadas en "Verificando asistencia" (reproceso ya hecho) | Ingesta | **Alta** | 🔴 | TICKET #8 · `docs/2026-07-09-reproceso-verificando.md` |
 | SUC-1 | Toggle "finalizado" no detecta a Eduardo (Senator) | Success | **Alta** | 🔴 | BUG-001 · cross-ref tuspeaking-platform |
 | MIG-1 | Migración a Hetzner (aula + cesce + baiwingin) | Migración | **Alta** | 🟡 | ROADMAP §6 · offsite ya siembra la BD; PHP resuelto por Docker · **cutover aula HECHO 26-jul** (ver tuspeaking-lms/docs/CUTOVER-AULA-2026-07-26.md) |
@@ -32,6 +33,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | REPO-2 | Ignorar caché FUNDAE + log de limpieza (dejan sucio el árbol de prod) | Infra repo | Baja | 🔴 | Sesión 17-jul |
 | OPS-1 | Recuperación Linda Mohnssen (E2Y, ~5 clases) | Docente | Media | 🔴 | Sesión 10-jul |
 | OPS-2 | Recuperación + migración FUNDAE Adrian Barrena (E2Y) | Docente | Media | 🔴 | Sesión 10-jul |
+| OPS-4 | Juan Antonio Muñoz (Hyatt) — 2 clases en "Verificando asistencia" + reprogramar | Ingesta/Ops | Media | 🟡 | 03-ago-2026; instancia de ING-2; borrador enviado pidiendo fecha. **Fix parcial 03-ago**: id 111009 (30/07 16:00 Dehlia) cerrado con acuity_canceled=1+manual_override. Pendiente: confirmar fecha reprogramación |
 | AC-2 | Writings con texto pegado corto + adjunto (41657, 41728) caen entre pipelines | Autocorrector | Baja | 🔴 | Sesión 10-jul |
 | ING-3 | Fijar `$log_path` absoluto en `i3code_download_zoomdata.php` (línea 21) | Ingesta | Baja | 🔴 | Sesión 10-jul |
 | NOT-3 | Retirar cron `monitor_carga.sh` (redundante: el digest ya vigila disco/swap) | Monitor | Baja | 🔴 | Sesión 10-jul |

@@ -94,7 +94,8 @@ EXCLUDED_SUBMISSIONS = {
 API_CALL_DELAY = 1.5
 
 # Moodle dataroot — physical location of uploaded files
-MOODLE_DATAROOT = '/home/aulatuspeaking/www/app/moodle/data'
+# MIGRADO A HETZNER 2026-08-03: antes /home/aulatuspeaking/www/app/moodle/data (Dinahosting)
+MOODLE_DATAROOT = '/mnt/moodle-data/moodledata'
 
 # Whisper model size: 'base' (fast, good enough), 'small' (better), 'medium' (slower)
 WHISPER_MODEL_SIZE = 'base'
