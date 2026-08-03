@@ -75,7 +75,8 @@ CLAUDE_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
 # Moodle REST API
-MOODLE_WS_URL   = 'https://aula.tuspeaking.com/app/moodle/webservice/rest/server.php'
+# MIGRADO A HETZNER 2026-08-03: antes /app/moodle/webservice (Dinahosting); ahora en raíz
+MOODLE_WS_URL   = os.environ.get('MOODLE_WS_URL', 'https://aula.tuspeaking.com/webservice/rest/server.php')
 MOODLE_WS_TOKEN = os.environ.get('MOODLE_WS_TOKEN', '')  # hfernandez (user 14)
 
 # Moodle user IDs for graders
