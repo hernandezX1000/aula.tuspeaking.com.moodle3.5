@@ -59,7 +59,8 @@ def _load_env(path=None):
 _load_env()
 
 DB_CONFIG = {
-    'host':      'localhost',
+    'host':      os.environ.get('MOODLE_DB_HOST', '127.0.0.1'),
+    'port':      int(os.environ.get('MOODLE_DB_PORT', '3307')),
     'user':      os.environ.get('MOODLE_DB_USER', 'moodle35'),
     'password':  os.environ.get('MOODLE_DB_PASSWORD', ''),
     'database':  os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35'),
