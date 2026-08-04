@@ -35,7 +35,7 @@ NOW  = time.time()
 CHECKS = [
     ("🟢 DATOS Y ASISTENCIA", [
         dict(t='log',  name='Ingesta Zoom (4:05)',      why='actualiza asistencias',
-             path=f'{HL}/cron_ingesta.log', max_h=26),
+             path=f'{ZLOG}_%Y%m%d.log', max_h=26),
         dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
              path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
