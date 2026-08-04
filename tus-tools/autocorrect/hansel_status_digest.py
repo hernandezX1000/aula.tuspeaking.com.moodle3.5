@@ -6,7 +6,7 @@ Revisa cada proceso (por frescura de su log o por un check concreto), lo agrupa
 y manda UN email por Gmail SMTP. Pensado para correr a las 8:00 y 20:00.
 
 Cron:
-    0 8,20 * * * /usr/bin/python3 /home/aulatuspeaking/scripts/hansel_status_digest.py >> /home/aulatuspeaking/hansel_logs/status_digest.log 2>&1
+    0 8,20 * * * /home/coreadmin/venv-autocorrect/bin/python /home/coreadmin/scripts/hansel_status_digest.py >> /home/coreadmin/cron_status_digest.log 2>&1
 
 Uso manual:
     python3 hansel_status_digest.py            # calcula y envía
@@ -23,9 +23,9 @@ try:
 except Exception:
     send_alert = None
 
-HL   = '/home/aulatuspeaking/hansel_logs'
-ZLOG = '/home/aulatuspeaking/.ftp-users/moodle/admin/cli/logs/i3code_download_zoomdata'
-BK   = '/home/aulatuspeaking/backups/db_daily'
+HL   = '/home/coreadmin'
+ZLOG = '/tmp/i3code_download_zoomdata'   # patrón: ZLOG_%Y%m%d.log
+BK   = '/home/coreadmin/backups/mysql'
 NOW  = time.time()
 
 # ── Definición de checks ─────────────────────────────────────────────
@@ -35,13 +35,11 @@ NOW  = time.time()
 CHECKS = [
     ("🟢 DATOS Y ASISTENCIA", [
         dict(t='log',  name='Ingesta Zoom (4:05)',      why='actualiza asistencias',
-             path=f'{ZLOG}/log_%Y%m%d.log', max_h=26),
-        dict(t='log',  name='Sync asistencia (cada 15m)', why='refresca asistió/ausencia',
-             path=f'{HL}/asistencia_zoom.log', max_h=1),
+             path=f'{HL}/cron_ingesta.log', max_h=26),
         dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
-             path=f'{HL}/hansel_autocorrect.log', max_h=3, tail_done=True),
+             path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
-             path=f'{HL}/hansel_quiz_grader.log', max_h=5),
+             path=f'{HL}/cron_quiz.log', max_h=5),
         dict(t='moodle_cron', name='Moodle cron (4:15)',  why='tareas programadas internas',
              max_h=26),
     ]),
@@ -50,16 +48,16 @@ CHECKS = [
              pat=f'{BK}/db_%Y%m%d.sql.gz', min_kb=1000),
         dict(t='file', name='Backup BD CESCE (2:05)',     why='recuperación CESCE',
              pat=f'{BK}/db_cesce_%Y%m%d.sql.gz', min_kb=100),
-        dict(t='log',  name='Backup offsite Hetzner (3:00)', why='copia fuera del server',
-             path=f'{HL}/backup_offsite.log', max_h=26),
+        dict(t='note', name='Backup offsite (3:00)', why='copia fuera del server',
+             status='WARN', msg='pendiente configurar en Hetzner'),
     ]),
     ("🟢 REPORTES", [
-        dict(t='log',  name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
-             path='/home/aulatuspeaking/feedback_cron.log', max_h=2),
+        dict(t='note', name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
+             status='WARN', msg='pendiente configurar en Hetzner'),
     ]),
     ("🟢 MONITOR", [
-        dict(t='log',  name='Heartbeat (cada hora)',      why='vigila que los crons corran',
-             path=f'{HL}/heartbeat.log', max_h=2, tail_last=True),
+        dict(t='note', name='Heartbeat (cada hora)',      why='vigila que los crons corran',
+             status='WARN', msg='pendiente configurar en Hetzner'),
     ]),
     ("🔒 SEGURIDAD Y RECURSOS", [
         dict(t='disk', name='Disco',        why='si se llena, se cae todo en silencio', path='/'),
@@ -176,15 +174,17 @@ def check_moodle_cron(c):
     try:
         import mysql.connector
         env = {}
-        p = '/home/aulatuspeaking/.env'
-        if os.path.exists(p):
-            for line in open(p):
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    k, v = line.split('=', 1)
-                    env[k.strip()] = v.strip().strip('"\'')
+        for p in ('/home/coreadmin/.env', '/home/aulatuspeaking/.env'):
+            if os.path.exists(p):
+                for line in open(p):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        env[k.strip()] = v.strip().strip('"\'')
+                break
         conn = mysql.connector.connect(
-            host='localhost',
+            host=env.get('MOODLE_DB_HOST', '127.0.0.1'),
+            port=int(env.get('MOODLE_DB_PORT', 3307)),
             user=env.get('MOODLE_DB_USER', 'moodle35'),
             password=env.get('MOODLE_DB_PASSWORD', ''),
             database=env.get('MOODLE_DB_NAME', 'aulatuspeaking35'))
