@@ -4,7 +4,7 @@ send_alert.py — envío de avisos por Gmail SMTP (el mismo que usa Moodle).
 
 Usa las credenciales del .env (nunca hardcodeadas):
     SMTP_HOST=smtp.gmail.com
-    SMTP_PORT=465
+    SMTP_PORT=587
     SMTP_USER=hfernandez@tuspeaking.com
     SMTP_PASS=<app-password de Gmail>   (= mdl_config.smtppass)
     SMTP_FROM=soporte@tuspeaking.com    (opcional; por defecto = SMTP_USER)
@@ -22,7 +22,7 @@ import sys, os, ssl, smtplib
 from email.message import EmailMessage
 
 
-def _load_env(path='/home/aulatuspeaking/.env'):
+def _load_env(path='/home/coreadmin/.env'):
     if not os.path.exists(path):
         return
     with open(path) as f:
@@ -37,7 +37,7 @@ def _load_env(path='/home/aulatuspeaking/.env'):
 def send_alert(subject: str, body: str, to: str = None) -> None:
     _load_env()
     host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
-    port = int(os.environ.get('SMTP_PORT', 465))
+    port = int(os.environ.get('SMTP_PORT', 587))
     user = os.environ['SMTP_USER']
     pwd  = os.environ['SMTP_PASS']
     frm  = os.environ.get('SMTP_FROM', user)
@@ -50,7 +50,9 @@ def send_alert(subject: str, body: str, to: str = None) -> None:
     msg.set_content(body)
 
     ctx = ssl.create_default_context()
-    with smtplib.SMTP_SSL(host, port, context=ctx) as s:
+    with smtplib.SMTP(host, port) as s:
+        s.ehlo()
+        s.starttls(context=ctx)
         s.login(user, pwd)
         s.send_message(msg)
 
