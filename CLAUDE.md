@@ -162,6 +162,17 @@ Un sitio para cada cosa (detalle en `docs/README.md`):
 Cómo se trabaja: se planifica en **ROADMAP** → se prioriza en **BACKLOG** → se ejecuta y se
 registra en **sessions/**. Los dos `TICKETS.md` antiguos son histórico; la fuente viva es `BACKLOG.md`.
 
+> ⚠️ **GUARDRAIL — registro de tareas (aplicar SIEMPRE, sin repensar):**
+> En cuanto surja una **tarea, bug, desarrollo, incidencia o acción pendiente** —en cualquier
+> sesión, sea del tema que sea— se registra **en el acto**, no al final:
+> 1. Una **fila en `docs/BACKLOG.md`** (fuente única): ID `AREA-nn`
+>    (SEC/ING/AC/COMP/SUC/MIG/OPS/REPO/MON/NOT/FUN), estado 🔴/🟡/🟢, prioridad Alta/Media/Baja.
+> 2. Si necesita detalle largo → `docs/tickets/TICKET-<slug>.md`; si es un fallo/postmortem →
+>    `docs/incidents/AAAA-MM-DD-<slug>.md`. La fila del BACKLOG enlaza al detalle.
+> 3. Al **resolver**, marcar 🟢 en la fila (no borrarla).
+> **Prohibido:** herramientas externas (Asana/Notion/Jira) y listas de pendientes sueltas.
+> Si algo pendiente no acaba en `docs/BACKLOG.md`, se pierde. Apuntarlo al momento.
+
 ## Pendientes
 
 Ver **docs/BACKLOG.md** (fuente única). No mantener listas de pendientes sueltas en este fichero.
