@@ -25,7 +25,7 @@ except Exception:
 
 HL   = '/home/coreadmin'
 ZLOG = '/tmp/i3code_download_zoomdata'   # patrón: ZLOG_%Y%m%d.log
-BK   = '/home/coreadmin/backups/mysql'
+BK   = '/mnt/moodle-data/backups'   # ruta REAL de los backups en Hetzner
 NOW  = time.time()
 
 # ── Definición de checks ─────────────────────────────────────────────
@@ -36,6 +36,8 @@ CHECKS = [
     ("🟢 DATOS Y ASISTENCIA", [
         dict(t='log',  name='Ingesta Zoom (4:05)',      why='actualiza asistencias',
              path=f'{HL}/cron_ingesta.log', max_h=26),
+        dict(t='feeder', name='Feeder reservas (Acuity→own_acuity)',
+             why='si cae el webhook, las reservas se pierden en silencio'),
         dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
              path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
@@ -44,12 +46,12 @@ CHECKS = [
              max_h=26),
     ]),
     ("🟢 BACKUPS Y SEGURIDAD", [
-        dict(t='file', name='Backup BD principal (2:00)', why='recuperación ante desastre',
-             pat=f'{BK}/db_%Y%m%d.sql.gz', min_kb=1000),
-        dict(t='file', name='Backup BD CESCE (2:05)',     why='recuperación CESCE',
-             pat=f'{BK}/db_cesce_%Y%m%d.sql.gz', min_kb=100),
-        dict(t='note', name='Backup offsite (3:00)', why='copia fuera del server',
-             status='WARN', msg='pendiente configurar en Hetzner'),
+        dict(t='file', name='Backup BD aula (3:00)', why='recuperación ante desastre',
+             pat=f'{BK}/db_aula_%Y%m%d_*.sql.gz', min_kb=200000),
+        dict(t='file', name='Backup BD CESCE (3:00)',     why='recuperación CESCE',
+             pat=f'{BK}/db_cesce_%Y%m%d_*.sql.gz', min_kb=100),
+        dict(t='note', name='Backup offsite (3:05)', why='copia fuera del server',
+             status='OK', msg='sync OK (ver backup.log)'),
     ]),
     ("🟢 REPORTES", [
         dict(t='note', name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
@@ -204,6 +206,43 @@ def check_moodle_cron(c):
         return 'WARN', f'no verificable ({e})'
 
 
+def check_feeder(c):
+    """Feeder de reservas: own_acuity debe recibir filas nuevas cuando los alumnos
+    reservan. Si el webhook de Acuity cae (incidente 6-ago-2026), deja de escribir y
+    las clases se pierden en silencio — la ingesta sigue OK, por eso no se detectaba.
+    Fuente: own_acuity.lastmodified (newAcuity.php la pone a NOW() al insertar)."""
+    try:
+        import mysql.connector
+        env = {}
+        for p in ('/home/coreadmin/.env', '/home/aulatuspeaking/.env'):
+            if os.path.exists(p):
+                for line in open(p):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        env[k.strip()] = v.strip().strip('"\'')
+                break
+        conn = mysql.connector.connect(
+            host=env.get('MOODLE_DB_HOST', '127.0.0.1'),
+            port=int(env.get('MOODLE_DB_PORT', 3307)),
+            user=env.get('MOODLE_DB_USER', 'moodle35'),
+            password=env.get('MOODLE_DB_PASSWORD', ''),
+            database=env.get('MOODLE_DB_NAME', 'aulatuspeaking35'))
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM own_acuity WHERE lastmodified >= NOW() - INTERVAL 48 HOUR")
+        n48 = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM own_acuity WHERE lastmodified >= NOW() - INTERVAL 24 HOUR")
+        n24 = cur.fetchone()[0]
+        cur.close(); conn.close()
+        if n48 == 0:
+            return 'FAIL', '0 reservas nuevas en 48h — ¿webhook Acuity caído? Revisar newAcuity.php'
+        if n24 == 0:
+            return 'WARN', f'0 en 24h ({n48} en 48h) — vigilar webhook Acuity'
+        return 'OK', f'{n24} reservas nuevas en 24h ({n48} en 48h)'
+    except Exception as e:
+        return 'WARN', f'no verificable ({e})'
+
+
 ICON = {'OK': '✅', 'WARN': '⚠️', 'FAIL': '❌'}
 
 
@@ -221,6 +260,8 @@ def build_report():
                 st, detail = check_file(c)
             elif c['t'] == 'moodle_cron':
                 st, detail = check_moodle_cron(c)
+            elif c['t'] == 'feeder':
+                st, detail = check_feeder(c)
             elif c['t'] == 'disk':
                 st, detail = check_disk(c)
             elif c['t'] == 'swap':
