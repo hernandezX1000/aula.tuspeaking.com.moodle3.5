@@ -150,6 +150,15 @@ ANTES de commitear, comprobar que no hay secretos:
 **Regla de oro:** rama `dev` → `main`, nunca editar el server a pelo. Saltarse esto requiere
 permiso expreso de Hansel.
 
+> ⚠️ **GUARDRAIL — agentes autónomos (git flow):** un agente que genere código trabaja SIEMPRE
+> en aislamiento y solo produce una **propuesta** para revisión humana:
+> 1. Rama dedicada `agent/<tarea>` en un **git worktree aislado**. NUNCA commitea a `dev`/`main`.
+> 2. **Nunca** push a remoto de prod, **nunca** ejecuta en el servidor, **nunca** toca producción.
+> 3. Entrega: la rama + diff + un **checklist de validación** (qué probar antes de promover).
+> 4. Guardrail de secretos: **jamás** escribir un valor real de credencial en un fichero versionado
+>    (usar `secrets.php.example` con placeholders; el `secrets.php` real se crea a mano en el server).
+> 5. El humano **revisa, prueba y promueve** (merge `dev`→`main` + deploy). El agente no promueve.
+
 ## Documentación y planificación (docs/)
 
 Un sitio para cada cosa (detalle en `docs/README.md`):

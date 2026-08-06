@@ -4,6 +4,7 @@
 
 # --- Secretos: NUNCA versionar ---
 config.php
+secrets.php
 tutorias_con_profesor.php
 acuityapi.php
 own_ZoomAPIToken.php
@@ -68,7 +69,11 @@ cancelAcuity.php
 !/tuspeaking-admin.css
 !/sso_redirect.php
 !/.gitignore
+!/.github/
+!/.github/**
 !/CLAUDE.md
+# Plantilla de credenciales (SOLO el .example con placeholders; secrets.php real queda ignorado arriba)
+!/secrets.php.example
 # Re-aplicar exclusiones dentro de carpetas permitidas
 *.bak
 *.bak.*

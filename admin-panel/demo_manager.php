@@ -4,6 +4,7 @@
  * Panel para crear, ver y gestionar demos de empresa
  */
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../secrets.php';   // Credenciales externalizadas (fuera de git)
 
 $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -18,7 +19,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create_demo') {
         $contacto = trim($_POST['contacto']);
         $username = trim($_POST['username']);
         $email = $username . '@tuspeaking.com';
-        $password = 'Success2026!';
+        $password = DEMO_DEFAULT_PASSWORD;
         $num_clases = (int)$_POST['num_clases'];
         $fecha_inicio = $_POST['fecha_inicio'];
         $fecha_fin = $_POST['fecha_fin'];

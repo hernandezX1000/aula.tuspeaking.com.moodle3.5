@@ -13,7 +13,8 @@ $view_userid = optional_param('userid', $USER->id, PARAM_INT);
 $view_courseid = optional_param('courseid', 0, PARAM_INT);
 $view_user = $DB->get_record('user', ['id' => $view_userid]);
 
-$pdo = new PDO("mysql:host=localhost;dbname=aulatuspeaking35;charset=utf8mb4", "moodle35", "TuspeakingFix2025!");
+// Credenciales de BD desde la config de Moodle (config.php ya cargado arriba). Sin secreto en duro.
+$pdo = new PDO("mysql:host={$CFG->dbhost};dbname={$CFG->dbname};charset=utf8mb4", $CFG->dbuser, $CFG->dbpass);
 
 $fecha_minima = '2026-01-01';
 

@@ -8,6 +8,7 @@
 
 define('CLI_SCRIPT', true);
 require(__DIR__.'/../../config.php');
+require_once($CFG->dirroot.'/secrets.php');   // Credenciales Acuity externalizadas (fuera de git)
 require_once($CFG->libdir.'/clilib.php');
 require_once(__DIR__.'/../../blocks/completion_progress/lib.php');
 
@@ -55,8 +56,8 @@ function i3_fix_record_before_save($rec) {
 // ============================================
 
 function getAcuityAPI($acuityid) {
-    $userID = 15680788;
-    $apiKey = '7727321b66b8210424f1d4d984584693';
+    $userID = ACUITY_USER_ID;
+    $apiKey = ACUITY_API_KEY;
     $baseUrl = "https://acuityscheduling.com/api/v1/appointments/";
 
     $curl = curl_init();

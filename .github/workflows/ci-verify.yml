@@ -1,0 +1,67 @@
+name: CI Verify (aula)
+
+# Pruebas críticas que NO necesitan Moodle vivo: se corren sobre la rama en GitHub,
+# ANTES de tocar el servidor. Cazan sintaxis, secretos colados y errores de .gitignore.
+# El smoke test de runtime (¿carga el sitio? ¿newAcuity da fatal?) va en STAGING, no aquí.
+
+on:
+  push:
+    branches: ["agent/**", "dev"]
+  pull_request:
+    branches: ["dev", "main"]
+  workflow_dispatch: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+
+      - name: 1) Lint (php -l) de los .php cambiados en la rama
+        run: |
+          set -e
+          BASE=$(git merge-base origin/main HEAD || echo HEAD~1)
+          CHANGED=$(git diff --name-only "$BASE" HEAD -- '*.php' || true)
+          if [ -z "$CHANGED" ]; then echo "Sin .php cambiados"; exit 0; fi
+          echo "$CHANGED" | while read -r f; do
+            [ -f "$f" ] || continue
+            php -l "$f" || { echo "::error file=$f::Error de sintaxis PHP"; exit 1; }
+          done
+
+      - name: 2) Guardrail de secretos (ningún literal de credencial en el código)
+        run: |
+          # Excluye docs/ (la auditoría los cita como referencia) y el .example (placeholders)
+          if git grep -nE "TuspeakingFix2025|7727321b66b8210424f1d4d984584693|Success2026!" \
+               -- ':!docs/' ':!secrets.php.example' ; then
+            echo "::error::Se encontró una credencial en duro en el código. Externalizar a secrets.php."
+            exit 1
+          fi
+          echo "OK: sin secretos en duro"
+
+      - name: 3) Validar .gitignore (secrets.php fuera, .example dentro)
+        run: |
+          set -e
+          if ! git check-ignore -q secrets.php; then
+            echo "::error::secrets.php NO está ignorado en .gitignore (riesgo de commitear el secreto real)"; exit 1
+          fi
+          if git check-ignore -q secrets.php.example; then
+            echo "::error::secrets.php.example está ignorado; debe poder versionarse"; exit 1
+          fi
+          echo "OK: secrets.php ignorado, .example versionable"
+
+      - name: 4) Comprobar que los ficheros refactorizados usan las constantes (no literales)
+        run: |
+          set -e
+          for f in newAcuity.php admin/cli/i3code_download_zoomdata.php empresas/acuity_zoom.php; do
+            [ -f "$f" ] || continue
+            grep -q "ACUITY_API_KEY\|\$CFG->dbpass\|get_config" "$f" \
+              || { echo "::error file=$f::no parece leer credenciales externalizadas"; exit 1; }
+          done
+          echo "OK: refactor usa constantes/\$CFG"

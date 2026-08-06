@@ -1,5 +1,6 @@
 <?php
 require('../config.php');
+require_once($CFG->dirroot.'/secrets.php');   // Credenciales Acuity externalizadas (fuera de git)
 require_once($CFG->libdir.'/adminlib.php');
 
 // Verificar admin
@@ -13,9 +14,9 @@ if (!$isadmin){
     die();
 }
 
-// Credenciales API Acuity
-$acuityUserID = '15680788';
-$acuityApiKey = '7727321b66b8210424f1d4d984584693';
+// Credenciales API Acuity (externalizadas en secrets.php, fuera de git)
+$acuityUserID = ACUITY_USER_ID;
+$acuityApiKey = ACUITY_API_KEY;
 
 // Obtener tipos de Acuity desde BD
 $conn = new PDO("mysql:host={$CFG->dbhost};dbname={$CFG->dbname};charset=utf8", $CFG->dbuser, $CFG->dbpass);

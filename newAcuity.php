@@ -16,6 +16,7 @@ $fecha2 = new DateTime('2016-11-31 11:55:06');//fecha de cierre
 				
 require('config.php');
 global $CFG;
+require_once($CFG->dirroot.'/secrets.php');			//Credenciales externalizadas (fuera de git)
 require_once($CFG->dirroot.'/calendar/lib.php');		//Require para Moodle Calendar API
 require_once "./askddbb.php";
 require_once "./own_ZoomAPI.php";
@@ -32,8 +33,8 @@ if (!empty($_POST)){
 
 /***** Peticion a Acuity *****/
 	/**** Credenciales ****/
-		$userID = '15680788';
-		$key = '7727321b66b8210424f1d4d984584693';
+		$userID = ACUITY_USER_ID;
+		$key = ACUITY_API_KEY;
 	/**** Fin credenciales ****/
 	/*** URL para peticion por ID de appointment ***/
 		$url = 'https://acuityscheduling.com/api/v1/appointments/' . $acuityID;
@@ -92,8 +93,8 @@ if (!empty($_POST)){
 	/** Fin valores Moodle ***/
 /***** Segunda llamada a API de Acuity *****/
 	/**** Credenciales ****/
-		$userID = '15680788';
-		$key = '7727321b66b8210424f1d4d984584693';
+		$userID = ACUITY_USER_ID;
+		$key = ACUITY_API_KEY;
 	/**** Fin credenciales ****/
 	/*** URL para peticion de calendarios ***/
 		$url = 'https://acuityscheduling.com/api/v1/calendars';
