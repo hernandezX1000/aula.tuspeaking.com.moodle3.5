@@ -8,16 +8,19 @@ Tablas clave:
 - **`mdl_i3code_acuityZoom_participants`** — participantes por reunion (join/leave, duracion).
 - **`mdl_i3code_acuityZoom_informe`** — datos del panel.
 
-> **Conexion Hetzner (produccion desde ago-2026):**
+> **Conexion Hetzner (produccion desde ago-2026)** — metodo bueno, sin teclear contrasena:
 > ```bash
 > ssh coreadmin@46.225.232.27
-> docker exec -it moodle35-db mysql -u moodle35 -p'<pass>' aulatuspeaking35
+> docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'
 > ```
 > O en una linea (para scripts):
 > ```bash
-> docker exec moodle35-db mysql -u moodle35 -p'<pass>' aulatuspeaking35 -e "SELECT ..."
+> docker exec moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35 -e "SELECT ..."'
 > ```
-> La contrasena esta en `/home/coreadmin/tuspeaking-lms/.env` o en el `config.php` del contenedor.
+> Ver runbook dedicado: `docs/runbooks/CONEXION-BD-AULA.md`.
+> (La contrasena del usuario `moodle35`: `docker exec moodle35-db printenv MYSQL_PASSWORD`.
+> El `.env` real esta en `~/tuspeaking-platform/services/moodle35-staging/.env` en el server
+> —OJO: la carpeta se llama `tuspeaking-platform`, no `tuspeaking-lms`.)
 
 ---
 

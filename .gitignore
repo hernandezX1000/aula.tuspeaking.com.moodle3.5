@@ -64,6 +64,7 @@ cancelAcuity.php
 !/own_PrintZoom.php
 !/own_StyleOwnTemplate.css
 !/own_ZoomAPI.php
+!/newAcuity.php
 !/tuspeaking-admin.css
 !/sso_redirect.php
 !/.gitignore
