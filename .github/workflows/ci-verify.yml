@@ -40,7 +40,7 @@ jobs:
           # Solo código: excluye docs/, cualquier .md (documentan que están comprometidas)
           # y el .example (placeholders). La rotación de esas claves va en TICKET-SEGURIDAD.
           if git grep -nE "TuspeakingFix2025|7727321b66b8210424f1d4d984584693|Success2026!" \
-               -- ':!docs/' ':!*.md' ':!secrets.php.example' ; then
+               -- ':!docs/' ':!*.md' ':!secrets.php.example' ':!.github/' ; then
             echo "::error::Se encontró una credencial en duro en CÓDIGO. Externalizar a secrets.php."
             exit 1
           fi
