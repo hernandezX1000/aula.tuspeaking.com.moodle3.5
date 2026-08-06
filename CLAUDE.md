@@ -66,11 +66,33 @@ plantillas_email, timelog, faq, contenido, tus-content, tus-tools, shared_conten
 Ficheros raíz: acuity*.php/js/css, own_*, coding_*, reporte_*.php, courseacuity.php,
 askddbb.php, sso_redirect.php, webhook_jotform_evaluaciones.php, tuspeaking-admin.css
 
-### Excluido del repo (ver .gitignore)
-- config.php y todos los .bak
-- Core de Moodle (mod/, lib/, blocks/, auth/, etc.)
-- ~51 ficheros con contraseña de BD en duro (feedback/*, empresas/*, varios reportes_cesce/*)
-- *.pyc, __pycache__/, basura de scripts (nombres con comas/corchetes)
+### Cobertura git y secretos (NOTA VIVA — actualizar al cambiar el estado)
+
+⚠️ **GUARDRAIL (la lección del borrado del 1-ago-2026):** el `.gitignore` ignora TODO en la
+raíz con `/*`. Cualquier fichero/carpeta custom NUEVO queda **fuera de git en silencio** salvo
+que se le añada su excepción `!/…`. Lo no-versionado se pierde si se borra/pierde el disco. Al
+crear código custom, añadir SIEMPRE su `!/` en `.gitignore`. Auditoría completa y clasificación:
+**`docs/AUDITORIA-COBERTURA-GIT.md`**.
+
+**Estado (6-ago-2026):**
+- ✅ **Versionado el custom seguro:** `local/`, `theme/lambda`+`theme/tuspeaking`, `blocks/`
+  custom+contrib, y los `.php` custom de raíz (730 ficheros nuevos).
+- ❌ **Core de Moodle** (mod/, lib/, blocks core, themes core `boost/bootstrapbase/clean/more`,
+  lang/, php core de raíz) — re-descargable de moodle.org, no se versiona.
+- ❌ **Ficheros con secretos en duro** — fuera hasta refactor a `secrets.php`: `config.php`,
+  `acuityapi.php`/`cancelAcuity.php`/`modifyAcuity.php`/`modifyAndCreateAcuity.php`,
+  `own_ZoomAPIToken.php`, `db_api.php`, `monitor_zoom.php`, `admin-panel/config.php`,
+  `local/misclases/lib.php`, `tutorias_con_profesor.php`, `webhook_jotform_evaluaciones.php`,
+  `portal/rrhh.php`, y todos los `feedback/*`, `empresas/*`, `evaluaciones/*`, `reportes*/*`.
+- 🔴 **Rotación de credenciales PENDIENTE:** `docs/tickets/TICKET-SEGURIDAD-rotar-credenciales.md`.
+  La Acuity key, la password BD `TuspeakingFix2025!`, `Success2026!` y el Zoom JWT **están en el
+  histórico de git** (repo privado) → considerarlas comprometidas hasta rotarlas.
+- ⚠️ **Perdidos en el borrado del 1-ago, NO recuperables** (nunca estuvieron en git ni en backup
+  de código): el **sender del NPS** (encuesta post-clase; hoy la manda Acuity con enlace a soporte)
+  y la **herramienta de gestión de requerimientos FUNDAE**. Los DATOS sobreviven
+  (`own_feedback_nps` 15.332 · `mdl_fundae_requerimientos` 17 + `mdl_fundae_documentos` 58);
+  hay que REHACER el código (ver docs/tickets/).
+- ❌ Basura: `*.bak*`, `*.pyc`, `__pycache__/`, `blocks/rocketchat.disabled-*`, `*_test.php`.
 
 ## Componente _tszoom (botón Reservas / modal Acuity)
 
