@@ -37,6 +37,33 @@ en los tgz de rescate). Sobreviven solo:
 5. **Actualizar el digest**: cambiar la nota "Feedback (cada 30m) — pendiente configurar"
    por un check real (log fresco del cron NPS).
 
+## Inventario del sistema NPS original (según admin-panel/tools.json del rescate)
+
+Ficheros que tenía el sistema (todos PERDIDOS salvo los marcados):
+- `feedback/config_abstraction.php` — capa de queries. **SOBREVIVE** (git + servidor).
+- `formFeedback.php` — formulario público que rellena el alumno. **RECUPERABLE** de
+  `_rescate_dinahosting_20260803/aula-root-php-rescue.tgz`.
+- `feedback/admin.php` — panel admin NPS. PERDIDO.
+- `feedback/admin_nuevo.php` — dashboard NPS (`?s=dashboard`). PERDIDO.
+- `feedback/profesores.php` — gestión/stats por profesor. PERDIDO.
+- El **sender** (cron 30 min, envía la encuesta). PERDIDO — no está en ningún backup
+  (verificado por CONTENIDO en los 5 tgz de rescate, el tar de código del 1-ago, el
+  código vivo del servidor y el Object Storage). Hay que **rehacerlo**.
+
+Verificado 6-ago-2026: `grep -rlE 'own_feedback_nps|fb_get_clases_para_feedback' ` sobre
+todo lo anterior → solo `config_abstraction.php`.
+
+## Estado del enlace al alumno (verificado 6-ago-2026)
+
+- **Ningún email automático se envía** (sender apagado) → no se manda ningún enlace roto.
+- El **botón "Feedback"** que `newAcuity.php` añade a cada evento de clase apunta a
+  `formFeedback.php` (existe, 12.5 KB). Con id real devuelve **302 → `/app/moodle`** (rebota a
+  la home, NO da error): el flujo NPS está incompleto, así que el formulario no renderiza.
+  El alumno que lo pulse aterriza en su home, sin ver error. Al rehacer el NPS hay que
+  **arreglar `formFeedback.php`** (que renderice + guarde en `own_feedback_nps`). Opcional
+  mientras tanto: quitar el botón de feedback de `newAcuity.php` (línea ~182) para no llevar
+  a un callejón — pero es inocuo (no es error), se puede dejar para el rebuild.
+
 ## Notas
 
 - Las queries del sender ya están resueltas en `config_abstraction.php` (FEEDBACK_ENV='moodle').
