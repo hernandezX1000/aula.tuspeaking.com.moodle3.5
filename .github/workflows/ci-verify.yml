@@ -35,15 +35,16 @@ jobs:
             php -l "$f" || { echo "::error file=$f::Error de sintaxis PHP"; exit 1; }
           done
 
-      - name: 2) Guardrail de secretos (ningún literal de credencial en el código)
+      - name: 2) Guardrail de secretos (ningún literal de credencial en el CÓDIGO)
         run: |
-          # Excluye docs/ (la auditoría los cita como referencia) y el .example (placeholders)
+          # Solo código: excluye docs/, cualquier .md (documentan que están comprometidas)
+          # y el .example (placeholders). La rotación de esas claves va en TICKET-SEGURIDAD.
           if git grep -nE "TuspeakingFix2025|7727321b66b8210424f1d4d984584693|Success2026!" \
-               -- ':!docs/' ':!secrets.php.example' ; then
-            echo "::error::Se encontró una credencial en duro en el código. Externalizar a secrets.php."
+               -- ':!docs/' ':!*.md' ':!secrets.php.example' ; then
+            echo "::error::Se encontró una credencial en duro en CÓDIGO. Externalizar a secrets.php."
             exit 1
           fi
-          echo "OK: sin secretos en duro"
+          echo "OK: sin secretos en duro en código"
 
       - name: 3) Validar .gitignore (secrets.php fuera, .example dentro)
         run: |
