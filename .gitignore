@@ -151,3 +151,55 @@ reportes_cesce/reporte_asistencia_cesce.py.bak
 !/reservaclase.php
 !/modificaclase.php
 !/cancelaclase.php
+
+# =========================================================================
+# === Cobertura git 6-ago-2026 (ver docs/AUDITORIA-COBERTURA-GIT.md) ===
+# SEGURO: carpetas custom a des-ignorar (carpeta + contenido)
+!/local/
+!/local/**
+!/theme/
+!/theme/tuspeaking/**
+!/theme/lambda/**
+!/blocks/
+!/blocks/acuityblock/**
+!/blocks/catalogue/**
+!/blocks/fundae/**
+!/blocks/fundae_inspector/**
+!/blocks/messageteacher/**
+!/blocks/configurable_reports/**
+!/blocks/advnotifications/**
+!/blocks/completion_progress/**
+!/blocks/dedication/**
+!/blocks/point_view/**
+!/blocks/ranking/**
+!/blocks/forum_aggregator/**
+
+# SEGURO: .php custom de raíz
+!/cancelbymail.php
+!/dashboard.php
+!/enviacorreo.php
+!/eventupdater.php
+!/formClass.php
+!/formFeedback.php
+!/fundae_calificaciones.php
+!/fundae_grupos.php
+!/mailsender.php
+!/own_MeetingDataGet.php
+!/reminder.php
+!/tuspeakingvrlogin.php
+!/visor.php
+!/coding_fundae_dl.php
+
+# CON-SECRETOS: mantener FUERA (van DESPUÉS de las excepciones para ganar)
+/db_api.php
+/monitor_zoom.php
+/webhook_jotform_evaluaciones.php
+/local/misclases/lib.php
+/admin-panel/config.php
+/theme/tuspeaking/.git/
+
+# BASURA dentro de carpetas permitidas: re-excluir
+*.bak*
+*.pyc
+__pycache__/
+/blocks/rocketchat.disabled-20251207/

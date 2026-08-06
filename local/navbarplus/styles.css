@@ -1,0 +1,21 @@
+/* Float the icons right to be placed next to the existing icons "messages" and "notifications". */
+.navbar .localnavbarplus.nav-link {
+    float: right;
+    margin-left: 0;
+}
+
+/* Remove the padding from the icons placed here to achieve the same margins for moodle and navbarplus icons. */
+.navbar .localnavbarplus.nav-link .icon {
+    margin-right: 0;
+}
+
+/* Do not display the icon if a user has disabled Javascript in his browser. */
+body:not(.jsenabled) #localnavbarplus-resetusertour {
+    display: none;
+}
+
+/* Inherit the colors. */
+.navbar .localnavbarplus a,
+.navbar .localnavbarplus .icon {
+    color: inherit;
+}

@@ -1,0 +1,221 @@
+/* Tooltip container */
+.block_point_view .tooltipreaction {
+    position: relative;
+    display: inline-block;
+    pointer-events: none;
+}
+
+/* Tooltip text */
+.block_point_view .tooltipreaction .tooltiptextreaction {
+    visibility: hidden;
+    display: table;
+    width: max-content;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 20px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    bottom: 28px;
+    left: 80px;
+    margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.block_point_view .tooltipreaction:hover .tooltiptextreaction {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Source for tooltip : https://www.w3schools.com/css/css_tooltip.asp */
+
+.block_point_view .group_img {
+    position: absolute;
+    height: 20px;
+    top: 0;
+    left: 0;
+}
+
+.block_point_view .group_nb {
+    position: absolute;
+    left: 47px;
+}
+
+.block_point_view_container {
+    position: absolute;
+    left: 80%;
+    top: 20%;
+    z-index: 1;
+}
+
+.block_point_view .easy {
+    height: 0;
+    position: absolute;
+    top: -7.5px;
+    left: -10px;
+    pointer-events: none;
+}
+
+.block_point_view .easy_nb {
+    display: none;
+    position: absolute;
+    top: 3px;
+    left: 10px;
+}
+
+.block_point_view .better {
+    height: 0;
+    position: absolute;
+    top: -7.5px;
+    left: 35px;
+    pointer-events: none;
+}
+
+.block_point_view .better_nb {
+    display: none;
+    position: absolute;
+    top: 3px;
+    left: 55px;
+}
+
+.block_point_view .hard {
+    height: 0;
+    position: absolute;
+    top: -7.5px;
+    left: 80px;
+    pointer-events: none;
+}
+
+.block_point_view .hard_nb {
+    display: none;
+    position: absolute;
+    top: 3px;
+    left: 100px;
+}
+
+/* "Save changes" button in configuration */
+#id_go_to_save {
+    position: fixed;
+    top: 390px;
+    right: 100px;
+    z-index: 9999;
+}
+
+/* "Close field" button in configuration */
+#id_close_field {
+    position: fixed;
+    top: 430px;
+    right: 100px;
+    z-index: 9999;
+}
+
+/* Green dot to inform that user has voted */
+.block_point_view .voted {
+    width: 15px;
+    height: 15px;
+    top: 3px;
+    border-radius: 50%;
+    font-size: 13px;
+    color: white;
+    line-height: 15px;
+    text-align: center;
+    background: #66ad89;
+}
+
+/* Select list of difficulty in the configuration */
+
+/*
+.selectDifficulty {
+    margin-left: 30px;
+}
+/
+
+/* Difficulty tracks */
+.block_point_view.track {
+    height: 25px;
+    width: 10px;
+    margin-right: 5px;
+    border-radius: 10%;
+    position: relative;
+    top: 5px;
+}
+
+/* Menu button in block content */
+.block_point_view #menu_point_view_img {
+    width: 40px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Emojis of overview table */
+.block_point_view .overview_img {
+    width: 30px;
+}
+
+/** Colums of the overview table **/
+
+/* Disable selection */
+.block_point_view .c6 {
+    font-weight: bold;
+    font-size: 1.5em;
+    -moz-user-select: none;
+    -o-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.block_point_view .c0,
+.block_point_view .c5,
+.block_point_view .c6 {
+    width: 5%;
+    text-align: center;
+}
+
+.block_point_view .c1 {
+    width: 25%;
+}
+
+.block_point_view .c2,
+.block_point_view .c3,
+.block_point_view .c4 {
+    width: 20%;
+}
+
+.block_point_view .header {
+    text-align: center;
+}
+
+/* CSS For combo box course/category front page */
+#frontpage-category-combo .reaction_box,
+#frontpage-category-combo .difficulty_box {
+    top: 0;
+}
+
+.reaction_box {
+    position: relative;
+    left: 72%;
+    top: -30px;
+    width: 10%;
+}
+
+.difficulty_box {
+    position: relative;
+    top: -37px;
+    width: 10px;
+    height: 0;
+}
+
+.coursebox a {
+    position: relative;
+    left: 10px;
+}
