@@ -5,6 +5,53 @@
 
 ---
 
+## 🚨 PUERTA DE ENTRADA — LEER ESTO ANTES DE EJECUTAR NADA
+
+**Antes de tocar la BD, el git o el servidor: lee este `CLAUDE.md` entero y
+`docs/BACKLOG.md`.** No es una recomendación. Si no los has leído, no ejecutas
+nada. Consulta también `docs/README.md` y `docs/incidents/` cuando el problema
+se parezca a algo ya visto.
+
+### ☠️ Todo PHP de Moodle va con `-u www-data`
+
+```bash
+docker exec -u www-data moodle35-app php …   # ✅ SIEMPRE
+docker exec moodle35-app php …               # ☠️ NUNCA — corre como root
+```
+
+**Sin excepciones.** Ni `php -r`, ni "solo para leer un valor".
+
+`config.php` termina en `require_once(lib/setup.php)`: cualquier `require
+config.php` **arranca Moodle entero**, y Moodle escribe cachés en `moodledata`
+con el usuario del proceso. Como root, siembra ficheros de root en
+`moodledata/cache/cachestore_file/`; después `www-data` no puede escribir ahí y
+salta *"File store path does not exist and can not be created"* **en todas las
+páginas, login incluido**.
+
+Ocurrió el **07-ago-2026** y tiró el portal.
+Ver `docs/incidents/2026-08-07-caida-aula-php-como-root.md`.
+
+### Para leer credenciales o consultar la BD, usa lo que ya está documentado
+
+```bash
+# Consola de BD sin teclear contraseña (ver §Base de datos, más abajo)
+docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'
+```
+
+Nunca reconstruyas la contraseña con un `require` de `config.php`.
+
+### Tras cualquier escritura en moodledata, comprueba la propiedad
+
+```bash
+sudo find /mnt/moodle-data/moodledata ! -uid 33 -printf '%u %p\n' | head -30
+# si devuelve algo → sudo chown -R 33:33 /mnt/moodle-data/moodledata
+```
+
+⚠️ **Sin `-maxdepth`.** Con `-maxdepth 1` solo ves el primer nivel y descartas la
+causa real (ese error alargó 20 minutos la caída del 07-ago).
+
+---
+
 ## ⚠️ MIGRADO A HETZNER (26-jul-2026) — LEER ESTO PRIMERO
 
 **aula.tuspeaking.com ya NO está en Dinahosting.** Se migró a Hetzner el 26-jul-2026 (cutover completo). El Dinaserver se cancela el **4-ago-2026**. Todo lo que hay debajo de este bloque que mencione `vl24689.dinaserver.com` o rutas `/home/aulatuspeaking/...` es **HISTÓRICO** — la realidad actual es esta:
@@ -35,6 +82,34 @@ Criterio: **¿lo ejecuta el sistema operativo o un cron de root? → `tuspeaking
 ¿Lo ejecuta la aplicación? → el repo de esa app.**
 
 ---
+
+## Operación diaria — cómo se consulta, se corrige y se ejecuta PHP
+
+```bash
+aula-sql                            # consultar — SOLO LECTURA (moodle_ro). El 90% del trabajo.
+aula-sql "SELECT ..."               # consulta suelta
+aula-sql --write mdl_TABLA          # corregir — copia la tabla ANTES de abrir la consola
+aula-php admin/cli/purge_caches.php # PHP de Moodle SIEMPRE como www-data
+```
+
+**No hay que teclear ninguna contraseña**: los comandos las leen de `/etc/aula-sql.conf`.
+
+⚠️ **NUNCA `docker exec moodle35-app php` sin `-u www-data`.** Arranca Moodle como root,
+siembra ficheros de root en `moodledata/cache/` y **tumba el portal entero, login
+incluido** (caída del 07-ago-2026). Está **bloqueado** por `~/.guard-docker-php.sh` en el
+shell de `coreadmin`. Si aun así ocurre: **`docker restart moodle35-app`** lo repara (el
+entrypoint hace `chown` de moodledata al arrancar), y un cron cada 10 min lo detecta y
+corrige solo.
+
+| Usuario BD | Puede | No puede |
+|---|---|---|
+| `moodle_ro` (`aula-sql`) | `SELECT` | Escribir → `ERROR 1142` |
+| `moodle_rw` (`aula-sql --write`) | `INSERT`, `UPDATE`, `DELETE` | **`DROP`, `TRUNCATE`, `ALTER`** |
+| `moodle35` | Lo que necesita la app | — *(es de Moodle, no se toca)* |
+| `root` | Todo | — *(solo scripts, nunca a mano)* |
+
+📖 Runbook: `tuspeaking-lms/docs/runbooks/CONSULTAS-DIARIAS-AULA.md`
+Los comandos y los `GRANT` se versionan en **`tuspeaking-lms`** (son infraestructura del host).
 
 ## Servidor (VIGENTE — verificado 07-ago-2026)
 

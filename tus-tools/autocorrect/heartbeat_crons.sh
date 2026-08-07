@@ -42,8 +42,14 @@ chk() {
 chk "${LOGDIR}/cron_autocorrect.log"   4  "Autocorrector (cada 2h)"
 chk "${LOGDIR}/cron_quiz.log"          6  "Quiz grader (cada 4h)"
 chk "${LOGDIR}/cron_ingesta.log"      30  "Ingesta Zoom (4:05 diaria)"
-chk "${LOGDIR}/cron_moodle.log"       30  "Moodle cron (4:15 diaria)"
+chk "${LOGDIR}/cron_moodle.log"       30  "Moodle cron aula (4:15 diaria)"
 chk "${LOGDIR}/cron_status_digest.log" 14 "Digest de estado (8:00 y 20:00)"
+
+# ── CESCE ──
+# Añadido 07-ago-2026: hasta entonces el heartbeat solo vigilaba el aula. CESCE llevaba
+# desde el 10-jul SIN cron de Moodle y nadie se enteró, porque nadie lo miraba.
+chk "${LOGDIR}/cron_moodle_cesce.log"          30 "Moodle cron CESCE (4:45 diaria)"
+chk "/home/coreadmin/logs/healthcheck-cesce.log" 1 "Healthcheck CESCE (cada 5m)"
 
 # ── Backup del día (MON-3: solo cuenta el AUTOMÁTICO de las 3:00) ──
 # Los volcados manuales llevan sufijo (_fundae_manual, etc.) y NO deben puntuar:

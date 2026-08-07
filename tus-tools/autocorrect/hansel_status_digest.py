@@ -45,11 +45,30 @@ CHECKS = [
         dict(t='moodle_cron', name='Moodle cron (4:15)',  why='tareas programadas internas',
              max_h=26),
     ]),
+    # CESCE tenía las mismas piezas que el aula pero SIN vigilancia (auditoría 07-ago-2026):
+    # si su contenedor caía, nadie lo levantaba ni avisaba. Ahora va en paralelo al aula.
+    ("🟢 CESCE", [
+        dict(t='log',  name='Healthcheck CESCE (cada 5m)', why='levanta el contenedor si cae',
+             path='/home/coreadmin/logs/healthcheck-cesce.log', max_h=1, tail_last=True),
+        dict(t='log',  name='Cron Moodle CESCE (4:45)', why='notificaciones, completion, notas',
+             path=f'{HL}/cron_moodle_cesce.log', max_h=26),
+        dict(t='ssl',  name='Certificado SSL CESCE', why='si caduca, la web deja de cargar',
+             host='cesce.tuspeaking.com'),
+    ]),
     ("🟢 BACKUPS Y SEGURIDAD", [
+        # min_kb subido de 200.000 a 900.000 KB el 07-ago: el dump del aula pesa ~1.256 MB
+        # y con el umbral viejo un backup de 223 MB (incompleto) salía ✅. Un umbral que no
+        # descarta un dump a la mitad no es un umbral.
         dict(t='file', name='Backup BD aula (3:00)', why='recuperación ante desastre',
-             pat=f'{BK}/db_aula_%Y%m%d_*.sql.gz', min_kb=200000),
+             pat=f'{BK}/db_aula_%Y%m%d_*.sql.gz', min_kb=900000),
         dict(t='file', name='Backup BD CESCE (3:00)',     why='recuperación CESCE',
              pat=f'{BK}/db_cesce_%Y%m%d_*.sql.gz', min_kb=100),
+        dict(t='file', name='Backup código CESCE (3:40)', why='el código de CESCE no lo cubre nadie más',
+             pat=f'{BK}/code_cesce_%Y%m%d_*.tar.gz', min_kb=50000),
+        dict(t='log',  name='Backup moodledata (4:00)', why='aula + CESCE al Object Storage',
+             path=f'{BK}/backup-moodledata.log', max_h=26),
+        dict(t='log',  name='Permisos moodledata (cada 10m)', why='ficheros de root tumban el portal',
+             path=f'{BK}/check-owner.log', max_h=1),
         dict(t='note', name='Backup offsite (3:05)', why='copia fuera del server',
              status='OK', msg='sync OK (ver backup.log)'),
     ]),
@@ -110,9 +129,11 @@ def check_log(c):
     return 'FAIL', f'sin correr hace {_fmt_age(age)} (esperado <{c["max_h"]}h)'
 
 
-# MON-3: el backup AUTOMÁTICO se llama db_<algo>_YYYYMMDD_HHMM.sql.gz y nada más.
+# MON-3: el backup AUTOMÁTICO se llama <algo>_YYYYMMDD_HHMM.<ext> y nada más.
 # Los manuales llevan sufijo (…_0755_fundae_manual.sql.gz) y NO deben puntuar.
-AUTO_BACKUP_RE = re.compile(r'_\d{8}_\d{4}\.sql\.gz$')
+# 07-ago (tarde): añadido .tar.gz — el backup de CÓDIGO usa esa extensión y con el regex
+# anterior (solo .sql.gz) NUNCA casaba, así que daba FAIL perpetuo.
+AUTO_BACKUP_RE = re.compile(r'_\d{8}_\d{4}\.(sql|tar)\.gz$')
 
 
 def check_file(c):

@@ -6,7 +6,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 - Convención de IDs: `AREA-nn` (SEC, ING, AC, COMP, NOT, SUC, REPO, MON, MIG, OPS).
 - Estados: 🔴 abierto · 🟡 en curso · 🟢 resuelto.
 - Prioridad: **Alta** / Media / Baja.
-- Última revisión: 2026-08-07.
+- Última revisión: 2026-08-07 (añadidos SEC-6/7, MON-5, NOT-5, ING-4/5/6, OPS-5, MIG-4, COMP-4 tras la caída del 07-ago y la incidencia de Sonia Funes).
 
 ---
 
@@ -25,6 +25,17 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | MIG-2 | Rutas `/app/moodle/` hardcodeadas rompen en Hetzner (42 ficheros) | Migración | **Alta** | 🟡 | Hetzner sirve Moodle en RAÍZ. Dos tipos: **URLs** `aula.tuspeaking.com/app/moodle/`→`/` y `/app/moodle/`→`/`; **rutas fs** `/home/aulatuspeaking/www/app/moodle/`→`/var/www/html/app/moodle/`. Fix aplicado en dev (revisar diff) · desplegar con deploy-aula.sh |
 | MIG-3 | Activar deploy en el server: checkout `/home/coreadmin/aula-repo` + probar `deploy-aula.sh` | Migración | **Alta** | 🔴 | 1ª vez del nuevo flujo de deploy (creado, no probado) |
 | BK-1 | **Backup de CESCE vacío (4 KB) al menos 4-6 ago informando "OK"** | Backups | **Alta** | 🟡 | 07-ago-2026. Causa: `mysqldump \| gzip` sin `set -o pipefail` → `$?` es el de gzip, que siempre triunfa; el guard `-s` no filtra 4 KB. Mismo patrón en el offsite: `echo "Offsite sync OK"` incondicional tras `rclone --quiet`. Script v2 escrito en `tuspeaking-lms/scripts/backup-moodle.sh` (pipefail + umbral de tamaño + rclone comprobado + saca la contraseña del fichero). **Pendiente**: desplegar, y averiguar por qué CESCE falló esos días y volvió solo el 7-ago |
+| SEC-6 | Blindaje PHP-como-root + consultas diarias a la BD | Seguridad | **Alta** | 🔴 | 07-ago-2026. **➡️ El trabajo vive en `tuspeaking-lms/docs/tickets/2026-08-07-blindaje-php-root-y-consultas-bd.md`** (es infraestructura: wrapper en `/usr/local/bin`, `GRANT` de MariaDB, healthcheck). Aquí solo la referencia. Incluye `aula-sql` (usuario solo lectura + copia de tabla antes de escribir) y `docker restart moodle35-app` como reparación de la caída |
+| ~~MON-5~~ | *Movido* — el chequeo de propiedad de moodledata es infraestructura | Monitor | — | ➡️ | Fusionado en el ticket de `tuspeaking-lms` (arriba). Corregido: `find` **horario y con `-mmin -70`**, no cada 5 min sin acotar — moodledata son 252 GiB / 196.939 objetos y un barrido completo cada 5 minutos es carga sostenida sobre el disco de producción |
+| NOT-5 | La mensajería interna no genera notificación al profesor | Notificaciones | **Alta** | 🔴 | 07-ago-2026. Sonia Funes (4827) envió 5 mensajes a Rachel McCobb (4276) el 05/08; `mdl_notifications` no tiene ninguna notificación de mensajería para 4276 entre el 05 y el 07. Además, 4 de los 5 mensajes tienen `smallmessage` **vacío**. Rompe el único canal alumno→profesor y genera no-shows injustos. `docs/incidents/2026-08-07-sonia-funes-no-show.md` |
+| ING-4 | El enlace de clase falla y el alumno entra sin sesión → **no-show falso** | Ingesta/Acceso | **Alta** | 🔴 | 07-ago-2026. Participante Zoom con **nombre numérico y sin email** = entró sin sesión de Moodle. Caso 06/08 meeting 88609489017: la alumna entró 18 min tarde y quedó como ausencia. Hipótesis: el control de cupo del bono bloquea también el **acceso** a una clase ya reservada, no solo la reserva. Barrido pendiente para ver cuántos casos más hay sin reclamar |
+| ING-5 | El informe cuenta las **canceladas** como ausencia; y un alumno puede acumular más citas que su bono | Ingesta | **Alta** | 🔴 | 07-ago-2026. `acuity_canceled=1` con `zoom_clasecompletada=0` → el panel la pinta "Cancelada" pero el informe la suma a `clases_no_asistidas`, y Success (RRHH de la empresa) ve una ausencia que el alumno no ve. Fix: filtrar `acuity_canceled=0` en los `SUM()` del sync. Relacionado: una fila pasada en `estado 3` no la cuenta ninguna rama → se llegó a 9 citas sobre un bono de 8 |
+| ING-6 | `zoom_clasecompletada = 2` **sin documentar** (~4.910 filas) | Ingesta | Media | 🔴 | 07-ago-2026. Los runbooks solo documentan `0`/`1`/`3`. El valor `2` afecta a ~5% de los registros y casi todos tienen `zoom_meetingid`. Cualquier cálculo de asistencia que asuma tres estados lo está ignorando. Buscar el valor en el plugin i3code y en `i3code_download_zoomdata.php`, y documentarlo |
+| OPS-5 | Alumnos con **cuentas duplicadas** (mismo nombre, dominios distintos) | Ops | Media | 🔴 | 07-ago-2026. Sonia Funes tiene `3201` (`@hyattic.eu`, datos de 2023) y `4827` (`@hyatt.com`, activa). Un `LIMIT 1` a ciegas hizo diagnosticar la cuenta equivocada. Riesgos: soporte sobre datos falsos, alumno que "no ve nada", y ruido en el registro de conexiones FUNDAE. ⚠️ No borrar sin comprobar si la cuenta vieja sostiene evidencia de un expediente ya presentado |
+| MIG-4 | La imagen `moodle35-staging-moodle` dice "Staging / aula-test" **siendo producción** | Migración | Media | 🔴 | 07-ago-2026. El banner de arranque de `moodle35-app` induce a creer que no es producción; costó una hipótesis errónea en plena caída. Renombrar la imagen o cambiar el banner |
+| COMP-4 | Bloque roto del Área personal: `blocks/html/dashboard_welcome.php not found` | Completion/UI | Media | 🔴 | 07-ago-2026, visible en `moodle-error.log` con referer `/my/`. **Anterior** a la caída del mismo día, problema distinto |
+| SEC-7 | Bot escaneando **webshells** en aula.tuspeaking.com | Seguridad | Media | 🔴 | 07-ago-2026 09:36, ráfaga desde un mismo cliente: `wp-conflg.php`, `123.php`, `yanz.php`, `system_log.php`, `wp-cron.php`… Todos 404, no encontró nada. Conviven 3 WordPress en el mismo host. Propuesta: fail2ban sobre 404 en ráfaga + revisar si algún intento devolvió 200. Registrado también un `Suspended Login: tautvydas.bagocius@autentia.com` vía `Go-http-client/1.1` |
+| ING-7 | **Los recordatorios de clase a los alumnos se cortan cada noche** por un usuario borrado en 2018 | Ingesta/Notif | **Alta** | 🔴 | 07-ago-2026. `local_reminders\task\send_reminders` y `legacy_plugin_cron_task` fallan desde el **26-jul** (día del cutover) con *"Usuario no válido"*. Detalle abajo |
 | MON-4 | Cron de **feedback** (cada 30m) no existe en el Hetzner: ¿reactivar o retirar del digest? | Monitor | Media | 🔴 | 07-ago-2026. Es el único ⚠️ que queda en el digest. No hay script ni cron en el server. **Decisión de Hansel pendiente** |
 | NOT-4 | `hansel_digest.py` envía por `sendmail`, no por Gmail SMTP | Monitor | Baja | 🔴 | 07-ago-2026. El status digest y el heartbeat ya usan `send_alert.py`; este no. `sendmail` llega tarde y con remitente que cae en spam |
 | SEC-3 | Contraseñas BD en texto plano en el crontab → `~/.my.cnf` (600) | Seguridad | Media | 🔴 | TICKET #4 |
@@ -55,6 +66,66 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 **NOT-1 / NOT-2 — Notificaciones.** Diseño acordado: un solo digest a las 8:00 y 20:00 con todos los procesos (qué hace, por qué importa, estado ✅/⚠️/❌) + alerta inmediata solo para fallos críticos (ingesta caída, backup fallido, cron clave >24h sin correr). Todo por Gmail SMTP (`smtp.gmail.com:465`, el que ya usa Moodle). Reemplaza el digest de las 7 y calla los correos sueltos. Ver ROADMAP.
 
 **COMP-1 — Estado de finalización (completion).** Varios alumnos ven un % de progreso por debajo del real porque actividades que **sí completaron** no quedan marcadas como realizadas en el completion tracking de Moodle (`mdl_course_modules_completion`). Ejemplo: Enrique Saña (esana@tekia.es, "2026.2 - Tekia - Ingles B2"), en `/my/` ve **66%** y necesita **75%** antes de que acabe el curso la semana que viene. Objetivo del ticket: un check que detecte actividades con criterio de finalización cumplido (entrega calificada, quiz aprobado, recurso visto) pero sin marcar como completadas, y las corrija/avise. Acción inmediata aparte: revisar y arreglar el caso de Enrique antes del cierre.
+
+**ING-7 — Recordatorios de clase rotos desde el 26-jul-2026.** *(diagnóstico cerrado, falta el fix)*
+
+**Síntoma:** cada noche el cron de Moodle procesa los recordatorios en orden, envía unos
+cuantos y **aborta la tarea entera** al llegar a un evento concreto. Todos los eventos
+posteriores se quedan **sin recordatorio**. En el log:
+
+```
+[Local Reminder] All reminders was sent successfully for event#636059 !
+[Local Reminder] All reminders was sent successfully for event#636060 !
+[Local Reminder] Starting sending reminders for 636061 [type: user]
+Scheduled task failed: legacy_plugin_cron_task, Usuario no válido
+```
+
+**Causa raíz:** cada clase reservada crea el evento de calendario para el alumno **y una
+copia para tres cuentas de seguimiento**. Se ve clarísimo en los eventos futuros:
+
+| userid | eventos | quién |
+|---|---|---|
+| 14 | 192 | hfernandez |
+| 2 | 192 | admin |
+| **48** | **192** | **Guillermo Bethencourt — cuenta BORRADA (`deleted=1`), último acceso oct-2018** |
+| 4276 · 2771 · … | 51 · 36 · … | alumnas reales (correcto) |
+
+Nadie retiró al usuario 48 de esa lista al borrarle la cuenta. Ocho años después, **cada
+clase sigue generando un evento para un usuario inexistente**, y el plugin de recordatorios
+revienta al intentar avisarle.
+
+**Impacto:** alumnos que no reciben el aviso de su clase → **no-shows injustificados**.
+Encaja con los desajustes de asistencia que se arrastran.
+
+**Fix (2 partes):**
+1. Quitar el `48` de la lista de destinatarios. **Ficheros localizados** (usan SQL crudo
+   sobre `mdl_event`, no la API de Moodle, por eso no aparecían buscando `calendar_event`):
+
+   ```
+   newAcuity.php      ← crea la reserva. PRINCIPAL SOSPECHOSO
+   eventupdater.php
+   reminder.php
+   modifyAcuity.php · cancelAcuity.php · cancelbymail.php
+   formClass.php · formFeedback.php
+   /home/coreadmin/scripts/sincronizar_acuityZoom.php
+   ```
+
+   Buscar el `48` junto al `14` y el `2` (van los tres en la misma lista de destinatarios).
+
+   ⚠️ **Ninguno está versionado** — `.gitignore` de allow-list. `newAcuity.php` es
+   **el mismo fichero que se perdió el 1-ago-2026** por esa regla (ver
+   [[pipeline-reservas-acuity-aula]]). **Al arreglarlo, versionarlo**: añadirlo a la
+   allow-list del `.gitignore` en el mismo commit, o se volverá a perder.
+2. Borrar sus 192 eventos futuros (los de 14 y 2 son legítimos, se quedan):
+   `DELETE e FROM mdl_event e JOIN mdl_user u ON u.id=e.userid
+    WHERE e.eventtype='user' AND u.deleted=1 AND e.timestart > UNIX_TIMESTAMP()`
+   Después, `UPDATE mdl_task_scheduled SET faildelay=0` en las dos tareas y relanzar.
+
+**Aparte (no urgente):** hay 977 eventos huérfanos de 2019-2020 (6 usuarios borrados, todos
+pasados). Son polvo, **no** la causa. Limpiar cuando haya ocasión.
+
+**Cómo se encontró:** `audit-estado.sh`, en su primera ejecución, avisó de *"2 tareas
+fallando"*. Antes, esas dos tareas llevaban 12 días en rojo sin que nada lo dijera.
 
 **MON-2 / MON-3 / AC-4 / REPO-3 — Monitorización post-Hetzner (07-ago).** Los cuatro salen de
 revisar el digest del 07/08 08:00. Ninguno rompe el servicio hoy; los cuatro hacen que un
