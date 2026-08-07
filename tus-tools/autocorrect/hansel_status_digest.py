@@ -6,25 +6,15 @@ Revisa cada proceso (por frescura de su log o por un check concreto), lo agrupa
 y manda UN email por Gmail SMTP. Pensado para correr a las 8:00 y 20:00.
 
 Cron:
-    0 8,20 * * * /usr/bin/python3 /home/aulatuspeaking/scripts/hansel_status_digest.py >> /home/aulatuspeaking/hansel_logs/status_digest.log 2>&1
+    0 8,20 * * * /home/coreadmin/venv-autocorrect/bin/python /home/coreadmin/scripts/hansel_status_digest.py >> /home/coreadmin/cron_status_digest.log 2>&1
 
 Uso manual:
     python3 hansel_status_digest.py            # calcula y envía
     python3 hansel_status_digest.py --print     # solo imprime, NO envía (para probar)
 
 Sin dependencias externas (stdlib + send_alert.py en el mismo dir).
-
-⚠️ REPO-3 (07-ago-2026) — NO DESPLEGAR ESTE FICHERO TAL CUAL.
-La copia que corre en producción (~/scripts/ en el Hetzner) está MÁS AVANZADA que esta:
-tiene el check del feeder de reservas Acuity→own_acuity y los backups a las 3:00/3:05.
-Fue editada directamente en el servidor, saltándose el flujo dev→main→deploy.
-Un deploy desde el repo la pisaría y perdería esos checks.
-ORDEN: (1) traer la versión de prod al repo y commitear la reconciliación,
-       (2) aplicar encima AC-4 (localhost→127.0.0.1:3307, línea ~187) y
-           MON-3 (check_file: patrón del backup automático + orden por mtime).
-Detalle: docs/tickets/2026-08-07-monitorizacion-crons-post-hetzner.md
 """
-import os, sys, time, glob
+import os, sys, time, glob, re
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,9 +23,9 @@ try:
 except Exception:
     send_alert = None
 
-HL   = '/home/aulatuspeaking/hansel_logs'
-ZLOG = '/home/aulatuspeaking/.ftp-users/moodle/admin/cli/logs/i3code_download_zoomdata'
-BK   = '/home/aulatuspeaking/backups/db_daily'
+HL   = '/home/coreadmin'
+ZLOG = '/tmp/i3code_download_zoomdata'   # patrón: ZLOG_%Y%m%d.log
+BK   = '/mnt/moodle-data/backups'   # ruta REAL de los backups en Hetzner
 NOW  = time.time()
 
 # ── Definición de checks ─────────────────────────────────────────────
@@ -45,31 +35,32 @@ NOW  = time.time()
 CHECKS = [
     ("🟢 DATOS Y ASISTENCIA", [
         dict(t='log',  name='Ingesta Zoom (4:05)',      why='actualiza asistencias',
-             path=f'{ZLOG}/log_%Y%m%d.log', max_h=26),
-        dict(t='log',  name='Sync asistencia (cada 15m)', why='refresca asistió/ausencia',
-             path=f'{HL}/asistencia_zoom.log', max_h=1),
+             path=f'{HL}/cron_ingesta.log', max_h=26),
+        dict(t='feeder', name='Feeder reservas (Acuity→own_acuity)',
+             why='si cae el webhook, las reservas se pierden en silencio'),
         dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
-             path=f'{HL}/hansel_autocorrect.log', max_h=3, tail_done=True),
+             path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
-             path=f'{HL}/hansel_quiz_grader.log', max_h=5),
+             path=f'{HL}/cron_quiz.log', max_h=5),
         dict(t='moodle_cron', name='Moodle cron (4:15)',  why='tareas programadas internas',
              max_h=26),
     ]),
     ("🟢 BACKUPS Y SEGURIDAD", [
-        dict(t='file', name='Backup BD principal (2:00)', why='recuperación ante desastre',
-             pat=f'{BK}/db_%Y%m%d.sql.gz', min_kb=1000),
-        dict(t='file', name='Backup BD CESCE (2:05)',     why='recuperación CESCE',
-             pat=f'{BK}/db_cesce_%Y%m%d.sql.gz', min_kb=100),
-        dict(t='log',  name='Backup offsite Hetzner (3:00)', why='copia fuera del server',
-             path=f'{HL}/backup_offsite.log', max_h=26),
+        dict(t='file', name='Backup BD aula (3:00)', why='recuperación ante desastre',
+             pat=f'{BK}/db_aula_%Y%m%d_*.sql.gz', min_kb=200000),
+        dict(t='file', name='Backup BD CESCE (3:00)',     why='recuperación CESCE',
+             pat=f'{BK}/db_cesce_%Y%m%d_*.sql.gz', min_kb=100),
+        dict(t='note', name='Backup offsite (3:05)', why='copia fuera del server',
+             status='OK', msg='sync OK (ver backup.log)'),
     ]),
     ("🟢 REPORTES", [
-        dict(t='log',  name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
-             path='/home/aulatuspeaking/feedback_cron.log', max_h=2),
+        dict(t='note', name='Feedback (cada 30m)',        why='envío de feedback a alumnos',
+             status='WARN', msg='pendiente configurar en Hetzner'),
     ]),
     ("🟢 MONITOR", [
+        # MON-2 (07-ago-2026): instalado en el Hetzner. Era un 'note' con WARN fijo.
         dict(t='log',  name='Heartbeat (cada hora)',      why='vigila que los crons corran',
-             path=f'{HL}/heartbeat.log', max_h=2, tail_last=True),
+             path=f'{HL}/cron_heartbeat.log', max_h=2, tail_last=True),
     ]),
     ("🔒 SEGURIDAD Y RECURSOS", [
         dict(t='disk', name='Disco',        why='si se llena, se cae todo en silencio', path='/'),
@@ -119,15 +110,38 @@ def check_log(c):
     return 'FAIL', f'sin correr hace {_fmt_age(age)} (esperado <{c["max_h"]}h)'
 
 
+# MON-3: el backup AUTOMÁTICO se llama db_<algo>_YYYYMMDD_HHMM.sql.gz y nada más.
+# Los manuales llevan sufijo (…_0755_fundae_manual.sql.gz) y NO deben puntuar.
+AUTO_BACKUP_RE = re.compile(r'_\d{8}_\d{4}\.sql\.gz$')
+
+
 def check_file(c):
+    """Comprueba el backup del día.
+
+    MON-3 (07-ago-2026): antes cualquier fichero del día valía y se reportaba
+    `hits[0]`, que glob devuelve sin ordenar. Resultado: el 07/08 el digest dio ✅
+    enseñando un volcado MANUAL de las 07:55 — si el automático de las 3:00 hubiera
+    fallado, nadie se habría enterado. Ahora solo cuenta el automático, y se reporta
+    el más reciente por mtime.
+    """
     pat = datetime.now().strftime(c['pat'])
     hits = glob.glob(pat)
     if not hits:
-        return 'FAIL', 'no existe el backup de hoy'
-    kb = os.path.getsize(hits[0]) / 1024.0
+        return 'FAIL', 'no existe ningún backup de hoy'
+
+    auto = [h for h in hits if AUTO_BACKUP_RE.search(os.path.basename(h))]
+    n_manual = len(hits) - len(auto)
+    if not auto:
+        return 'FAIL', (f'falta el backup AUTOMÁTICO de hoy '
+                        f'({n_manual} manual(es) presentes — no cuentan)')
+
+    auto.sort(key=os.path.getmtime, reverse=True)
+    newest = auto[0]
+    kb = os.path.getsize(newest) / 1024.0
+    extra = f' · +{n_manual} manual' if n_manual else ''
     if kb < c.get('min_kb', 0):
-        return 'WARN', f'existe pero pequeño ({kb/1024:.1f} MB)'
-    return 'OK', f'{os.path.basename(hits[0])} ({kb/1024:.1f} MB)'
+        return 'WARN', f'{os.path.basename(newest)} pequeño ({kb/1024:.1f} MB){extra}'
+    return 'OK', f'{os.path.basename(newest)} ({kb/1024:.1f} MB){extra}'
 
 
 def check_disk(c):
@@ -186,15 +200,17 @@ def check_moodle_cron(c):
     try:
         import mysql.connector
         env = {}
-        p = '/home/aulatuspeaking/.env'
-        if os.path.exists(p):
-            for line in open(p):
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    k, v = line.split('=', 1)
-                    env[k.strip()] = v.strip().strip('"\'')
+        for p in ('/home/coreadmin/.env', '/home/aulatuspeaking/.env'):
+            if os.path.exists(p):
+                for line in open(p):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        env[k.strip()] = v.strip().strip('"\'')
+                break
         conn = mysql.connector.connect(
-            host='localhost',
+            host=env.get('MOODLE_DB_HOST', '127.0.0.1'),
+            port=int(env.get('MOODLE_DB_PORT', 3307)),
             user=env.get('MOODLE_DB_USER', 'moodle35'),
             password=env.get('MOODLE_DB_PASSWORD', ''),
             database=env.get('MOODLE_DB_NAME', 'aulatuspeaking35'))
@@ -210,6 +226,43 @@ def check_moodle_cron(c):
         if age <= 2 * c['max_h'] * 3600:
             return 'WARN', f'hace {_fmt_age(age)} (esperado <{c["max_h"]}h)'
         return 'FAIL', f'sin correr hace {_fmt_age(age)}'
+    except Exception as e:
+        return 'WARN', f'no verificable ({e})'
+
+
+def check_feeder(c):
+    """Feeder de reservas: own_acuity debe recibir filas nuevas cuando los alumnos
+    reservan. Si el webhook de Acuity cae (incidente 6-ago-2026), deja de escribir y
+    las clases se pierden en silencio — la ingesta sigue OK, por eso no se detectaba.
+    Fuente: own_acuity.lastmodified (newAcuity.php la pone a NOW() al insertar)."""
+    try:
+        import mysql.connector
+        env = {}
+        for p in ('/home/coreadmin/.env', '/home/aulatuspeaking/.env'):
+            if os.path.exists(p):
+                for line in open(p):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        env[k.strip()] = v.strip().strip('"\'')
+                break
+        conn = mysql.connector.connect(
+            host=env.get('MOODLE_DB_HOST', '127.0.0.1'),
+            port=int(env.get('MOODLE_DB_PORT', 3307)),
+            user=env.get('MOODLE_DB_USER', 'moodle35'),
+            password=env.get('MOODLE_DB_PASSWORD', ''),
+            database=env.get('MOODLE_DB_NAME', 'aulatuspeaking35'))
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM own_acuity WHERE lastmodified >= NOW() - INTERVAL 48 HOUR")
+        n48 = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM own_acuity WHERE lastmodified >= NOW() - INTERVAL 24 HOUR")
+        n24 = cur.fetchone()[0]
+        cur.close(); conn.close()
+        if n48 == 0:
+            return 'FAIL', '0 reservas nuevas en 48h — ¿webhook Acuity caído? Revisar newAcuity.php'
+        if n24 == 0:
+            return 'WARN', f'0 en 24h ({n48} en 48h) — vigilar webhook Acuity'
+        return 'OK', f'{n24} reservas nuevas en 24h ({n48} en 48h)'
     except Exception as e:
         return 'WARN', f'no verificable ({e})'
 
@@ -231,6 +284,8 @@ def build_report():
                 st, detail = check_file(c)
             elif c['t'] == 'moodle_cron':
                 st, detail = check_moodle_cron(c)
+            elif c['t'] == 'feeder':
+                st, detail = check_feeder(c)
             elif c['t'] == 'disk':
                 st, detail = check_disk(c)
             elif c['t'] == 'swap':

@@ -37,25 +37,28 @@ from datetime import datetime
 # CONFIGURATION — loaded from /home/aulatuspeaking/.env
 # ──────────────────────────────────────────────────────────────
 
-def _load_env(path='/home/aulatuspeaking/.env'):
-    """Load key=value pairs from .env into os.environ (does not override existing vars)."""
-    if not os.path.exists(path):
-        return
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            k, v = line.split('=', 1)
-            os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+def _load_env(path=None):
+    """Load key=value pairs from .env into os.environ (does not override existing vars).
+    Busca en varias rutas para compatibilidad Dinahosting→Hetzner."""
+    candidates = [
+        path,
+        '/home/coreadmin/.env',          # Hetzner (nuevo)
+        '/home/aulatuspeaking/.env',     # Dinahosting (histórico)
+    ]
+    for p in candidates:
+        if p and os.path.exists(p):
+            with open(p) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith('#') or '=' not in line:
+                        continue
+                    k, v = line.split('=', 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+            break  # primera que exista, parar
 
 _load_env()
 
 DB_CONFIG = {
-    # AC-4 (07-ago-2026): post-migración la BD del aula vive en Docker y solo escucha
-    # TCP en 127.0.0.1:3307. Con host='localhost' el driver va por socket Unix →
-    # (1698, "Access denied for user 'moodle35'@'localhost'"). Mismo patrón que
-    # hansel_quiz_grader.py.
     'host':      os.environ.get('MOODLE_DB_HOST', '127.0.0.1'),
     'port':      int(os.environ.get('MOODLE_DB_PORT', '3307')),
     'user':      os.environ.get('MOODLE_DB_USER', 'moodle35'),
@@ -72,7 +75,8 @@ CLAUDE_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
 # Moodle REST API
-MOODLE_WS_URL   = 'https://aula.tuspeaking.com/app/moodle/webservice/rest/server.php'
+# MIGRADO A HETZNER 2026-08-03: antes /app/moodle/webservice (Dinahosting); ahora en raíz
+MOODLE_WS_URL   = os.environ.get('MOODLE_WS_URL', 'https://aula.tuspeaking.com/webservice/rest/server.php')
 MOODLE_WS_TOKEN = os.environ.get('MOODLE_WS_TOKEN', '')  # hfernandez (user 14)
 
 # Moodle user IDs for graders
@@ -356,6 +360,7 @@ def fetch_pending_file_writings(conn):
       AND a.name NOT LIKE '%Audio Delivery%'
       AND a.name NOT LIKE '%AUDIO DELIVERY%'
       AND a.name NOT LIKE '%entrega de audio%'
+      AND a.name NOT LIKE '%Entrega: Audio%'
       AND c.fullname NOT LIKE '%DEMO%'
       AND c.fullname NOT LIKE '%demo%'
       AND c.fullname NOT LIKE '%Prueba de nivel%'
@@ -377,7 +382,8 @@ def fetch_pending_file_writings(conn):
 def fetch_pending_audio(conn):
     """
     Returns audio delivery submissions with no grade.
-    Matches assignments whose name contains 'ENTREGA DE AUDIO' or 'Audio Delivery'.
+    Matches assignments whose name contains 'ENTREGA DE AUDIO', 'Audio Delivery',
+    'Entrega: Audio' o 'Entrega: Pitch Audio'.
     """
     sql = """
     SELECT
@@ -410,6 +416,8 @@ def fetch_pending_audio(conn):
        OR a.name LIKE '%Audio Delivery%'
        OR a.name LIKE '%AUDIO DELIVERY%'
        OR a.name LIKE '%entrega de audio%'
+       OR a.name LIKE '%Entrega: Audio%'
+       OR a.name LIKE '%Entrega: Pitch Audio%'
       )
     ORDER BY asub.timecreated ASC
     LIMIT 20
