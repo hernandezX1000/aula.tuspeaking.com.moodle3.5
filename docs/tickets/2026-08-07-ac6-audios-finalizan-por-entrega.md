@@ -2,6 +2,9 @@
 
 **Repo:** `aula.tuspeaking.com.moodle3.5` · **Prioridad:** Alta · **Estado:** 🟡 listo para ejecutar
 **Fecha:** 2026-08-07 · **Decisión de:** Hansel · **Carácter:** permanente
+**Estado real:** 🟢 SQL aplicado y código desplegado (`deploy.sh`, 16:40). Verificado en seco:
+`SKIP — audio en 'fr': no se califica (AC-6)` en los 5 audios de GDES Francés B2; los de inglés
+siguen calificándose. Queda el recalificado de redacciones (§7.5 del ticket AC-5).
 
 ---
 
