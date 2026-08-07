@@ -26,30 +26,46 @@ El código sigue viniendo de **este repo** (dev→main, igual que antes). Solo c
 - ⚠️ **PENDIENTE de activar en el server:** clonar este repo en `/home/coreadmin/aula-repo` y probar `deploy-aula.sh` (aún NO ejecutado en producción — ver el script en la raíz del repo).
 
 ### Repos (roles — no mezclar)
-- **Este repo (`aula.tuspeaking.com.moodle3.5`)** = CÓDIGO de la app (custom Moodle + scripts). Core gitignorado.
-- **`tuspeaking-lms`** = INFRAESTRUCTURA del Hetzner (Docker compose, Dockerfile, vhosts, `config-staging.php`, docs de migración: `CUTOVER-AULA-2026-07-26.md`, `MIGRACION-DINAHOSTING.md`).
+- **Este repo (`aula.tuspeaking.com.moodle3.5`)** = CÓDIGO de la app (custom Moodle + scripts). Core gitignorado. Rama `dev`→`main`.
+- **`tuspeaking-lms`** = INFRAESTRUCTURA del Hetzner (Docker, vhosts, backups, crons de root). Rama `main`. Ver su `CLAUDE.md`.
+- **`cesce`** = app de ejercicios LTI de CESCE, el OTRO Moodle del mismo host. Rama `master` = producción.
 - **`tuspeaking-platform`** = plataforma NUEVA (learn/teach/success), OTRO Hetzner — no tiene que ver con aula.
+
+Criterio: **¿lo ejecuta el sistema operativo o un cron de root? → `tuspeaking-lms`.
+¿Lo ejecuta la aplicación? → el repo de esa app.**
 
 ---
 
-## Servidor
+## Servidor (VIGENTE — verificado 07-ago-2026)
 
-- Host: vl24689.dinaserver.com (Dinaserver)
-- Acceso: SSH como usuario `aulatuspeaking`
-- SO: Debian GNU/Linux 11 (bullseye)
-- Raíz web Moodle: /home/aulatuspeaking/www/app/moodle/
-  (ruta física real: /home/aulatuspeaking/.ftp-users/moodle/)
-- URL pública: https://aula.tuspeaking.com
-- Moodle 3.5 · PHP 7.x · MySQL · OPcache restringido (purge_caches avisa, no es error)
+- Host: Hetzner **`tuspeaking-lms`** · **46.225.232.27** · SSH `coreadmin` · Ubuntu 24.04
+- App en Docker: contenedor **`moodle35-app`** (Apache 2.4.38 / PHP 7.3.33)
+- Código: `/mnt/moodle-data/moodle-code` → `/var/www/html/app/moodle` (dueño `www-data`/33)
+- moodledata: `/mnt/moodle-data/moodledata` → `/var/moodledata`
+- URL pública: https://aula.tuspeaking.com (servido en **raíz**, sin subpath)
+- ⚠️ El servidor va en **UTC**: los crons "de las 3:00" corren a las 5:00 hora de España.
+- Scripts Python: `/home/coreadmin/scripts/` · logs en `/home/coreadmin/cron_*.log`
+- Comparte host con CESCE (`moodle35-app-cesce` / `moodle35-db-cesce`, volumen distinto).
+
+<details><summary>HISTÓRICO — Dinahosting (cancelado 4-ago-2026)</summary>
+
+Host `vl24689.dinaserver.com`, usuario `aulatuspeaking`, Debian 11, raíz web
+`/home/aulatuspeaking/www/app/moodle/` (física: `.ftp-users/moodle/`). Cualquier
+documento del repo con estas rutas es histórico.
+</details>
 
 ## Base de datos
 
-- Definida en: config.php (variables $CFG->dbhost/dbname/dbuser/dbpass) — NO versionado
-- Nombre BD principal: aulatuspeaking35 · prefijo de tablas: mdl_
-- Credenciales: ver config.php en el servidor (nunca en este repo)
-- IMPORTANTE: muchos scripts propios tienen la contraseña en duro (pendiente de
-  refactorizar a un secrets.php incluido). Estos ficheros están excluidos del repo
-  vía .gitignore. Si se cambia la contraseña de BD, hay que actualizarlos.
+- Contenedor **`moodle35-db`** (MariaDB 10.5) · **`127.0.0.1:3307`** · BD `aulatuspeaking35`
+  · prefijo `mdl_` · usuario app `moodle35`
+- ⚠️ Solo escucha por **TCP**. Un cliente con `host='localhost'` va por socket Unix y
+  falla con `1698 Access denied`. Usar siempre `127.0.0.1:3307`.
+- ⚠️ NO confundir con `moodle35-db-cesce` (`:3308`), que es CESCE.
+- Consola sin teclear contraseña:
+  `docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'`
+- Credenciales de la app: `config.php` en el servidor (nunca en este repo)
+- IMPORTANTE: ~51 ficheros propios llevan la contraseña en duro (SEC-2 del BACKLOG).
+  Están excluidos vía `.gitignore`. Si se cambia la contraseña, hay que actualizarlos.
 
 ## Integraciones externas (claves NO en repo)
 
@@ -113,10 +129,14 @@ Ramas: **`dev`** (desarrollo) → **`main`** (producción). Credenciales en `~/.
 
        git checkout main && git merge dev && git push
 
-4. **Desplegar** (server):
+4. **Desplegar** (Hetzner) — hoy es `scp` desde el Mac; NO hay despliegue automático:
 
-       cd /home/aulatuspeaking/www/app/moodle && git pull
-       bash tus-tools/autocorrect/deploy.sh     # copia scripts a ~/scripts/ con backup
+       scp tus-tools/autocorrect/hansel_*.py coreadmin@46.225.232.27:/home/coreadmin/scripts/
+
+   ⚠️ **Antes de desplegar un script, comprobar que producción no va por delante**
+   (`md5sum` en el server vs repo). El 07-ago-2026 tres scripts se habían editado
+   directamente en el servidor: desplegar el repo encima habría destruido esas mejoras.
+   Si prod va por delante: rescatar primero (`scp` inverso), commitear, y luego desplegar.
 
    Los ficheros con secretos (config.php, scripts con API keys) están en `.gitignore` y se
    despliegan a mano.
