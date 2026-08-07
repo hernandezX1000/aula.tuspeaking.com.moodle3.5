@@ -207,6 +207,64 @@ ciclo. Moodle cron → ninguna tarea con `faildelay > 0`.
 
 ---
 
+---
+
+# CIERRE — 2026-08-07 (mismo día)
+
+## Resultado
+
+| ID | Estado | Qué se hizo |
+|---|---|---|
+| REPO-3 | ✅ | Producción iba por delante en **tres** scripts, no en uno. Rescatados a `_prod_reconcile/` y reconciliados antes de desplegar nada |
+| AC-4 | ✅ | Solo `hansel_digest.py` seguía roto. Desplegado; el digest reporta `0 errores` y lee la BD |
+| MON-3 | ✅ | `check_file()` solo cuenta el automático y ordena por `mtime`. Probado contra el escenario real |
+| MON-2 | ✅ | `heartbeat_crons.sh` **v2**, cron horario activo, envío verificado |
+| BK-1 | 🟡 | Script v2 desplegado y probado. **Causa raíz sin identificar** |
+
+## Lo que el diagnóstico cambió respecto al plan
+
+Tres suposiciones del ticket original resultaron falsas:
+
+1. **"MON-2 es añadir una línea al crontab".** No: `heartbeat_crons.sh` existía en el
+   servidor pero con rutas de Dinahosting (`/home/aulatuspeaking/hansel_logs`) y vigilando
+   un cron de sync de asistencia que ya no existe. Activarlo tal cual habría disparado
+   4 falsas alertas **cada hora** — ruido que se acaba ignorando, peor que no tener nada.
+   Hubo que reescribirlo. Además nunca estuvo versionado.
+2. **"AC-4 afecta a tres ficheros".** Solo a uno: `hansel_autocorrect.py` y
+   `hansel_status_digest.py` ya estaban corregidos en producción (deriva, ver REPO-3).
+3. **"MON-3 es un fallo de reporting sin consecuencias".** Lo era para el aula. Pero tirar
+   de ese hilo destapó **BK-1**, que es de otra magnitud.
+
+## BK-1 — el hallazgo real del día
+
+Del **9-jul al 6-ago-2026** (29 días) el backup de `aulatuspeaking35cesce` produjo ficheros
+de **407 bytes** informando `Backup cesce OK`. El offsite replicó la basura. La BD tenía
+datos desde el 10-jul (555 tablas, 599 MB): si el servidor se hubiera perdido ese mes,
+CESCE se perdía entero.
+
+Causa: `mysqldump | gzip` sin `set -o pipefail` → `$?` es el de gzip, que siempre triunfa.
+El guard `-s` no filtra 407 bytes. `2>/dev/null` borró la evidencia.
+
+Corregido en `tuspeaking-lms/scripts/backup-moodle.sh` v2 (pipefail, umbral de tamaño por
+BD, `rclone` comprobado, stderr visible, contraseña fuera del fichero). Probado en vivo:
+aula 1256 MB, cesce 129 MB. Object Storage limpio de los 13 ficheros basura.
+
+**Abierto:** por qué empezó a funcionar solo el 6-ago sin tocar nada. Un fallo que se
+arregla solo puede romperse solo. Detalle en `cesce/docs/CESCE_Incident_20260807_Backup_Vacio.md`.
+
+## Verificación pendiente (no requiere acción, solo mirar)
+
+- **08-ago 03:00 UTC** — primera ejecución del backup v2 **por cron**. Es la que valida el ciclo completo.
+- **07-ago 20:00 UTC** — digest con heartbeat en ✅ y backup mostrando `_0300`, no el manual.
+- Si el heartbeat detecta algo, llega un correo. Si no llega nada, es que todo está bien.
+
+## Queda abierto
+
+- **BK-1** — causa raíz del backup de CESCE.
+- **MON-4** — el cron de feedback no existe: decidir si se reactiva o se retira del digest (es el último ⚠️).
+- **NOT-4** — `hansel_digest.py` envía por `sendmail` en vez de Gmail SMTP.
+- Verificación periódica de que un backup **restaura** (contar `CREATE TABLE`), no solo que existe.
+
 ## 6. Referencias
 
 - `docs/BACKLOG.md` — MON-2, MON-3, AC-4, REPO-3

@@ -25,10 +25,8 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | MIG-2 | Rutas `/app/moodle/` hardcodeadas rompen en Hetzner (42 ficheros) | Migración | **Alta** | 🟡 | Hetzner sirve Moodle en RAÍZ. Dos tipos: **URLs** `aula.tuspeaking.com/app/moodle/`→`/` y `/app/moodle/`→`/`; **rutas fs** `/home/aulatuspeaking/www/app/moodle/`→`/var/www/html/app/moodle/`. Fix aplicado en dev (revisar diff) · desplegar con deploy-aula.sh |
 | MIG-3 | Activar deploy en el server: checkout `/home/coreadmin/aula-repo` + probar `deploy-aula.sh` | Migración | **Alta** | 🔴 | 1ª vez del nuevo flujo de deploy (creado, no probado) |
 | BK-1 | **Backup de CESCE vacío (4 KB) al menos 4-6 ago informando "OK"** | Backups | **Alta** | 🟡 | 07-ago-2026. Causa: `mysqldump \| gzip` sin `set -o pipefail` → `$?` es el de gzip, que siempre triunfa; el guard `-s` no filtra 4 KB. Mismo patrón en el offsite: `echo "Offsite sync OK"` incondicional tras `rclone --quiet`. Script v2 escrito en `tuspeaking-lms/scripts/backup-moodle.sh` (pipefail + umbral de tamaño + rclone comprobado + saca la contraseña del fichero). **Pendiente**: desplegar, y averiguar por qué CESCE falló esos días y volvió solo el 7-ago |
-| REPO-3 | Deriva: la versión de `hansel_status_digest.py` que corre en prod NO está en el repo | Infra repo | **Alta** | 🟢 | 07-ago-2026. Prod va por delante (tiene check del feeder de reservas, backups 3:00). **NO desplegar ese fichero hasta reconciliar** o se pisa la versión buena. `docs/tickets/2026-08-07-monitorizacion-crons-post-hetzner.md` |
-| MON-2 | Heartbeat y feedback sin cron en el Hetzner desde el cutover | Monitor | **Alta** | 🔴 | 07-ago-2026. Los 2 avisos del digest. Sin heartbeat no hay dead-man's-switch: si cae el digest, nadie avisa (mismo patrón que el fallo silencioso del 10-jul). Mismo ticket |
-| MON-3 | El check de backup da ✅ con un volcado manual → puede enmascarar que el automático de las 3:00 no corrió | Monitor | **Alta** | 🔴 | 07-ago-2026. `check_file()`: patrón con comodín + `glob` sin ordenar (`hits[0]` arbitrario). Validar patrón del automático + ventana de `mtime`. Mismo ticket |
-| AC-4 | Scripts Python aún conectan a `localhost` → error 1698 post-migración | Autocorrector | Media | 🔴 | 07-ago-2026. `hansel_autocorrect.py:55`, `hansel_digest.py:37`, `hansel_status_digest.py:187`. La BD solo escucha TCP `127.0.0.1:3307`. Ya arreglado en `hansel_quiz_grader.py`. Mismo ticket |
+| MON-4 | Cron de **feedback** (cada 30m) no existe en el Hetzner: ¿reactivar o retirar del digest? | Monitor | Media | 🔴 | 07-ago-2026. Es el único ⚠️ que queda en el digest. No hay script ni cron en el server. **Decisión de Hansel pendiente** |
+| NOT-4 | `hansel_digest.py` envía por `sendmail`, no por Gmail SMTP | Monitor | Baja | 🔴 | 07-ago-2026. El status digest y el heartbeat ya usan `send_alert.py`; este no. `sendmail` llega tarde y con remitente que cae en spam |
 | SEC-3 | Contraseñas BD en texto plano en el crontab → `~/.my.cnf` (600) | Seguridad | Media | 🔴 | TICKET #4 |
 | SEC-4 | Rotar API key Acuity + secret Zoom (llevan tiempo en el server) | Seguridad | Media | 🔴 | CLAUDE.md pendientes |
 | SEC-5 | Swapfile 2-4 GB en el Hetzner (prep migración) | Seguridad | Media | 🔴 | 3.7 GB RAM sin swap |
@@ -69,6 +67,16 @@ crontab en el servidor y va en paralelo. Diagnóstico SSH pendiente y detalle co
 **AC-2 / AC-3 — Autocorrector.** AC-2: entregas con `onlinetext` corto (>10 y <80) **más** un adjunto: el pipeline de texto las salta por cortas y el de fichero las excluye por tener algo de texto → cambiar el filtro a `<MIN_WRITING_CHARS`. AC-3: Claude devuelve a veces JSON malformado (una comilla sin escapar) → reintento/reparación en el parseo.
 
 ---
+
+## Resueltos recientes (2026-08)
+
+| ID | Título | Fecha | Nota |
+|----|--------|-------|------|
+| MON-2 | Heartbeat sin cron en el Hetzner (sin dead-man's-switch desde el cutover) | 2026-08-07 | `heartbeat_crons.sh` **v2** reescrito (la v1 apuntaba a rutas de Dinahosting: habría mandado 4 falsas alertas/hora). Cron horario activo + canal Gmail SMTP verificado de punta a punta. Ahora también vigila el backup automático del día |
+| MON-3 | Check de backup daba ✅ con un volcado manual | 2026-08-07 | `check_file()`: solo cuenta el automático (`_YYYYMMDD_HHMM.sql.gz` sin sufijo) y ordena por `mtime`. Probado contra el escenario real del 07/08 |
+| AC-4 | Scripts conectaban a `localhost` → error 1698 | 2026-08-07 | Solo `hansel_digest.py` seguía roto (los otros ya estaban bien en prod). Desplegado y verificado: digest con `0 errores` |
+| REPO-3 | Deriva prod→repo en 3 scripts Python | 2026-08-07 | Producción iba **por delante** (check del feeder de reservas, `.env` multi-ruta, `MOODLE_WS_URL` en raíz). Rescatado a `_prod_reconcile/` y reconciliado ANTES de desplegar. Regla añadida a `CLAUDE.md`: `md5sum` antes de todo deploy |
+| DOC-1 | Los 3 `CLAUDE.md` desalineados (y `tuspeaking-lms` sin ninguno) | 2026-08-07 | Criterio único de reparto; infra de CESCE reescrita (describía Dinahosting, cancelado el 4-ago); histórico de Dinaserver del aula movido a `<details>` |
 
 ## Resueltos recientes (2026-07)
 
