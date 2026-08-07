@@ -43,6 +43,19 @@ cancelAcuity.php
 !/docs/
 
 # === Permitir ficheros .php/.js/.css propios de la raíz ===
+# --- Pipeline de reservas Acuity (añadidos 07-ago-2026) ---
+# NO estaban versionados ni protegidos: caían por la regla general `/*` y nadie los añadió
+# aquí. Por eso `newAcuity.php` —pieza central del pipeline— se PERDIÓ el 1-ago-2026.
+# Verificado que ninguno lleva credenciales en duro: usan $CFG->dbuser/$CFG->dbpass de
+# config.php, que sí está excluido. (`modifyAcuity.php` y `cancelAcuity.php` siguen fuera
+# a propósito: esos sí llevan la API key de Acuity — ver §Secretos arriba.)
+!/newAcuity.php
+!/eventupdater.php
+!/reminder.php
+!/cancelbymail.php
+!/formClass.php
+!/formFeedback.php
+
 !/acuitytypes.php
 !/acuityrecursive.php
 !/acuityrecursive.js
