@@ -152,6 +152,128 @@ if ($datosver == "si948"){
 	echo "<hr />-w---|".trim($teachermail)."|||<hr />";
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * ING-9 (07-ago-2026) — CICLO COMPLETO DE LA RESERVA
+ *
+ * El webhook de Acuity que apunta aqui es el catch-all "Scheduled or Updated":
+ * recibe ALTAS, REPROGRAMACIONES y CANCELACIONES por la misma puerta.
+ *
+ * Hasta hoy este fichero solo sabia dar de alta: ante una reprogramacion volvia
+ * a INSERTAR, dejando eventos de calendario y filas de own_acuity duplicados
+ * (caso real 06-ago: la cita 1716436192 de Dolors Camacho se inserto 4 veces en
+ * 26 segundos, 15 eventos para una sola clase). Y las cancelaciones ni se
+ * miraban, pese a que Acuity envia `canceled` en la respuesta.
+ *
+ * Quien cubria las tres ramas era `modifyAndCreateAcuity.php`, perdido en el
+ * borrado del 1-ago-2026 y sin copia en ningun backup ni en git.
+ *
+ * Orden de decision:
+ *   1) cancelada          -> borrar eventos + marcar cancelada en las 2 tablas
+ *   2) ya existe la cita  -> REPROGRAMACION: mover los eventos y actualizar filas
+ *   3) no existe          -> ALTA: sigue el flujo de siempre (mas abajo)
+ * ═══════════════════════════════════════════════════════════════════════════ */
+$esCancelacion = !empty($appointment['canceled']);
+
+$previaRows = askmysql("SELECT id, studenteventid, teachereventid, heventid, ceventid, geventid, modifiedtimes FROM own_acuity WHERE acuityid = $acuityID ORDER BY id DESC LIMIT 1");
+$previa = (!empty($previaRows) && isset($previaRows[0])) ? $previaRows[0] : null;
+
+if ($esCancelacion || $previa) {
+	try {
+		$connU = new PDO("mysql:host=".$CFG->dbhost.";dbname=".$CFG->dbname, $CFG->dbuser, $CFG->dbpass);
+		$connU->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+		/* Los 5 eventos de calendario de la reserva previa (alumno, profesor y cortesias) */
+		$eventIds = array();
+		if ($previa) {
+			foreach (array('studenteventid','teachereventid','heventid','ceventid','geventid') as $campo) {
+				if (!empty($previa[$campo]) && (int)$previa[$campo] > 0) {
+					$eventIds[] = (int)$previa[$campo];
+				}
+			}
+		}
+		$listaEventos = implode(',', $eventIds);
+
+		if ($esCancelacion) {
+			/* ─── RAMA 1: CANCELACION ─────────────────────────────────────── */
+			if ($listaEventos !== '') {
+				$connU->exec("DELETE FROM mdl_event WHERE id IN ($listaEventos)");
+			}
+			$connU->exec("UPDATE own_acuity SET iscancelled = 't', lastmodified = NOW() WHERE acuityid = $acuityID");
+			$connU->exec("UPDATE mdl_i3code_acuityZoom SET acuity_canceled = 1 WHERE acuityid = $acuityID");
+
+		} else {
+			/* ─── RAMA 2: REPROGRAMACION ──────────────────────────────────── */
+			$nuevoTs = strtotime($appointment['datetime']);
+
+			/* Se rehace la descripcion: lleva la fecha y la hora dentro */
+			$calNameU = escapeshellcmd($appointment['type']) . " " . escapeshellcmd($appointment['calendar']);
+			$locTxtU  = ($locationURL != "%location%")
+				? "<br>URL: <a href=\'$locationURL\'  target=\'_blank\'>$locationURL</a>" : "";
+			$calDescU = $appointment['type'] . " (" . $appointment['firstName'] . " " . $appointment['lastName'] . ") "
+				. $appointment['date'] . " " . $appointment['time'] . " - " . $appointment['endTime'] . " "
+				. escapeshellcmd($appointment['calendar']) . $locTxtU;
+
+			/* Los botones se reconstruyen igual que en el alta, no se recortan de la
+			 * descripcion anterior: si el texto no coincidiera, el alumno se quedaria
+			 * sin el boton de Modificar/Cancelar. */
+			$confirmTxtU = "<br><a href=\'$confirmPage\' target=\'_blank\' class=\'acuity-embed-button\' style=\'background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;\'>Modificar/Cancelar Sesi&oacute;n</a>";
+			$feedbackU   = "<br><a href=\'https://aula.tuspeaking.com/formFeedback.php?acuityid=".$acuityID."\' target=\'_blank\' class=\'acuity-embed-button\' style=\'background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;\'>Feedback</a>";
+
+			if ($nuevoTs) {
+				/* Alumno: descripcion + boton Modificar/Cancelar */
+				if (!empty($previa['studenteventid'])) {
+					$connU->exec("UPDATE mdl_event SET timestart = $nuevoTs, name = " . $connU->quote($calNameU) . ",
+						description = " . $connU->quote($calDescU . $confirmTxtU) . ", timemodified = $ourTime
+						WHERE id = " . (int)$previa['studenteventid']);
+				}
+				/* Profesor: descripcion + boton Feedback */
+				if (!empty($previa['teachereventid'])) {
+					$connU->exec("UPDATE mdl_event SET timestart = $nuevoTs, name = " . $connU->quote($calNameU) . ",
+						description = " . $connU->quote($calDescU . $feedbackU) . ", timemodified = $ourTime
+						WHERE id = " . (int)$previa['teachereventid']);
+				}
+				/* Copias de cortesia (Hansel y, en reservas viejas, Carmen y Guillermo):
+				 * descripcion base. Se mueven para que no queden a la hora antigua. */
+				$otros = array();
+				foreach (array('heventid','ceventid','geventid') as $campo) {
+					if (!empty($previa[$campo]) && (int)$previa[$campo] > 0) { $otros[] = (int)$previa[$campo]; }
+				}
+				if ($otros) {
+					$connU->exec("UPDATE mdl_event SET timestart = $nuevoTs, name = " . $connU->quote($calNameU) . ",
+						description = " . $connU->quote($calDescU) . ", timemodified = $ourTime
+						WHERE id IN (" . implode(',', $otros) . ")");
+				}
+			}
+
+			$connU->exec("UPDATE own_acuity
+				SET modifiedtimes = modifiedtimes + 1, lastmodified = NOW()
+				WHERE acuityid = $acuityID");
+
+			/* acuity_original_datetime solo se fija la PRIMERA vez que se mueve */
+			$connU->exec("UPDATE mdl_i3code_acuityZoom SET
+					acuity_original_datetime = COALESCE(acuity_original_datetime, acuity_datetime),
+					acuity_datetime  = " . $connU->quote($appointment['datetime'] ?? '') . ",
+					acuity_starttime = " . $connU->quote($appointment['time'] ?? '') . ",
+					acuity_endtime   = " . $connU->quote($appointment['endTime'] ?? '') . ",
+					acuity_location  = " . $connU->quote($appointment['location'] ?? '') . ",
+					zoom_meetingid   = " . ((isset($locationID) && ctype_digit((string)$locationID)) ? (string)$locationID : "NULL") . ",
+					acuity_rescheduled = 1,
+					acuity_canceled  = 0
+				WHERE acuityid = $acuityID");
+		}
+
+		$connU = null;
+	}
+	catch (PDOException $eCiclo) {
+		$error .= "Error ING-9 (" . ($esCancelacion ? "cancelacion" : "reprogramacion") . ") acuityid $acuityID:<br>" . $eCiclo->getMessage() . "<br><br>";
+		goto err;
+	}
+
+	/* Tratada. NO seguir al flujo de alta: eso duplicaria eventos y filas. */
+	goto fin;
+}
+/* ═══ Fin ING-9 · a partir de aqui, ALTA NUEVA ═══════════════════════════ */
+
 try {
 	$conn = new PDO("mysql:host=".$CFG->dbhost.";dbname=".$CFG->dbname, $CFG->dbuser, $CFG->dbpass);
 	// set the PDO error mode to exception
@@ -242,6 +364,57 @@ try {
 		/* Ejecutamos sentencia SQL */
 			$conn->exec($sql);
 	/** Fin insert **/
+
+	/** ING-9 (07-ago-2026) — La clase debe VERSE en "Mis clases" desde que se reserva **/
+	/*
+	 * Antes esta fila la creaba solo la ingesta (`i3code_download_zoomdata.php`), que corre
+	 * UNA VEZ AL DIA a las 04:05 UTC. Resultado: quien reservaba por la tarde no veia su
+	 * clase hasta el dia siguiente, y ademas nacia con zoom_clasecompletada = 0 (el DEFAULT),
+	 * que `misclases.php` pinta como "Sin datos" y SIN boton Conectar.
+	 *
+	 * `misclases.php` lee de esta tabla y exige `zoom_clasecompletada = 3` ("Agendada") para
+	 * mostrar el boton. Aqui ya tenemos la URL y el Meeting ID, asi que los escribimos.
+	 *
+	 * Solo se rellenan los campos de la RESERVA. Los de asistencia (zoom_starttime,
+	 * zoom_duration, zoom_participants...) los sigue poniendo la ingesta despues de la clase.
+	 */
+		$meetingIdSql = (isset($locationID) && ctype_digit((string)$locationID)) ? (string)$locationID : "NULL";
+
+		$sqlIZ = "INSERT INTO mdl_i3code_acuityZoom
+				(acuityid, courseid, studentid, teacherid,
+				 acuity_firstname, acuity_lastname, acuity_phone, acuity_email,
+				 acuity_datetime, acuity_starttime, acuity_endtime, acuity_duration,
+				 acuity_type, acuity_location, zoom_meetingid,
+				 zoom_clasecompletada, acuity_canceled, acuity_rescheduled)
+			 VALUES ($acuityID, $courseID, $studentID, $teacherID, "
+				. $conn->quote($appointment['firstName'] ?? '') . ", "
+				. $conn->quote($appointment['lastName'] ?? '') . ", "
+				. $conn->quote($appointment['phone'] ?? '') . ", "
+				. $conn->quote($appointment['email'] ?? '') . ", "
+				. $conn->quote($appointment['datetime'] ?? '') . ", "
+				. $conn->quote($appointment['time'] ?? '') . ", "
+				. $conn->quote($appointment['endTime'] ?? '') . ", "
+				. (int)($appointment['duration'] ?? 0) . ", "
+				. $conn->quote($appointment['type'] ?? '') . ", "
+				. $conn->quote($appointment['location'] ?? '') . ", "
+				. $meetingIdSql . ",
+				 3, 0, 0)
+			 ON DUPLICATE KEY UPDATE
+				 acuity_datetime = VALUES(acuity_datetime),
+				 acuity_location = VALUES(acuity_location),
+				 zoom_meetingid  = VALUES(zoom_meetingid)";
+
+		/*
+		 * En try/catch propio: si esto fallara, la reserva NO debe romperse. El alumno ya
+		 * tiene su evento de calendario y su fila en own_acuity, y la ingesta rellenaria el
+		 * hueco esa misma noche. Es una mejora de visibilidad, no un paso critico.
+		 */
+		try {
+			$conn->exec($sqlIZ);
+		} catch (PDOException $eIZ) {
+			$error .= "AVISO ING-9: no se pudo crear la fila en mdl_i3code_acuityZoom (acuityid $acuityID): " . $eIZ->getMessage() . "<br>";
+		}
+	/** Fin ING-9 **/
 }
 catch (PDOException $e) {
 	$error .= "Error Base de Datos.<br>Sentencia SQL:<br>" . $sql . "<br>Error:<br>" . $e->getMessage() . "<br><br><br>";
