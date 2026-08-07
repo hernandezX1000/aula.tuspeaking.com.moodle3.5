@@ -13,6 +13,16 @@ Uso manual:
     python3 hansel_status_digest.py --print     # solo imprime, NO envía (para probar)
 
 Sin dependencias externas (stdlib + send_alert.py en el mismo dir).
+
+⚠️ REPO-3 (07-ago-2026) — NO DESPLEGAR ESTE FICHERO TAL CUAL.
+La copia que corre en producción (~/scripts/ en el Hetzner) está MÁS AVANZADA que esta:
+tiene el check del feeder de reservas Acuity→own_acuity y los backups a las 3:00/3:05.
+Fue editada directamente en el servidor, saltándose el flujo dev→main→deploy.
+Un deploy desde el repo la pisaría y perdería esos checks.
+ORDEN: (1) traer la versión de prod al repo y commitear la reconciliación,
+       (2) aplicar encima AC-4 (localhost→127.0.0.1:3307, línea ~187) y
+           MON-3 (check_file: patrón del backup automático + orden por mtime).
+Detalle: docs/tickets/2026-08-07-monitorizacion-crons-post-hetzner.md
 """
 import os, sys, time, glob
 from datetime import datetime

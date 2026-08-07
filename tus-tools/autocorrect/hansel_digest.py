@@ -34,7 +34,10 @@ def _load_env(path='/home/aulatuspeaking/.env'):
 
 _load_env()
 
-DB_HOST     = 'localhost'
+# AC-4 (07-ago-2026): la BD vive en Docker y solo escucha TCP en 127.0.0.1:3307.
+# host='localhost' → socket Unix → (1698, "Access denied for user 'moodle35'@'localhost'").
+DB_HOST     = os.environ.get('MOODLE_DB_HOST', '127.0.0.1')
+DB_PORT     = int(os.environ.get('MOODLE_DB_PORT', '3307'))
 DB_USER     = os.environ.get('MOODLE_DB_USER', 'moodle35')
 DB_PASS     = os.environ.get('MOODLE_DB_PASSWORD', '')
 DB_NAME     = os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35')
@@ -60,7 +63,7 @@ COMPLETION_LABELS = {
 
 def get_conn():
     return pymysql.connect(
-        host=DB_HOST, user=DB_USER, password=DB_PASS,
+        host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASS,
         database=DB_NAME, charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor,
     )

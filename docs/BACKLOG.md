@@ -6,7 +6,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 - Convención de IDs: `AREA-nn` (SEC, ING, AC, COMP, NOT, SUC, REPO, MON, MIG, OPS).
 - Estados: 🔴 abierto · 🟡 en curso · 🟢 resuelto.
 - Prioridad: **Alta** / Media / Baja.
-- Última revisión: 2026-07-10.
+- Última revisión: 2026-08-07.
 
 ---
 
@@ -24,6 +24,10 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 | MIG-1 | Migración a Hetzner (aula + cesce + baiwingin) | Migración | **Alta** | 🟡 | ROADMAP §6 · offsite ya siembra la BD; PHP resuelto por Docker · **cutover aula HECHO 26-jul** (ver tuspeaking-lms/docs/CUTOVER-AULA-2026-07-26.md) |
 | MIG-2 | Rutas `/app/moodle/` hardcodeadas rompen en Hetzner (42 ficheros) | Migración | **Alta** | 🟡 | Hetzner sirve Moodle en RAÍZ. Dos tipos: **URLs** `aula.tuspeaking.com/app/moodle/`→`/` y `/app/moodle/`→`/`; **rutas fs** `/home/aulatuspeaking/www/app/moodle/`→`/var/www/html/app/moodle/`. Fix aplicado en dev (revisar diff) · desplegar con deploy-aula.sh |
 | MIG-3 | Activar deploy en el server: checkout `/home/coreadmin/aula-repo` + probar `deploy-aula.sh` | Migración | **Alta** | 🔴 | 1ª vez del nuevo flujo de deploy (creado, no probado) |
+| REPO-3 | Deriva: la versión de `hansel_status_digest.py` que corre en prod NO está en el repo | Infra repo | **Alta** | 🔴 | 07-ago-2026. Prod va por delante (tiene check del feeder de reservas, backups 3:00). **NO desplegar ese fichero hasta reconciliar** o se pisa la versión buena. `docs/tickets/2026-08-07-monitorizacion-crons-post-hetzner.md` |
+| MON-2 | Heartbeat y feedback sin cron en el Hetzner desde el cutover | Monitor | **Alta** | 🔴 | 07-ago-2026. Los 2 avisos del digest. Sin heartbeat no hay dead-man's-switch: si cae el digest, nadie avisa (mismo patrón que el fallo silencioso del 10-jul). Mismo ticket |
+| MON-3 | El check de backup da ✅ con un volcado manual → puede enmascarar que el automático de las 3:00 no corrió | Monitor | **Alta** | 🔴 | 07-ago-2026. `check_file()`: patrón con comodín + `glob` sin ordenar (`hits[0]` arbitrario). Validar patrón del automático + ventana de `mtime`. Mismo ticket |
+| AC-4 | Scripts Python aún conectan a `localhost` → error 1698 post-migración | Autocorrector | Media | 🔴 | 07-ago-2026. `hansel_autocorrect.py:55`, `hansel_digest.py:37`, `hansel_status_digest.py:187`. La BD solo escucha TCP `127.0.0.1:3307`. Ya arreglado en `hansel_quiz_grader.py`. Mismo ticket |
 | SEC-3 | Contraseñas BD en texto plano en el crontab → `~/.my.cnf` (600) | Seguridad | Media | 🔴 | TICKET #4 |
 | SEC-4 | Rotar API key Acuity + secret Zoom (llevan tiempo en el server) | Seguridad | Media | 🔴 | CLAUDE.md pendientes |
 | SEC-5 | Swapfile 2-4 GB en el Hetzner (prep migración) | Seguridad | Media | 🔴 | 3.7 GB RAM sin swap |
@@ -52,6 +56,14 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 **NOT-1 / NOT-2 — Notificaciones.** Diseño acordado: un solo digest a las 8:00 y 20:00 con todos los procesos (qué hace, por qué importa, estado ✅/⚠️/❌) + alerta inmediata solo para fallos críticos (ingesta caída, backup fallido, cron clave >24h sin correr). Todo por Gmail SMTP (`smtp.gmail.com:465`, el que ya usa Moodle). Reemplaza el digest de las 7 y calla los correos sueltos. Ver ROADMAP.
 
 **COMP-1 — Estado de finalización (completion).** Varios alumnos ven un % de progreso por debajo del real porque actividades que **sí completaron** no quedan marcadas como realizadas en el completion tracking de Moodle (`mdl_course_modules_completion`). Ejemplo: Enrique Saña (esana@tekia.es, "2026.2 - Tekia - Ingles B2"), en `/my/` ve **66%** y necesita **75%** antes de que acabe el curso la semana que viene. Objetivo del ticket: un check que detecte actividades con criterio de finalización cumplido (entrega calificada, quiz aprobado, recurso visto) pero sin marcar como completadas, y las corrija/avise. Acción inmediata aparte: revisar y arreglar el caso de Enrique antes del cierre.
+
+**MON-2 / MON-3 / AC-4 / REPO-3 — Monitorización post-Hetzner (07-ago).** Los cuatro salen de
+revisar el digest del 07/08 08:00. Ninguno rompe el servicio hoy; los cuatro hacen que un
+fallo futuro pase en silencio. **Orden obligatorio: REPO-3 → AC-4 → MON-3** (reconciliar la
+deriva antes de tocar nada, o el deploy pisa la versión buena de producción). **MON-2** es
+crontab en el servidor y va en paralelo. Diagnóstico SSH pendiente y detalle completo en
+`docs/tickets/2026-08-07-monitorizacion-crons-post-hetzner.md`. De fondo: el digest vigila
+*frescura de logs*, no *resultado* — un cron que corre y falla sale ✅.
 
 **AC-2 / AC-3 — Autocorrector.** AC-2: entregas con `onlinetext` corto (>10 y <80) **más** un adjunto: el pipeline de texto las salta por cortas y el de fichero las excluye por tener algo de texto → cambiar el filtro a `<MIN_WRITING_CHARS`. AC-3: Claude devuelve a veces JSON malformado (una comilla sin escapar) → reintento/reparación en el parseo.
 

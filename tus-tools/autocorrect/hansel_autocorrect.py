@@ -52,7 +52,12 @@ def _load_env(path='/home/aulatuspeaking/.env'):
 _load_env()
 
 DB_CONFIG = {
-    'host':      'localhost',
+    # AC-4 (07-ago-2026): post-migración la BD del aula vive en Docker y solo escucha
+    # TCP en 127.0.0.1:3307. Con host='localhost' el driver va por socket Unix →
+    # (1698, "Access denied for user 'moodle35'@'localhost'"). Mismo patrón que
+    # hansel_quiz_grader.py.
+    'host':      os.environ.get('MOODLE_DB_HOST', '127.0.0.1'),
+    'port':      int(os.environ.get('MOODLE_DB_PORT', '3307')),
     'user':      os.environ.get('MOODLE_DB_USER', 'moodle35'),
     'password':  os.environ.get('MOODLE_DB_PASSWORD', ''),
     'database':  os.environ.get('MOODLE_DB_NAME', 'aulatuspeaking35'),
