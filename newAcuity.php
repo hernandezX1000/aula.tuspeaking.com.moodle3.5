@@ -184,8 +184,14 @@ if ($datosver == "si948"){
 			$sql .=	" VALUES ('$calName', '" . $calDesc . $confirmTxt . "', 1, 0, 0, 0, $studentID, 0, 0, 0, 0, 'user', " . strtotime($appointment['datetime']) . ", 0, 1, '', 1, $ourTime)"; // ID Estudiante
 			$sql .= ", ('$calName', '".$calDesc.$feedback."', 1, 0, 0, 0, $teacherID, 0, 0, 0, 0, 'user', " . strtotime($appointment['datetime']) . ", 0, 1, '', 1, $ourTime)"; // ID Profesor
 			$sql .= ", ('$calName', '$calDesc', 1, 0, 0, 0, 14, 0, 0, 0, 0, 'user', " . strtotime($appointment['datetime']) . ", 0, 1, '', 1, $ourTime)"; // ID de Hansel
-			$sql .= ", ('$calName', '$calDesc', 1, 0, 0, 0, 2, 0, 0, 0, 0, 'user', " . strtotime($appointment['datetime']) . ", 0, 1, '', 1, $ourTime)";  // ID de Carmen
-			$sql .= ", ('$calName', '$calDesc', 1, 0, 0, 0, 48, 0, 0, 0, 0, 'user', " . strtotime($appointment['datetime']) . ", 0, 1, '', 1, $ourTime)"; // ID de Guillermo
+			// ELIMINADOS 07-ago-2026 (ING-7) — dos copias de cortesía a cuentas inactivas:
+			//   · userid 2  — Carmen Lacabe: SUSPENDIDA (suspended=1), sin acceder desde feb-2026
+			//   · userid 48 — Guillermo Bethencourt: BORRADO de Moodle en 2018 (deleted=1)
+			// Cada reserva creaba un evento de calendario para ellos. El de Guillermo hacía
+			// que el cron nocturno de recordatorios ABORTARA con "Usuario no válido", y todos
+			// los eventos posteriores se quedaban SIN AVISO al alumno (roto desde el
+			// 26-jul-2026, el cutover). 192 eventos futuros huérfanos limpiados.
+			// Quedan: alumno, profesor y Hansel (14).
 		/* Fin SQL */
 		/* Ejecutamos sentencia SQL */
 			$conn->exec($sql);
@@ -204,7 +210,10 @@ try {
 	$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	/** Consulta Select para obtener los ID de los eventos de Moodle **/
 		/* Generamos sentencia SQL */
-			$sql = "SELECT id FROM mdl_event WHERE (userid = $studentID OR userid = $teacherID OR userid = 14 OR userid = 2 OR userid = 48) AND timestart = " . strtotime($appointment['datetime']) . " AND timemodified = $ourTime";
+			// ING-7 (07-ago-2026): quitados `OR userid = 2` (Carmen, suspendida) y
+			// `OR userid = 48` (Guillermo, borrado en 2018). Ya no se crean sus eventos,
+			// así que buscarlos aquí no tendría sentido.
+			$sql = "SELECT id FROM mdl_event WHERE (userid = $studentID OR userid = $teacherID OR userid = 14) AND timestart = " . strtotime($appointment['datetime']) . " AND timemodified = $ourTime";
 		/* Fin SQL */
 		/* Ejecutamos sentencia SQL */
 			$stmt = $conn->prepare($sql); 
