@@ -5,6 +5,53 @@
 
 ---
 
+## 🚨 PUERTA DE ENTRADA — LEER ESTO ANTES DE EJECUTAR NADA
+
+**Antes de tocar la BD, el git o el servidor: lee este `CLAUDE.md` entero y
+`docs/BACKLOG.md`.** No es una recomendación. Si no los has leído, no ejecutas
+nada. Consulta también `docs/README.md` y `docs/incidents/` cuando el problema
+se parezca a algo ya visto.
+
+### ☠️ Todo PHP de Moodle va con `-u www-data`
+
+```bash
+docker exec -u www-data moodle35-app php …   # ✅ SIEMPRE
+docker exec moodle35-app php …               # ☠️ NUNCA — corre como root
+```
+
+**Sin excepciones.** Ni `php -r`, ni "solo para leer un valor".
+
+`config.php` termina en `require_once(lib/setup.php)`: cualquier `require
+config.php` **arranca Moodle entero**, y Moodle escribe cachés en `moodledata`
+con el usuario del proceso. Como root, siembra ficheros de root en
+`moodledata/cache/cachestore_file/`; después `www-data` no puede escribir ahí y
+salta *"File store path does not exist and can not be created"* **en todas las
+páginas, login incluido**.
+
+Ocurrió el **07-ago-2026** y tiró el portal.
+Ver `docs/incidents/2026-08-07-caida-aula-php-como-root.md`.
+
+### Para leer credenciales o consultar la BD, usa lo que ya está documentado
+
+```bash
+# Consola de BD sin teclear contraseña (ver §Base de datos, más abajo)
+docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'
+```
+
+Nunca reconstruyas la contraseña con un `require` de `config.php`.
+
+### Tras cualquier escritura en moodledata, comprueba la propiedad
+
+```bash
+sudo find /mnt/moodle-data/moodledata ! -uid 33 -printf '%u %p\n' | head -30
+# si devuelve algo → sudo chown -R 33:33 /mnt/moodle-data/moodledata
+```
+
+⚠️ **Sin `-maxdepth`.** Con `-maxdepth 1` solo ves el primer nivel y descartas la
+causa real (ese error alargó 20 minutos la caída del 07-ago).
+
+---
+
 ## ⚠️ MIGRADO A HETZNER (26-jul-2026) — LEER ESTO PRIMERO
 
 **aula.tuspeaking.com ya NO está en Dinahosting.** Se migró a Hetzner el 26-jul-2026 (cutover completo). El Dinaserver se cancela el **4-ago-2026**. Todo lo que hay debajo de este bloque que mencione `vl24689.dinaserver.com` o rutas `/home/aulatuspeaking/...` es **HISTÓRICO** — la realidad actual es esta:
@@ -26,30 +73,74 @@ El código sigue viniendo de **este repo** (dev→main, igual que antes). Solo c
 - ⚠️ **PENDIENTE de activar en el server:** clonar este repo en `/home/coreadmin/aula-repo` y probar `deploy-aula.sh` (aún NO ejecutado en producción — ver el script en la raíz del repo).
 
 ### Repos (roles — no mezclar)
-- **Este repo (`aula.tuspeaking.com.moodle3.5`)** = CÓDIGO de la app (custom Moodle + scripts). Core gitignorado.
-- **`tuspeaking-lms`** = INFRAESTRUCTURA del Hetzner (Docker compose, Dockerfile, vhosts, `config-staging.php`, docs de migración: `CUTOVER-AULA-2026-07-26.md`, `MIGRACION-DINAHOSTING.md`).
+- **Este repo (`aula.tuspeaking.com.moodle3.5`)** = CÓDIGO de la app (custom Moodle + scripts). Core gitignorado. Rama `dev`→`main`.
+- **`tuspeaking-lms`** = INFRAESTRUCTURA del Hetzner (Docker, vhosts, backups, crons de root). Rama `main`. Ver su `CLAUDE.md`.
+- **`cesce`** = app de ejercicios LTI de CESCE, el OTRO Moodle del mismo host. Rama `master` = producción.
 - **`tuspeaking-platform`** = plataforma NUEVA (learn/teach/success), OTRO Hetzner — no tiene que ver con aula.
+
+Criterio: **¿lo ejecuta el sistema operativo o un cron de root? → `tuspeaking-lms`.
+¿Lo ejecuta la aplicación? → el repo de esa app.**
 
 ---
 
-## Servidor
+## Operación diaria — cómo se consulta, se corrige y se ejecuta PHP
 
-- Host: vl24689.dinaserver.com (Dinaserver)
-- Acceso: SSH como usuario `aulatuspeaking`
-- SO: Debian GNU/Linux 11 (bullseye)
-- Raíz web Moodle: /home/aulatuspeaking/www/app/moodle/
-  (ruta física real: /home/aulatuspeaking/.ftp-users/moodle/)
-- URL pública: https://aula.tuspeaking.com
-- Moodle 3.5 · PHP 7.x · MySQL · OPcache restringido (purge_caches avisa, no es error)
+```bash
+aula-sql                            # consultar — SOLO LECTURA (moodle_ro). El 90% del trabajo.
+aula-sql "SELECT ..."               # consulta suelta
+aula-sql --write mdl_TABLA          # corregir — copia la tabla ANTES de abrir la consola
+aula-php admin/cli/purge_caches.php # PHP de Moodle SIEMPRE como www-data
+```
+
+**No hay que teclear ninguna contraseña**: los comandos las leen de `/etc/aula-sql.conf`.
+
+⚠️ **NUNCA `docker exec moodle35-app php` sin `-u www-data`.** Arranca Moodle como root,
+siembra ficheros de root en `moodledata/cache/` y **tumba el portal entero, login
+incluido** (caída del 07-ago-2026). Está **bloqueado** por `~/.guard-docker-php.sh` en el
+shell de `coreadmin`. Si aun así ocurre: **`docker restart moodle35-app`** lo repara (el
+entrypoint hace `chown` de moodledata al arrancar), y un cron cada 10 min lo detecta y
+corrige solo.
+
+| Usuario BD | Puede | No puede |
+|---|---|---|
+| `moodle_ro` (`aula-sql`) | `SELECT` | Escribir → `ERROR 1142` |
+| `moodle_rw` (`aula-sql --write`) | `INSERT`, `UPDATE`, `DELETE` | **`DROP`, `TRUNCATE`, `ALTER`** |
+| `moodle35` | Lo que necesita la app | — *(es de Moodle, no se toca)* |
+| `root` | Todo | — *(solo scripts, nunca a mano)* |
+
+📖 Runbook: `tuspeaking-lms/docs/runbooks/CONSULTAS-DIARIAS-AULA.md`
+Los comandos y los `GRANT` se versionan en **`tuspeaking-lms`** (son infraestructura del host).
+
+## Servidor (VIGENTE — verificado 07-ago-2026)
+
+- Host: Hetzner **`tuspeaking-lms`** · **46.225.232.27** · SSH `coreadmin` · Ubuntu 24.04
+- App en Docker: contenedor **`moodle35-app`** (Apache 2.4.38 / PHP 7.3.33)
+- Código: `/mnt/moodle-data/moodle-code` → `/var/www/html/app/moodle` (dueño `www-data`/33)
+- moodledata: `/mnt/moodle-data/moodledata` → `/var/moodledata`
+- URL pública: https://aula.tuspeaking.com (servido en **raíz**, sin subpath)
+- ⚠️ El servidor va en **UTC**: los crons "de las 3:00" corren a las 5:00 hora de España.
+- Scripts Python: `/home/coreadmin/scripts/` · logs en `/home/coreadmin/cron_*.log`
+- Comparte host con CESCE (`moodle35-app-cesce` / `moodle35-db-cesce`, volumen distinto).
+
+<details><summary>HISTÓRICO — Dinahosting (cancelado 4-ago-2026)</summary>
+
+Host `vl24689.dinaserver.com`, usuario `aulatuspeaking`, Debian 11, raíz web
+`/home/aulatuspeaking/www/app/moodle/` (física: `.ftp-users/moodle/`). Cualquier
+documento del repo con estas rutas es histórico.
+</details>
 
 ## Base de datos
 
-- Definida en: config.php (variables $CFG->dbhost/dbname/dbuser/dbpass) — NO versionado
-- Nombre BD principal: aulatuspeaking35 · prefijo de tablas: mdl_
-- Credenciales: ver config.php en el servidor (nunca en este repo)
-- IMPORTANTE: muchos scripts propios tienen la contraseña en duro (pendiente de
-  refactorizar a un secrets.php incluido). Estos ficheros están excluidos del repo
-  vía .gitignore. Si se cambia la contraseña de BD, hay que actualizarlos.
+- Contenedor **`moodle35-db`** (MariaDB 10.5) · **`127.0.0.1:3307`** · BD `aulatuspeaking35`
+  · prefijo `mdl_` · usuario app `moodle35`
+- ⚠️ Solo escucha por **TCP**. Un cliente con `host='localhost'` va por socket Unix y
+  falla con `1698 Access denied`. Usar siempre `127.0.0.1:3307`.
+- ⚠️ NO confundir con `moodle35-db-cesce` (`:3308`), que es CESCE.
+- Consola sin teclear contraseña:
+  `docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'`
+- Credenciales de la app: `config.php` en el servidor (nunca en este repo)
+- IMPORTANTE: ~51 ficheros propios llevan la contraseña en duro (SEC-2 del BACKLOG).
+  Están excluidos vía `.gitignore`. Si se cambia la contraseña, hay que actualizarlos.
 
 ## Integraciones externas (claves NO en repo)
 
@@ -135,10 +226,14 @@ Ramas: **`dev`** (desarrollo) → **`main`** (producción). Credenciales en `~/.
 
        git checkout main && git merge dev && git push
 
-4. **Desplegar** (server):
+4. **Desplegar** (Hetzner) — hoy es `scp` desde el Mac; NO hay despliegue automático:
 
-       cd /home/aulatuspeaking/www/app/moodle && git pull
-       bash tus-tools/autocorrect/deploy.sh     # copia scripts a ~/scripts/ con backup
+       scp tus-tools/autocorrect/hansel_*.py coreadmin@46.225.232.27:/home/coreadmin/scripts/
+
+   ⚠️ **Antes de desplegar un script, comprobar que producción no va por delante**
+   (`md5sum` en el server vs repo). El 07-ago-2026 tres scripts se habían editado
+   directamente en el servidor: desplegar el repo encima habría destruido esas mejoras.
+   Si prod va por delante: rescatar primero (`scp` inverso), commitear, y luego desplegar.
 
    Los ficheros con secretos (config.php, scripts con API keys) están en `.gitignore` y se
    despliegan a mano.
