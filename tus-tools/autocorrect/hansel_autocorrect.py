@@ -516,6 +516,32 @@ LANG_NAMES = {
 }
 
 
+# ──────────────────────────────────────────────────────────────
+# AC-6 — Límites mientras no exista el panel de revisión docente
+#
+# Decisión de Hansel (07-ago-2026), temporal, hasta que las tutoras puedan revisar y
+# publicar los comentarios desde un panel propio:
+#
+#   · Cursos que NO son de inglés → se pone nota, pero NO se publica comentario.
+#     El comentario iba en inglés y va firmado por un profesor; hasta que alguien lo
+#     revise, es mejor no publicar nada que publicar algo que el tutor no ha visto.
+#
+#   · Audios de cursos que NO son de inglés → NO se califican en absoluto.
+#     Whisper (`base`) inventa palabras en francés y el alumno acababa penalizado por
+#     errores del modelo. Esas tareas finalizan al entregarse.
+#
+# En inglés todo sigue igual: la transcripción es fiable y el comentario está bien.
+# ──────────────────────────────────────────────────────────────
+
+FEEDBACK_ONLY_IN_LANGS = {'en'}   # idiomas en los que SÍ se publica comentario
+GRADE_AUDIO_IN_LANGS   = {'en'}   # idiomas en los que SÍ se califica el audio
+
+
+def feedback_publicable(lang: str, feedback: str) -> str:
+    """Devuelve el feedback si en ese idioma se puede publicar; si no, cadena vacía."""
+    return feedback if lang in FEEDBACK_ONLY_IN_LANGS else ''
+
+
 def insert_grade(conn, assignment: int, userid: int, grader: int, grade: float):
     ts = now_ts()
     sql = """
@@ -649,10 +675,22 @@ HOW TO WRITE THE FEEDBACK — this matters as much as the grade:
   "on dit « équipée » et non « équipé »".
 - Mention ONE concrete thing the student actually wrote or said, quoting it briefly.
   That is what makes the comment real. If there are many mistakes, pick the one that
-  matters most for their level — do NOT list them all.
+  matters most for their level — do NOT list them all. One or two corrections, never a list.
 - Length: 2 to 5 sentences, and vary it. Not always the same length.
 - Use the student's first name when it reads naturally, not every time.
+- Do NOT open every comment the same way. Avoid starting with a greeting every time —
+  sometimes begin directly with the observation.
 - No emojis. Never mention the grade, the transcription, AI, or that this is automatic.
+
+ACCURACY — a wrong correction is worse than no correction:
+- Only correct something you are CERTAIN is wrong. If you are not sure of the rule, say
+  nothing about it and pick a different point.
+- Never invent or paraphrase a grammar rule. If you cannot state the rule correctly and
+  briefly, just give the corrected form without explaining why.
+- Give the corrected version of what the student actually wrote — do not "correct" it into
+  a different sentence, and do not remove words that were correct.
+- This comment is signed by a real teacher. Anything you assert will be taken as true by
+  the student.
 """
 
 
@@ -906,7 +944,9 @@ def process_writings(conn) -> int:
                 log.info(f"  ai_score={ai_score} | Grade: {grade_final}/{nota_max} | {feedback[:70]}...")
 
             if not DRY_RUN:
-                moodle_save_grade(assign_id, userid, grade_final, feedback)
+                # AC-6: fuera del inglés se guarda la nota, pero sin comentario
+                moodle_save_grade(assign_id, userid, grade_final,
+                                  feedback_publicable(lang, feedback))
 
             processed += 1
             time.sleep(API_CALL_DELAY)
@@ -985,7 +1025,9 @@ def process_file_writings(conn) -> int:
                 log.info(f"  ai_score={ai_score} | Grade: {grade_final}/{nota_max} | {feedback[:70]}...")
 
             if not DRY_RUN:
-                moodle_save_grade(assign_id, userid, grade_final, feedback)
+                # AC-6: fuera del inglés se guarda la nota, pero sin comentario
+                moodle_save_grade(assign_id, userid, grade_final,
+                                  feedback_publicable(lang, feedback))
 
             processed += 1
             time.sleep(API_CALL_DELAY)
@@ -1024,6 +1066,15 @@ def process_audio(conn) -> int:
             f"level={level} grader={grader} nota_max={nota_max} ({days_old}d old)"
         )
 
+        # AC-6: fuera del inglés el audio NO se califica.
+        # Whisper ('base') inventa palabras y el alumno acababa penalizado por errores del
+        # modelo (media 4,19/10 en francés frente a 6,98 en inglés). Estas tareas finalizan
+        # al entregarse, así que dejarlas sin nota no perjudica al alumno.
+        lang_curso = detect_course_language(course)
+        if lang_curso not in GRADE_AUDIO_IN_LANGS:
+            log.info(f"  SKIP — audio en '{lang_curso}': no se califica (AC-6). Finaliza al entregar.")
+            continue
+
         try:
             # 1. Get audio file from Moodle filedir
             file_info = fetch_audio_file(conn, assign_id, userid)
@@ -1050,7 +1101,8 @@ def process_audio(conn) -> int:
                 log.info(f"  Grade: {grade}/{nota_max} | {feedback[:70]}...")
 
             if not DRY_RUN:
-                moodle_save_grade(assign_id, userid, grade, feedback)
+                moodle_save_grade(assign_id, userid, grade,
+                                  feedback_publicable(lang, feedback))
 
             processed += 1
             time.sleep(API_CALL_DELAY)

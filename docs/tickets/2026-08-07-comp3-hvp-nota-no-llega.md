@@ -65,6 +65,31 @@ escritas en **mayo**) y falla cuando es de la serie `320xxx` (creados **después
 **Dato en contra de la hipótesis 1:** `320304` tiene 1 nota de **otro alumno**, así que
 el ítem sí recibe escrituras. Habría que ver **cuándo** se escribió esa nota.
 
+### 3.bis · La correlación 313/320 también es FALSA (07-ago, caso Nicolás Bilanin)
+
+Segundo alumno del mismo curso, `userid 5822`. Resultado **exactamente inverso**:
+
+| grade_item | Luis Miguel (5823) | Nicolás (5822) |
+|---|---|---|
+| 313372 · 313373 · 313401 · 313402 | ✅ nota escrita | ❌ **NULL** |
+| 320304 … 320311 | ❌ NULL | ✅ **nota escrita** |
+
+**Los mismos ítems fallan para un alumno y funcionan para el otro.** La serie del
+`grade_item` no tiene nada que ver: era una coincidencia de una sola muestra.
+
+Comprobado además en los cuatro ítems de Nicolás:
+
+- `locked = 0` y `needsupdate = 0` → **no es un ítem bloqueado**.
+- Las filas de `mdl_grade_grades` **existen** (755851, 755853, 767694, 767695) con
+  `rawgrade` y `finalgrade` NULL → `grade_update()` **creó la fila pero no escribió el valor**.
+- Los dos que sí funcionaron se escribieron el **30-jul a las 15:34 y 15:39**, es decir,
+  el mecanismo funcionaba y fallaba **el mismo día, en la misma sesión**, según el ejercicio.
+
+➡️ **La causa no está en el ítem ni en el alumno: está en la llamada concreta.** Siguiente
+paso: mirar `mdl_logstore_standard_log` alrededor de esas horas para ver qué distingue una
+entrega que sí escribió nota de una que no (¿reintento?, ¿timeout?, ¿sesión caducada?,
+¿el alumno cerró antes de que H5P enviara el `completed`?).
+
 ---
 
 ## 4. Arreglo aplicado (paliativo, 07-ago-2026)
@@ -93,6 +118,27 @@ calificaciones del curso, Moodle podría recomputar desde H5P y volver a dejarla
 
 ⚠️ **Escribir el completion a mano solo es aceptable como paliativo puntual.** No
 convertirlo en costumbre: enmascara el fallo real.
+
+---
+
+## 4.bis · Segundo caso arreglado — Nicolás Bilanin (07-ago)
+
+`userid 5822`, mismo curso 3242. Cuatro ejercicios de los temas 2 y 3 (secciones 3 y 4),
+todos con resultado perfecto y `finalgrade` NULL:
+
+```sql
+UPDATE mdl_grade_grades
+SET rawgrade = COALESCE(rawgrademax, 10.00000), finalgrade = 10.00000, timemodified = UNIX_TIMESTAMP()
+WHERE id IN (755851, 755853, 767694, 767695);
+
+INSERT INTO mdl_course_modules_completion (coursemoduleid, userid, completionstate, viewed, timemodified)
+VALUES (530484,5822,1,1,UNIX_TIMESTAMP()), (530485,5822,1,1,UNIX_TIMESTAMP()),
+       (530424,5822,1,1,UNIX_TIMESTAMP()), (530425,5822,1,1,UNIX_TIMESTAMP())
+ON DUPLICATE KEY UPDATE completionstate = 1, timemodified = UNIX_TIMESTAMP();
+```
+
+Verificado en pantalla con su usuario. **El procedimiento del paliativo es correcto y
+repetible**; está documentado paso a paso en el skill `soporte-ops` (§COMP-3).
 
 ---
 
