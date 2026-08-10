@@ -359,7 +359,7 @@ try {
     }
 	/** Consulta Insert para almacenar el evento de Acuity **/
 		/* Generamos sentencia SQL */
-			$sql = "INSERT INTO own_acuity (acuityid, courseid, studentid, studenteventid, teacherid, teachereventid, fundaeid, heventid, ceventid, geventid, lastmodified) VALUES ($acuityID, $courseID, $studentID, $userIDs[0], $teacherID, $userIDs[1], $fundaeid, $userIDs[2], $userIDs[3], $userIDs[4], NOW())";
+			$sql = "INSERT INTO own_acuity (acuityid, courseid, studentid, studenteventid, teacherid, teachereventid, fundaeid, heventid, ceventid, geventid, lastmodified) VALUES ($acuityID, $courseID, $studentID, $userIDs[0], $teacherID, $userIDs[1], $fundaeid, $userIDs[2], NULL, NULL, NOW())";
 		/* Fin SQL */
 		/* Ejecutamos sentencia SQL */
 			$conn->exec($sql);
