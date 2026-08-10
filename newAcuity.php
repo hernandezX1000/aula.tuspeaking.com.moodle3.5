@@ -430,27 +430,39 @@ if ($error != ""){
 		echo "<hr />hola. 2".$error."--<hr />-".$acuityID."----".$studentID."<hr />";
 	}
 	
-	$recipient = "soporte.tuspeaking@gmail.com";
-	// Set the email subject.
-	$subject = "Error Acuity. New Event.";
+$recipient = "hfernandez@tuspeaking.com";
+// Set the email subject.
+$subject = "Error Acuity. New Event.";
 
-	// Build the email content.
-	$email_content = "Error en Appointment con ID: " . $acuityID . ".<br>Para intentar corregir el error pulse <a href='https://aula.tuspeaking.com/app/moodle/newAcuity.php?id=" . $acuityID . "'>aqu&iacute;</a>.<br><br>" . $error;
+// Build the email content.
+$email_content = "Error en Appointment con ID: " . $acuityID . ".<br>Para intentar corregir el error pulse <a href='https://aula.tuspeaking.com/newAcuity.php?id=" . $acuityID . "'>aqu&iacute;</a>.<br><br>" . $error;
 
-	// Build the email headers.
-	$email_headers = 'MIME-Version: 1.0' . "\r\n";
-	$email_headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+/* ING-10 (10-ago-2026) - El error se registra SIEMPRE en disco.
+ * Antes solo se intentaba avisar con mail(), que no funciona porque el
+ * contenedor no tiene agente de correo (/usr/sbin/sendmail no existe): el
+ * fallo del 8 al 10-ago estuvo tres dias mudo. El aviso va ahora por el
+ * SMTP de Moodle, que si funciona. */
+@file_put_contents($CFG->dataroot . '/newacuity_errors.log',
+    date('c') . " acuityid=$acuityID studentid=$studentID :: "
+    . strip_tags(str_replace('<br>', ' | ', $error)) . "\n",
+    FILE_APPEND);
 
-	// Send the email.
-	if (mail($recipient, $subject, $email_content, $email_headers)) {
-		// Set a 200 (okay) response code.
-		http_response_code(200);
-		echo "Su mensaje ha sido enviado, le contestaremos tan pronto como nos sea posible.";
-	} else {
-		// Set a 500 (internal server error) response code.
-		http_response_code(500);
-		echo "¡Ups! Algo ha ido mal y su mensaje no ha sido enviado, vuelva a intentarlo pasados unos instantes.<br>Gracias.";
-	}
+try {
+    $destinatario = $DB->get_record('user', array('email' => $recipient, 'deleted' => 0));
+    if ($destinatario) {
+        email_to_user($destinatario, core_user::get_noreply_user(), $subject,
+            strip_tags(str_replace('<br>', "\n", $email_content)), $email_content);
+    }
+} catch (Exception $eAviso) {
+    @file_put_contents($CFG->dataroot . '/newacuity_errors.log',
+        date('c') . " aviso NO enviado: " . $eAviso->getMessage() . "\n", FILE_APPEND);
+}
+
+/* Se responde 200 aunque haya habido error: devolver 500 hacia que Acuity
+ * reintentara en bucle, y cada reintento duplicaba los eventos de calendario
+ * (804 duplicados entre el 8 y el 10-ago). El error queda en el log y en el aviso. */
+http_response_code(200);
+echo "Recibido.";
 }
 fin:
 ?>
