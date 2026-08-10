@@ -125,6 +125,56 @@ Además, la clase cancelada del 4-ago de Ana quedó alineada
 (`acuity_canceled = 1`) al reprocesarla: la rama de cancelación de ING-9
 funciona correctamente.
 
+### Segunda tanda: el bloque del 3 al 7 de agosto
+
+El cruce Acuity ↔ `own_acuity` sacó **10 reservas más**, con fecha **anterior**
+al despliegue de ING-7/ING-9. Al principio se descartó relanzarlas por miedo a
+crear clases "agendadas" con fecha vencida; se hizo igualmente por una razón:
+**la ingesta mira 30 días atrás**, así que estas fechas todavía entran en su
+ventana y el cron nocturno las completa solo con la asistencia real de Zoom.
+
+Verificado antes de tocar nada: los cuatro `MoodleID` del formulario de Acuity
+existen en `mdl_user` y coinciden con el dueño del correo. **No era un problema
+de identificación**; era el mismo `INSERT` roto, que empezó a fallar antes de lo
+que sugería el corte del log.
+
+| Alumno | Cliente | Clases | Fechas |
+|---|---|---|---|
+| Nieves Sancho (449) | E2Y | 5 | 4, 5 y 6 ago |
+| Marta Casanovas (9938) | Velcro | 1 | 4 ago |
+| José Luis Carla (3594) | CESCE | 1 | 7 ago |
+| Rafael Herrador (9965) | Hyatt | 1 | 7 ago |
+
+Las 8 creadas en estado 3 (filas 111651–111658). **Comprobar al día siguiente**
+que la ingesta les puso `zoom_participants`/`zoom_duration` y las movió a estado
+1 o 2. Si alguna sigue en 3 con NULL, verificar contra Zoom a mano.
+
+### Las 2 que NO se pueden recuperar automáticamente
+
+| Alumno | Cliente | Clases | Motivo |
+|---|---|---|---|
+| David Pecondon (5824) | GDES | 2 (3-ago) | **`MoodleID` vacío** en el formulario de Acuity |
+
+Sus citas (calendario de **Paola Demarchi**) llegan sin el identificador del
+alumno, así que el webhook no puede saber a quién asignarlas y las descarta.
+No es un fallo de código. Dos salidas: corregir el formulario en Acuity y
+relanzarlas, o insertarlas a mano con la evidencia de Zoom, como se hizo el
+07-ago con sus otras 32 clases.
+
+⚠️ Mientras las reservas de esa profesora se creen así, **esto se repite cada
+semana**. Es el mismo problema de proceso ya documentado en
+`docs/ops/2026-08-07-david-pecondon-acreditar-clases-zoom.sql`.
+
+### Zonas horarias inconsistentes desde Acuity
+
+Detectadas de paso, sin relación con el incidente:
+
+- José Luis Carla (CESCE): `2026-08-07T06:30:00**-0600**` — offset de México.
+- María Concepción Moreno-Torres: `2026-08-18T21:00:00**+0100**` — offset de
+  invierno en agosto.
+
+Pueden desplazar la hora que ve el alumno. Pendiente de revisar.
+
 ---
 
 ## Lecciones
