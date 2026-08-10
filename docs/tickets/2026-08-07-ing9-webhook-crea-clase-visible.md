@@ -1,7 +1,18 @@
 # ING-9 — El webhook debe hacer visible la clase al reservar, no el cron del día siguiente
 
-**Repo:** `aula.tuspeaking.com.moodle3.5` · **Prioridad:** Alta · **Estado:** 🔴 abierto
+**Repo:** `aula.tuspeaking.com.moodle3.5` · **Prioridad:** Alta
+**Estado:** 🟢 **DESPLEGADO 07-ago 19:55** · falta la prueba del ciclo (ver §6)
 **Fecha:** 2026-08-07 · **Fichero:** `newAcuity.php` (y su gemelo `modifyAndCreateAcuity.php`)
+
+> **Desplegado:** `php -l` → `No syntax errors detected`; copia del anterior en
+> `/mnt/moodle-data/moodle-code/newAcuity.php.bak-20260807` (11.674 bytes; el nuevo, 22.112).
+> Las tres ramas —alta, reprogramación y cancelación— están en producción.
+>
+> **Datos reparados:** las 19 clases futuras que estaban en estado 0 pasaron a 3.
+> Comprobado: **156 clases futuras con enlace, todas en estado 3, ninguna en "Sin datos"**.
+>
+> **PENDIENTE:** probar el ciclo con una cita propia (reservar → reprogramar → cancelar) y
+> **borrarla al terminar**, en Acuity y en la base de datos.
 
 ---
 
