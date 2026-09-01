@@ -144,3 +144,78 @@ Copias previas al despliegue, en el propio servidor:
 - **SEC-7** — bot escaneando webshells en este host (07-ago-2026).
 - **SEC-2** — credenciales de BD en duro; el mismo endpoint las usa vía `$CFG`.
 - **ING-9 / ING-10** — precedentes de romper `newAcuity.php` y perder reservas.
+
+---
+
+# Anexo — por qué fallaba el INSERT (visto ya con el error a la vista)
+
+El arreglo del punto 1 cumplió su función a la primera: al volver a guardar,
+la consola mostró lo que llevaba meses oculto.
+
+```
+SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'acuityid' cannot be null
+```
+
+Con la sentencia completa:
+
+```sql
+INSERT INTO own_acuity_course (courseid, acuityid, classnmbr, isfundae, tipo_clase, lastmodified) VALUES
+  (3108, 94228147, 12, 'f', '1TO1',  NOW()),   -- el cambio real
+  (4027, NULL, NULL, 'f', 'GRUPAL', NOW()),    -- cursos nunca tocados
+  (4031, NULL, NULL, 'f', 'GRUPAL', NOW()),
+  (4032, NULL, NULL, 'f', 'GRUPAL', NOW()),
+  (4071, NULL, NULL, 'f', 'GRUPAL', NOW())
+ON DUPLICATE KEY UPDATE ...
+```
+
+## Causa
+
+`getCourse()` normalizaba `classnmbr` y `tipo_clase` cuando venían NULL, pero
+**no `acuityid`**. Un curso sin configurar quedaba con `acuityID = null` en
+`prevValues`, mientras que el desplegable vacío devuelve `""` en `newValues`.
+
+En `compareValues()` la comparación es `!=` entre `null` y `""`, que da **true**:
+el código concluía que **todos los cursos sin configurar habían sido
+modificados** y los añadía al lote con `acuityid = NULL`.
+
+Como `own_acuity_course.acuityid` es `NOT NULL` y el INSERT es de varias filas,
+**una sola fila inválida rechazaba la sentencia entera**, incluida la que el
+usuario sí había editado.
+
+**Consecuencia:** la página no podía guardar nada mientras existiera al menos un
+curso sin configurar en el listado — que es siempre, porque el listado está
+filtrado precisamente para mostrar solo esos (`showOnlyUnconfigured = true`).
+Y al pintarse el error de verde, nadie lo detectó. Explica que el bono de
+Eduardo Díaz hubiera que insertarlo a mano, y probablemente también que el curso
+4025 (Radu Bretón) tenga el `classnmbr` vacío: alguien lo intentó, vio el verde
+y se fue.
+
+## Segundo error, independiente
+
+```
+Uncaught TypeError: can't access property "replace", v.courseName is null
+```
+
+La consulta de carga hace `FROM mdl_course_categories LEFT JOIN mdl_course`, así
+que **una categoría sin cursos devuelve una fila con `courseid` y `coursename` a
+NULL**, y `fillCompanies()` reventaba al llegar a ella, cortando el listado.
+
+## Arreglo (2ª entrega, solo `own_CourseAcuity.js`)
+
+1. Normalizar `acuityid` NULL a `""` al cargar, igual que ya se hacía con
+   `classnmbr` → un curso sin configurar deja de contar como modificado.
+2. Filtrar en `saveChanges()` las filas sin `acuityID` antes de armar el INSERT
+   → nunca se manda un NULL a una columna `NOT NULL`. Si tras el filtro no queda
+   nada, se muestra "Sin cambios" en lugar de lanzar una sentencia vacía.
+3. Saltarse en la carga las filas con `courseid`/`coursename` nulos → se acabó
+   el `TypeError` y el listado se pinta entero.
+
+`courseacuity.php` sube a `?v=14` para invalidar la caché del navegador.
+
+## Pendiente
+
+- `sesskey` en los cuatro puntos de llamada.
+- Sustituir el ejecutor genérico de SQL por operaciones concretas.
+- Revisar si `showOnlyUnconfigured` debe ser un filtro visible en la interfaz.
+- Revisar el `classnmbr` vacío del curso 4025 (Radu Bretón) — probable víctima
+  de este mismo fallo.

@@ -271,9 +271,15 @@ function getCourse(){
             companies = [];
             var totalCount = 0;
             $.each(res, function(k,v){
+                // SEC-8: una categoria sin cursos devuelve courseid/coursename a NULL
+                // por el LEFT JOIN. Esa fila rompia el pintado (v.courseName is null).
+                if (v['courseid'] === null || v['coursename'] === null) return;
                 if (v['companyid'] in companies === false)
                     companies[v['companyid']] = v['company'];
                 if (v['classnmbr'] === null) v['classnmbr'] = "";
+                // SEC-8: sin normalizar, null (BD) != "" (desplegable vacio) y el
+                // codigo creia que TODOS los cursos sin configurar estaban modificados.
+                if (v['acuityid'] === null) v['acuityid'] = "";
                 if (v['tipo_clase'] === null) v['tipo_clase'] = "GRUPAL";
                 totalCount++;
                 prevValues[v['courseid']] = ({
@@ -407,11 +413,19 @@ function saveChanges(toUpdate){
         saveChangesResults(2);
         return;
     }
+    // SEC-8: own_acuity_course.acuityid es NOT NULL. Una sola fila sin tipo de
+    // clase tumbaba el INSERT entero, incluidas las filas correctas.
+    toUpdate = toUpdate.filter(function(v){
+        return v['acuityID'] !== "" && v['acuityID'] !== null && v['acuityID'] !== undefined;
+    });
+    if (toUpdate.length == 0){
+        saveChangesResults(2);
+        return;
+    }
     var sqlValues = "";
     $.each(toUpdate, function (k, v) {
         var classNum = (v['classNumber'] == "") ? "NULL" : v['classNumber'];
-        var acuityId = (v['acuityID'] == "") ? "NULL" : v['acuityID'];
-        sqlValues += "(" + v['courseID'] + ", " + acuityId + ", " + classNum + ", '" + v['isFundae'] + "', '" + v['tipoClase'] + "', NOW())";
+        sqlValues += "(" + v['courseID'] + ", " + v['acuityID'] + ", " + classNum + ", '" + v['isFundae'] + "', '" + v['tipoClase'] + "', NOW())";
         if (k !== (toUpdate.length - 1)) sqlValues += ",";
     });
     sqlString = "INSERT INTO own_acuity_course (courseid, acuityid, classnmbr, isfundae, tipo_clase, lastmodified) VALUES " + sqlValues + " ON DUPLICATE KEY UPDATE acuityid=VALUES(acuityid), classnmbr=VALUES(classnmbr), isfundae=VALUES(isfundae), tipo_clase=VALUES(tipo_clase), lastmodified=VALUES(lastmodified)";

@@ -31,7 +31,7 @@ die();
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="./own_CourseAcuity.js?v=13"></script>
+    <script src="./own_CourseAcuity.js?v=14"></script>
     <title>Course - Appointment Type | tuSpeaking</title>
     <style>
         :root {
