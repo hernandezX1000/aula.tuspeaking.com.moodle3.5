@@ -207,7 +207,7 @@ $('document').ready(function() {
             type: "POST",
             success: function(result) {
                 var res = $.parseJSON(result);
-                if (res) {
+                if (res === true) {
                     // Añadir al array local
                     acuityTypes.push({ 'acuityid': acuityId, 'acuitytype': acuityName });
                     
@@ -226,7 +226,9 @@ $('document').ready(function() {
                     $("#newAcuityModal").hide();
                     showMessage("✓ Acuity Type creado y asignado. Recuerda GUARDAR CAMBIOS.", "#4CAF50");
                 } else {
-                    $("#newAcuityError").text("Error al guardar en la base de datos").show();
+                    // SEC-8: mostrar el error real en vez de un mensaje generico.
+                    console.error("askddbb.php respondio con error:", res);
+                    $("#newAcuityError").text(typeof res === "string" ? res.replace(/<br\s*\/?>/gi, " ") : "Error al guardar en la base de datos").show();
                 }
             },
             error: function(xhr, status, error) {
@@ -419,7 +421,7 @@ function saveChanges(toUpdate){
         type: "POST",
         success: function (result) {
             res = $.parseJSON(result);
-            if (res) {
+            if (res === true) {
                 saveChangesResults(1);
                 $.each(toUpdate, function(k,v){
                     prevValues[v['courseID']]['acuityID'] = v['acuityID'];
@@ -429,6 +431,9 @@ function saveChanges(toUpdate){
                     $("tr#" + v['courseID']).css("background", "#e8f5e9");
                 });
             } else {
+                // SEC-8: askddbb devuelve el texto del error como resultado.
+                // Una cadena es truthy, asi que antes se pintaba como exito.
+                console.error("askddbb.php respondio con error:", res);
                 saveChangesResults(0);
             }
         },
