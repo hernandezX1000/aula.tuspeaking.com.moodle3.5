@@ -177,3 +177,38 @@ Cada caso que llegue por soporte se resuelve con el runbook de Zoom del skill `s
 
 **No escala**: van tres en un solo día (Jaume Alsina ×2, Juan Antonio Muñoz). Por cada una que
 llega por correo hay decenas que nadie reclama.
+
+
+---
+
+## Ampliación 2026-08-20 — el problema, dentro del expediente de un cliente
+
+**Berta Rodríguez Lopez (userid 5868, Velcro)** tenía **tres clases de agosto atascadas en
+estado 3**, visibles en su panel como *"Verificando asistencia"* desde hacía 14-17 días. Ni
+asistidas ni ausencias: **no computaban en ninguna dirección**.
+
+Resueltas a mano el 20-ago verificando cada una contra Zoom. **Eran tres cosas distintas:**
+
+| Fila | Clase | Meeting | Zoom decía | Resolución |
+|---|---|---|---|---|
+| 108689 | 03/08 11:30 | 83976548914 | profesora 24 min · **alumna 22 min dentro** | **Acreditada** (estado 1) |
+| 108690 | 06/08 11:00 | 81742394290 | profesora 26 min · **alumna 21 min dentro** | **Acreditada** (estado 1) |
+| 108691 | 10/08 11:30 | 82469180787 | **solo la profesora**, 5 reconexiones solapadas en 18 min | Cancelada con recuperación |
+
+### Lo que esto añade al diagnóstico
+
+1. **Dos de las tres eran clases REALMENTE IMPARTIDAS** que la ingesta nunca cerró. No es solo
+   un problema de etiqueta en el panel: son horas de formación que no constan.
+2. **La tercera tenía datos de Zoom** (`zoom_duration = 18`, `zoom_participants = 5`) y aun así
+   se quedó en estado 3. Los "5 participantes" eran **5 reconexiones de la misma profesora**
+   → ver **ING-13**.
+3. **Nadie lo detectó desde el sistema.** Salió al revisar otra incidencia distinta de la misma
+   alumna. Si un alumno tiene tres, hay más que nadie ha mirado.
+4. La alumna entró **con 4-5 minutos de retraso** los días que sí asistió, y aun así la clase
+   fue de 21-22 min sobre 30. Dato a tener en cuenta al leer duraciones.
+
+### Pendiente
+
+Barrido de **cuántos alumnos activos tienen clases pasadas en estado 3 o 0**, ordenado por
+antigüedad, y decidir si se resuelven a mano o hace falta un reproceso. La ventana de la
+ingesta es de **30 días**: todo lo anterior ya no se recupera solo.
