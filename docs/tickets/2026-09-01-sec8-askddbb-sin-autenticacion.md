@@ -45,10 +45,12 @@ llegó a verse. Con el arreglo, la próxima vez saldrá en consola y en el aviso
 
 ## 2 · La página solo lista los cursos sin configurar
 
-`own_CourseAcuity.js` línea 5: `var showOnlyUnconfigured = true;`, fijo en el
-código y sin control en la interfaz. No es un fallo, pero explica que el listado
-parezca casi vacío: un curso desaparece de la lista en cuanto tiene `classnmbr`.
-No se toca en este ticket.
+`own_CourseAcuity.js` línea 5: `var showOnlyUnconfigured = true;`. **Corregido
+respecto a la primera versión de este ticket:** no está impuesto, es solo el
+valor por defecto. La cabecera de la página tiene selector de años, un buscador
+y un desplegable «Mostrar: Solo SIN configurar (rápido)» que lo cambia. Explica
+que el listado parezca casi vacío: un curso desaparece de esa vista en cuanto
+tiene `classnmbr`. No se toca en este ticket.
 
 ## 3 · El endpoint no comprobaba absolutamente nada
 
@@ -216,6 +218,23 @@ NULL**, y `fillCompanies()` reventaba al llegar a ella, cortando el listado.
 
 - `sesskey` en los cuatro puntos de llamada.
 - Sustituir el ejecutor genérico de SQL por operaciones concretas.
-- Revisar si `showOnlyUnconfigured` debe ser un filtro visible en la interfaz.
 - Revisar el `classnmbr` vacío del curso 4025 (Radu Bretón) — probable víctima
   de este mismo fallo.
+
+---
+
+## Estado final (01-09-2026, 18:37)
+
+Desplegado y verificado en producción:
+
+- `newAcuity.php` responde **200** — el webhook no se ha visto afectado.
+- POST sin sesión a `askddbb.php` → **303** al login. El agujero está cerrado.
+- `courseacuity.php` **guarda de verdad**: curso 3051 (Sodena, Jessica J, martes
+  8:30) grabado con `acuityid=87422706`, `classnmbr=10`, `lastmodified
+  2026-09-01 18:37:17`. Consola limpia, sin el `TypeError` del listado.
+
+Commits: `711039c`, `e2d122a`, `af0d0d5` (rama `main` al día).
+Copias de rollback: `/mnt/moodle-data/moodle-code/*.pre-sec8`.
+
+⚠️ **Pendiente de mover** esas copias fuera del web root: con esa extensión
+Apache las sirve como texto plano.
