@@ -82,7 +82,9 @@ $estados = [COMPLETION_INCOMPLETE => 'incompleta',
 
 $cambios = 0;
 foreach ($modinfo->get_cms() as $cm) {
-    if ($filtro && !in_array($cm->id, $filtro, true)) {
+    // (int) a proposito: cm_info devuelve el id como cadena y la comparacion estricta
+    // descartaba todas las actividades en silencio -> "0 modificadas" sin ningun error.
+    if ($filtro && !in_array((int)$cm->id, $filtro, true)) {
         continue;
     }
     if ($cm->completion == COMPLETION_TRACKING_NONE) {
