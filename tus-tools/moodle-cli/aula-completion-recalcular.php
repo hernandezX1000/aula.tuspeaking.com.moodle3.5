@@ -25,6 +25,11 @@
  * parecia trabajo sin hacer. La finalizacion no se habia recalculado. Esto lo rehace
  * usando la API de Moodle (completion_info::update_state), no SQL a pelo.
  *
+ * --forzar: marca COMPLETA sin evaluar la condicion. Es lo que se usa cuando el alumno
+ * SI hizo el trabajo (la entrega esta ahi) pero la condicion configurada depende de algo
+ * que no ha pasado todavia -- tipicamente que el profesor corrija. Cambia el dato: dejalo
+ * por escrito en el caso correspondiente.
+ *
  * --marcar-manual: solo para actividades con finalizacion MANUAL (la marca el alumno).
  * En ese caso update_state no puede deducir nada; esta bandera la marca en su nombre.
  * Es un cambio de datos deliberado: usarla solo con criterio y dejarlo por escrito.
@@ -37,12 +42,12 @@ require_once($CFG->libdir . '/completionlib.php');
 
 list($options, $unrecognized) = cli_get_params(
     ['curso' => null, 'usuario' => null, 'cm' => null,
-     'aplicar' => false, 'marcar-manual' => false, 'help' => false],
+     'aplicar' => false, 'marcar-manual' => false, 'forzar' => false, 'help' => false],
     ['h' => 'help']
 );
 
 if ($options['help'] || empty($options['curso']) || empty($options['usuario'])) {
-    cli_writeln("Uso: --curso=<id> --usuario=<id> [--cm=id,id] [--aplicar] [--marcar-manual]");
+    cli_writeln("Uso: --curso=<id> --usuario=<id> [--cm=id,id] [--aplicar] [--marcar-manual] [--forzar]");
     exit(0);
 }
 
@@ -51,6 +56,7 @@ $userid   = (int)$options['usuario'];
 $filtro   = $options['cm'] ? array_map('intval', explode(',', $options['cm'])) : null;
 $aplicar  = (bool)$options['aplicar'];
 $manual   = (bool)$options['marcar-manual'];
+$forzar   = (bool)$options['forzar'];
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 $user   = $DB->get_record('user', ['id' => $userid], 'id,firstname,lastname,email', MUST_EXIST);
@@ -102,7 +108,9 @@ foreach ($modinfo->get_cms() as $cm) {
         continue;
     }
 
-    if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
+    if ($forzar) {
+        $completion->update_state($cm, COMPLETION_COMPLETE, $userid);
+    } else if ($cm->completion == COMPLETION_TRACKING_AUTOMATIC) {
         $completion->update_state($cm, COMPLETION_UNKNOWN, $userid);
     } else if ($manual) {
         $completion->update_state($cm, COMPLETION_COMPLETE, $userid);
