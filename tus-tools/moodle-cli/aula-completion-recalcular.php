@@ -126,8 +126,10 @@ foreach ($modinfo->get_cms() as $cm) {
         $cambios++;
         cli_writeln(sprintf("    -> %s  =>  %s",
             $estados[$antes] ?? $antes, $estados[$despues] ?? $despues));
+    } else if ($despues == COMPLETION_INCOMPLETE) {
+        cli_writeln("    -> sin cambio: la condicion sigue sin cumplirse");
     } else {
-        cli_writeln("    -> sin cambio (la condicion sigue sin cumplirse)");
+        cli_writeln("    -> sin cambio: ya estaba completa");
     }
 }
 
