@@ -216,3 +216,4 @@ reportes_cesce/reporte_asistencia_cesce.py.bak
 *.pyc
 __pycache__/
 /blocks/rocketchat.disabled-20251207/
+!/valoracion.php
