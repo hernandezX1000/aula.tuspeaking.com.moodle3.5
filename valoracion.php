@@ -27,6 +27,50 @@ function v($k, $max = 200) {
 }
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
+/** Aviso interno de cada valoración, por la API de Resend. Nunca rompe el formulario. */
+function avisar_valoracion(array $d) {
+    $conf = __DIR__ . '/own_resend_key.php';
+    if (!is_readable($conf)) { error_log('[valoracion] sin own_resend_key.php: no se avisa'); return; }
+    require_once $conf;
+    if (!defined('RESEND_KEY') || RESEND_KEY === '') { error_log('[valoracion] RESEND_KEY vacía'); return; }
+
+    $para = defined('VALORACION_MAIL_TO')
+        ? array_map('trim', explode(',', VALORACION_MAIL_TO))
+        : ['hfernandez@tuspeaking.com', 'soporte@tuspeaking.com'];
+
+    $alerta = ((int)$d['valoracion'] <= 5) ? '⚠️ ' : '';
+    $asunto = $alerta . '[Valoración ' . (int)$d['valoracion'] . '/10] ' . $d['profesor'];
+
+    $texto = "Profesor: {$d['profesor']}\n"
+           . "Nota: {$d['valoracion']}/10\n"
+           . 'Comentarios: ' . ($d['comentarios'] !== '' ? $d['comentarios'] : '(ninguno)') . "\n\n"
+           . 'Alumno: ' . ($d['email'] !== '' ? $d['email'] : '(sin correo)')
+           . ($d['studentid'] ? " (id {$d['studentid']})" : ' (sin cuenta en el aula)') . "\n"
+           . 'Idioma: ' . ($d['idioma'] !== '' ? $d['idioma'] : '(no indicado)') . "\n"
+           . 'Recibido: ' . date('d/m/Y H:i') . "\n";
+
+    $payload = json_encode([
+        'from'     => defined('VALORACION_MAIL_FROM') ? VALORACION_MAIL_FROM : 'tuSpeaking <noreply@tuspeaking.com>',
+        'to'       => $para,
+        'subject'  => $asunto,
+        'text'     => $texto,
+        'reply_to' => ($d['email'] !== '' ? $d['email'] : null),
+    ], JSON_UNESCAPED_UNICODE);
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 8,
+        CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . RESEND_KEY, 'Content-Type: application/json'],
+    ]);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($code < 200 || $code >= 300) { error_log('[valoracion] Resend HTTP ' . $code . ' ' . substr((string)$res, 0, 200)); }
+}
+
 $email   = v('e', 200);
 $idioma  = v('i', 50);
 $acuityid = ctype_digit(v('a', 20)) ? (int)v('a', 20) : null;
@@ -73,6 +117,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ($email !== '' ? $email : null),
                 ]);
                 $ok = true;
+
+                // Aviso interno por Resend (el contenedor del aula no tiene sendmail).
+                // La clave va en own_resend_key.php, junto a este fichero y fuera de git.
+                avisar_valoracion([
+                    'profesor'    => $profesor,
+                    'valoracion'  => $valoracion,
+                    'comentarios' => $comentarios,
+                    'email'       => $email,
+                    'idioma'      => $idioma,
+                    'studentid'   => $studentid,
+                ]);
             } catch (PDOException $e) {
                 error_log('[valoracion] ' . $e->getMessage());
                 $error = 'No hemos podido guardar tu valoración. Inténtalo de nuevo en unos minutos.';
