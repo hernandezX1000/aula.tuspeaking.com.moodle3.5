@@ -44,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($profesor === '' || $valoracion < 1 || $valoracion > 10) {
             $error = 'Indica el nombre del profesor y una nota del 1 al 10.';
+        } elseif ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Escribe tu correo electrónico para que sepamos de qué clase se trata.';
         } else {
             try {
                 $pdo = new PDO(
@@ -105,7 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <?php if ($error !== ''): ?><div class="err"><?= h($error) ?></div><?php endif; ?>
   <form method="post">
     <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
-    <input type="hidden" name="email" value="<?= h($email) ?>">
+    <?php if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)): ?>
+      <input type="hidden" name="email" value="<?= h($email) ?>">
+    <?php else: ?>
+      <label for="email">Tu correo electrónico *</label>
+      <input id="email" name="email" type="email" required maxlength="200" value="<?= h($email) ?>">
+    <?php endif; ?>
     <input type="hidden" name="idioma" value="<?= h($idioma) ?>">
     <input type="hidden" name="acuityid" value="<?= h($acuityid) ?>">
 
