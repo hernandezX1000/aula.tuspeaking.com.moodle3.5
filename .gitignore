@@ -218,3 +218,4 @@ __pycache__/
 /blocks/rocketchat.disabled-20251207/
 !/valoracion.php
 own_resend_key.php
+.DS_Store
