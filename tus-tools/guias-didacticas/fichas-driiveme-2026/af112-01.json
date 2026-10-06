@@ -1,0 +1,72 @@
+{
+  "_fuente": "Objetivos y contenidos copiados literalmente de la ficha de la AF en la aplicación de FUNDAE (6/10/2026). Cabecera: listado AccionesFormativas.xls + ficha del grupo.",
+  "af": "112",
+  "grupo": "01",
+  "id_fundae": "786553",
+  "denominacion": "Español B1",
+  "modalidad": "Teleformación",
+  "horas": 53,
+  "fecha_inicio": "10/09/2026",
+  "fecha_fin": "20/12/2026",
+  "area": "Lenguas y dialectos españoles (FCOL)",
+  "empresa": "MOVILIDAD TERRESTRE INTEGRAL, S.L.",
+  "tutor": "Álvaro Bonino",
+  "cursos": [
+    4075
+  ],
+  "destinatarios": [
+    "Personas trabajadoras de MOVILIDAD TERRESTRE INTEGRAL, S.L. inscritas en el grupo 112-01.",
+    "El acceso es por internet, en <b>aula.tuspeaking.com</b>, con el usuario y la contraseña personales que recibe cada alumno al inicio. La plataforma está disponible a cualquier hora durante las fechas del curso."
+  ],
+  "objetivos": "Al finalizar el curso, el alumno será capaz de comprender y utilizar el español en situaciones cotidianas y profesionales habituales, tanto orales como escritas; comunicarse con seguridad creciente, expresando ideas, necesidades y opiniones de forma clara y estructurada; interactuar en conversaciones sencillas, presenciales y online, respetando las normas básicas de cortesía y registro; y desenvolverse con autonomía progresiva en contextos sociales y laborales comunes. Comprensión oral: comprender conversaciones claras y pausadas sobre temas personales, laborales y sociales frecuentes; identificar información principal y detalles relevantes en reuniones breves, llamadas o instrucciones sencillas. Comprensión escrita: entender textos breves y medios como correos electrónicos, mensajes, instrucciones, avisos y documentos habituales; extraer información relevante de textos relacionados con el entorno laboral y administrativo básico. Expresión escrita: redactar textos sencillos y estructurados, correos electrónicos, mensajes profesionales, formularios y notas informativas; expresar hechos, opiniones y solicitudes utilizando conectores básicos y estructuras gramaticales adecuadas. Expresión oral: participar en conversaciones habituales del entorno profesional y social; describir experiencias, tareas, planes y situaciones con coherencia y vocabulario adecuado; expresar acuerdos, desacuerdos y preferencias de forma sencilla y respetuosa. Competencia gramatical y léxica: utilizar tiempos verbales básicos (presente, pasado y futuro cercano) con corrección funcional; emplear vocabulario relacionado con el trabajo, la vida diaria, la comunicación y la organización personal. Competencia sociocultural: adaptar el lenguaje al contexto formal e informal; reconocer normas culturales básicas de la comunicación en español en entornos profesionales. Resultado esperado: al finalizar el nivel A2/B1 el alumno podrá comunicarse de manera eficaz en situaciones habituales, mostrando una comprensión sólida, una expresión clara y una interacción funcional en castellano, tanto en el ámbito personal como laboral.",
+  "contenidos": "1. CONTENIDOS GRAMATICALES: repaso y consolidación del presente de indicativo; pretérito perfecto y pretérito indefinido, usos y contraste; introducción al pretérito imperfecto para descripciones y contexto; futuro próximo (ir a + infinitivo) y usos básicos del futuro simple; verbos reflexivos y pronominales frecuentes; verbos modales y perífrasis comunes (tener que, haber que, poder, deber, querer); uso básico de subjuntivo en expresiones frecuentes (querer que, necesitar que, es importante que); concordancia de género y número; pronombres personales de sujeto, complemento directo e indirecto; preposiciones y locuciones preposicionales más habituales; oraciones simples y compuestas básicas (porque, aunque, cuando, si). 2. CONTENIDOS LÉXICOS: datos personales y vida cotidiana; trabajo y entorno profesional, cargos, tareas, horarios y reuniones; comunicación en la empresa, correos, llamadas y mensajes; organización del tiempo y planificación; servicios, trámites y gestiones administrativas básicas; tecnología y comunicación digital; viajes, transporte y movilidad; salud, bienestar y hábitos de vida; opiniones, preferencias y emociones. 3. CONTENIDOS COMUNICATIVOS Y FUNCIONALES: presentarse y presentar a otras personas; describir rutinas, tareas y responsabilidades laborales; pedir y dar información de forma clara; hacer solicitudes, ofrecer ayuda y responder adecuadamente; expresar gustos, preferencias y opiniones; dar instrucciones sencillas; formular quejas y sugerencias de manera educada; expresar acuerdos y desacuerdos básicos; narrar hechos pasados y experiencias; hablar de planes y objetivos futuros. 4. EXPRESIÓN ESCRITA: redacción de correos electrónicos profesionales sencillos; mensajes breves y notas internas; formularios y documentos administrativos básicos; textos descriptivos y narrativos cortos; uso adecuado de conectores básicos (y, pero, porque, aunque, además, por eso). 5. COMPRENSIÓN ORAL Y ESCRITA: comprensión de conversaciones habituales en el trabajo; audios y vídeos breves sobre situaciones reales; lectura de correos, avisos, instrucciones y documentos simples; identificación de ideas principales y detalles relevantes. 6. CONTENIDOS SOCIOCULTURALES: normas básicas de cortesía y registro formal e informal; comunicación en contextos profesionales en España; turnos de palabra y estrategias de conversación; cultura laboral y relaciones interpersonales.",
+  "metodologia_intro": [
+    "La acción formativa se imparte en modalidad de <b>teleformación</b> a través de la plataforma aula.tuspeaking.com. El curso está organizado por semanas."
+  ],
+  "metodologia": [
+    "<b>Trabajo autónomo</b> del alumno con el material del curso y con las actividades que propone el tutor.",
+    "<b>Tutorías individuales por videoconferencia</b> con el tutor, para practicar la expresión oral, resolver dudas y revisar el progreso. El alumno las reserva desde el botón «Reservar» del curso.",
+    "<b>Apuntes de las sesiones:</b> el tutor publica en la plataforma los apuntes de las tutorías.",
+    "<b>Actividades entregables</b> que el alumno realiza y entrega en la plataforma, y que el tutor corrige y califica."
+  ],
+  "tutoria": {
+    "horas": "10 horas",
+    "sesiones": "Individuales, por videoconferencia; el alumno las reserva desde el botón «Reservar» del curso",
+    "consultas": "Mensajería interna de la plataforma y foro de dudas y preguntas",
+    "avisos": "Foro de avisos del curso",
+    "horario": "Lunes a viernes, de 09:00 a 14:30 y de 16:30 a 20:00",
+    "seguimiento": "El tutor corrige y califica las actividades entregables, con sus observaciones, y sigue el progreso del alumno en la plataforma"
+  },
+  "evaluacion": [
+    [
+      "Controles de aprendizaje",
+      "las actividades entregables del curso. El alumno las realiza y las entrega en la plataforma; el tutor las corrige y las califica de 0 a 10, con sus observaciones. El tutor las va proponiendo a lo largo del curso, según la programación."
+    ],
+    [
+      "Criterio de finalización",
+      "haber realizado al menos el <b>75 %</b> de las actividades entregables (controles de aprendizaje) del curso."
+    ],
+    [
+      "Registro",
+      "las entregas, las calificaciones y las observaciones del tutor quedan registradas en la plataforma (libro de calificaciones)."
+    ]
+  ],
+  "recursos": [
+    "Libro del alumno y cuaderno de ejercicios del nivel: Español en Marcha 3.",
+    "Lecturas graduadas (novelas B1-B2).",
+    "Material de práctica fuera de clase.",
+    "Apuntes de las sesiones de tutoría.",
+    "Currículum y experiencia docente del tutor.",
+    "Guía de la plataforma y vídeos de ayuda (cómo enviar mensajes al tutor y cómo contactar con el soporte técnico)."
+  ],
+  "requisitos": [
+    "Ordenador, tableta o móvil con conexión a internet.",
+    "Navegador web actualizado y lector de PDF.",
+    "Micrófono y cámara (o auriculares con micrófono) para las tutorías por videoconferencia."
+  ],
+  "borrar_recursos": {
+    "4075": [
+      "Plan Didáctico – Castellano Nivel Intermedio%"
+    ]
+  }
+}

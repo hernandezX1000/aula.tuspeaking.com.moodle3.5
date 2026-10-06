@@ -1,0 +1,69 @@
+{
+  "_fuente": "Objetivos y contenidos copiados literalmente de la ficha de la AF en la aplicación de FUNDAE (6/10/2026). Cabecera: listado AccionesFormativas.xls + ficha del grupo.",
+  "af": "113",
+  "grupo": "01",
+  "id_fundae": "786554",
+  "denominacion": "Español B2",
+  "modalidad": "Teleformación",
+  "horas": 53,
+  "fecha_inicio": "10/09/2026",
+  "fecha_fin": "20/12/2026",
+  "area": "Lenguas y dialectos españoles (FCOL)",
+  "empresa": "MOVILIDAD TERRESTRE INTEGRAL, S.L.",
+  "tutor": "Álvaro Bonino",
+  "cursos": [
+    4076,
+    4090,
+    4091
+  ],
+  "destinatarios": [
+    "Personas trabajadoras de MOVILIDAD TERRESTRE INTEGRAL, S.L. inscritas en el grupo 113-01.",
+    "El acceso es por internet, en <b>aula.tuspeaking.com</b>, con el usuario y la contraseña personales que recibe cada alumno al inicio. La plataforma está disponible a cualquier hora durante las fechas del curso."
+  ],
+  "objetivos": "Expresión oral e interacción: el alumno será capaz de llevar a cabo, con razonable fluidez, una descripción sencilla de una variedad de temas que sean de su interés, presentándolos como una secuencia lineal de elementos. Realiza descripciones sencillas sobre una variedad de asuntos habituales dentro de su especialidad. Realiza con razonable fluidez narraciones o descripciones sencillas e igualmente relaciones detalladas de experiencias describiendo sentimientos y reacciones. Relata los detalles de acontecimientos impredecibles, como, por ejemplo, un accidente. Relata argumentos de libros o películas y describe sus reacciones. Describe sueños, esperanzas y ambiciones. Describe hechos reales o imaginados. Narra historias. Expresión escrita: el alumno será capaz de escribir textos sencillos y cohesionados sobre una serie de temas cotidianos dentro de su campo de interés enlazando una serie de distintos elementos breves en una secuencia lineal. Escribe descripciones sencillas y detalladas sobre una serie de temas cotidianos dentro de su especialidad. Igualmente escribe relaciones de experiencias describiendo sentimientos y reacciones en textos sencillos y estructurados. Es capaz de escribir una descripción de un hecho determinado, un viaje reciente, real o imaginado y puede narrar una historia. Comprensión auditiva: el alumno será capaz de entender información concreta relativa a temas cotidianos o al trabajo e identifica tanto el mensaje general como los detalles específicos siempre que el discurso esté articulado con claridad y con un acento normal. Comprende las principales ideas de un discurso claro y en lengua estándar que trate temas cotidianos relativos al trabajo, la escuela, el tiempo de ocio, incluyendo breves narraciones. Comprensión de lectura: el alumno será capaz de comprender textos sencillos sobre hechos concretos que tratan sobre temas relacionados con su especialidad con un nivel de comprensión satisfactorio. Identifica las conclusiones principales en textos de carácter claramente argumentativo. Reconoce la línea argumental en el tratamiento del asunto presentado, aunque no necesariamente con todo detalle e igualmente ideas significativas de artículos sencillos de periódico que tratan temas cotidianos.",
+  "contenidos": "CONTENIDOS COMUNICATIVOS: expresar preferencias y deseos; pedir, expresar e intercambiar opiniones; contar y reaccionar ante una anécdota personal; expresar hechos y planes futuros, hipótesis y condiciones; relacionar dos hechos del futuro; preguntar y contar planes y preferencias sobre viajes; hacer, aceptar o rechazar peticiones; transmitir informaciones y peticiones; pedir la opinión; expresar acuerdo y desacuerdo; valorar un hecho o una opinión; organizar el discurso; expresar la impersonalidad; dar y recibir instrucciones; expresar finalidad; describir objetos y su funcionamiento; describir situaciones en el pasado; contar cuentos; narrar y describir personas y lugares del pasado; hablar de hechos pasados ocurridos con anterioridad a lo que ya se ha contado; comparar; hacer recomendaciones o sugerencias; proponer planes; lamentarse; expresar deseos; transmitir las palabras de otros. CONTENIDOS FORMALES: tiempos verbales (gerundio, presente de subjuntivo, pretérito perfecto, pretérito imperfecto, pretérito indefinido, pretérito pluscuamperfecto, futuro simple, condicional simple, imperativo); perífrasis verbales; conectores; cuál y qué; verbos gustar y preferir; presente con valor de futuro; oraciones condicionales; cuando + subjuntivo; complementos del verbo, complemento directo e indirecto; estilo indirecto; ser y estar + adjetivo o adverbio + que + verbo en indicativo, subjuntivo o infinitivo; creo que + verbo en indicativo; no creo que + verbo en subjuntivo; impersonalidad; para + infinitivo y para que + subjuntivo; contraste pretérito e imperfecto; estructuras comparativas y superlativos; estructuras para sugerir o recomendar, lamentarse y proponer planes; que + presente de subjuntivo.",
+  "metodologia_intro": [
+    "La acción formativa se imparte en modalidad de <b>teleformación</b> a través de la plataforma aula.tuspeaking.com. El curso está organizado por semanas."
+  ],
+  "metodologia": [
+    "<b>Trabajo autónomo</b> del alumno con el material del curso y con las actividades que propone el tutor.",
+    "<b>Tutorías individuales por videoconferencia</b> con el tutor, para practicar la expresión oral, resolver dudas y revisar el progreso. El alumno las reserva desde el botón «Reservar» del curso.",
+    "<b>Apuntes de las sesiones:</b> el tutor publica en la plataforma los apuntes de las tutorías.",
+    "<b>Actividades entregables</b> que el alumno realiza y entrega en la plataforma, y que el tutor corrige y califica."
+  ],
+  "tutoria": {
+    "horas": "10 horas",
+    "sesiones": "Individuales, por videoconferencia; el alumno las reserva desde el botón «Reservar» del curso",
+    "consultas": "Mensajería interna de la plataforma y foro de dudas y preguntas",
+    "avisos": "Foro de avisos del curso",
+    "horario": "Lunes a viernes, de 09:00 a 14:30 y de 16:30 a 20:00",
+    "seguimiento": "El tutor corrige y califica las actividades entregables, con sus observaciones, y sigue el progreso del alumno en la plataforma"
+  },
+  "evaluacion": [
+    [
+      "Controles de aprendizaje",
+      "las actividades entregables del curso. El alumno las realiza y las entrega en la plataforma; el tutor las corrige y las califica de 0 a 10, con sus observaciones. El tutor las va proponiendo a lo largo del curso, según la programación."
+    ],
+    [
+      "Criterio de finalización",
+      "haber realizado al menos el <b>75 %</b> de las actividades entregables (controles de aprendizaje) del curso."
+    ],
+    [
+      "Registro",
+      "las entregas, las calificaciones y las observaciones del tutor quedan registradas en la plataforma (libro de calificaciones)."
+    ]
+  ],
+  "recursos": [
+    "Libro del alumno y cuaderno de ejercicios del nivel: Español en Marcha 4.",
+    "Lecturas graduadas (novelas B1-B2).",
+    "Material de práctica fuera de clase.",
+    "Apuntes de las sesiones de tutoría.",
+    "Currículum y experiencia docente del tutor.",
+    "Guía de la plataforma y vídeos de ayuda (cómo enviar mensajes al tutor y cómo contactar con el soporte técnico)."
+  ],
+  "requisitos": [
+    "Ordenador, tableta o móvil con conexión a internet.",
+    "Navegador web actualizado y lector de PDF.",
+    "Micrófono y cámara (o auriculares con micrófono) para las tutorías por videoconferencia."
+  ]
+}

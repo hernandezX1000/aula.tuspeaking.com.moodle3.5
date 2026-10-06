@@ -1,0 +1,66 @@
+{
+  "_fuente": "Objetivos y contenidos copiados literalmente de la ficha de la AF en la aplicación de FUNDAE (6/10/2026). Cabecera: listado AccionesFormativas.xls + ficha del grupo.",
+  "af": "114",
+  "grupo": "01",
+  "id_fundae": "786566",
+  "denominacion": "Español C1",
+  "modalidad": "Teleformación",
+  "horas": 53,
+  "fecha_inicio": "10/09/2026",
+  "fecha_fin": "20/12/2026",
+  "area": "Lenguas y dialectos españoles (FCOL)",
+  "empresa": "MOVILIDAD TERRESTRE INTEGRAL, S.L.",
+  "tutor": "Álvaro Bonino",
+  "cursos": [
+    4077
+  ],
+  "destinatarios": [
+    "Personas trabajadoras de MOVILIDAD TERRESTRE INTEGRAL, S.L. inscritas en el grupo 114-01.",
+    "El acceso es por internet, en <b>aula.tuspeaking.com</b>, con el usuario y la contraseña personales que recibe cada alumno al inicio. La plataforma está disponible a cualquier hora durante las fechas del curso."
+  ],
+  "objetivos": "Reconocer un nivel de competencia en el conocimiento del idioma con un mínimo de conocimientos específicos del lenguaje de los negocios, suficiente para el desarrollo de las actividades más elementales dentro de la empresa. Valorar un nivel de competencia en lengua española que permita al candidato la comunicación en situaciones de la vida diaria y en situaciones elementales de la actividad administrativa y comercial de la empresa. Comprensión oral: comprender, incluso en malas condiciones acústicas, textos extensos, lingüística y conceptualmente complejos, que contengan expresiones idiomáticas y coloquiales y que traten temas tanto concretos como abstractos o desconocidos para el alumno, incluyendo aquellos de carácter técnico o especializado, en diversas variedades estándar de la lengua y articulados a velocidad normal o rápida, aunque puede que necesite confirmar ciertos detalles, sobre todo si el acento no le resulta familiar. Expresión e interacción oral: producir textos claros y detallados sobre temas complejos, integrando otros temas, desarrollando ideas concretas y terminando con una conclusión adecuada, así como dominar un amplio repertorio léxico que le permita suplir las deficiencias fácilmente con circunloquios cuando toma parte activa en intercambios extensos de diversos tipos, expresándose con fluidez, espontaneidad y casi sin esfuerzo. Comprensión escrita: comprender con todo detalle textos extensos y complejos, tanto si se relacionan con su especialidad como si no, siempre que pueda volver a leer las secciones difíciles. Expresión e interacción escrita: escribir textos claros y bien estructurados sobre temas complejos resaltando las ideas principales, ampliando con cierta extensión y defendiendo sus puntos de vista con ideas complementarias, motivos y ejemplos adecuados, y terminando con una conclusión apropiada.",
+  "contenidos": "CONTENIDO GRAMATICAL: elementos compositivos que se asocian con sustantivos, prefijos y sufijos de uso frecuente; adjetivos con ambos géneros; construcciones comparativas del tipo más o menos de, más o menos que y cuanto más o menos; usos de ser y estar con adjetivo calificativo; morfología y usos de los pretéritos de indicativo en español; marcadores temporales; organizadores del relato; perífrasis verbales para marcar la perspectiva temporal (estar más gerundio o participio, ir a más infinitivo, estar a punto de más infinitivo); morfología y usos del presente e imperfecto de subjuntivo; morfología y usos del condicional; usos del subjuntivo y del condicional en oraciones sustantivas para expresar la opinión, aconsejar, formular deseos y expresar sentimientos y estados de ánimo; usos del indicativo y del subjuntivo en oraciones finales, modales y temporales; pronombres y adverbios relativos, morfología y usos frecuentes; construcciones oracionales con pronombres y adverbios relativos con preposición. CONTENIDO FUNCIONAL: entender y saber utilizar el vocabulario propio del sector; negociar y debatir con colegas, jefes, clientes y proveedores sobre precios, entregas o condiciones; comprender textos, informes o artículos técnicos; mantener conversaciones largas por teléfono o por videoconferencia; redactar cartas y correos electrónicos de forma formal; conocer las costumbres y normas sociales de los países hispanohablantes aplicadas en la empresa.",
+  "metodologia_intro": [
+    "La acción formativa se imparte en modalidad de <b>teleformación</b> a través de la plataforma aula.tuspeaking.com. El curso está organizado por semanas."
+  ],
+  "metodologia": [
+    "<b>Trabajo autónomo</b> del alumno con el material del curso y con las actividades que propone el tutor.",
+    "<b>Tutorías individuales por videoconferencia</b> con el tutor, para practicar la expresión oral, resolver dudas y revisar el progreso. El alumno las reserva desde el botón «Reservar» del curso.",
+    "<b>Apuntes de las sesiones:</b> el tutor publica en la plataforma los apuntes de las tutorías.",
+    "<b>Actividades entregables</b> que el alumno realiza y entrega en la plataforma, y que el tutor corrige y califica."
+  ],
+  "tutoria": {
+    "horas": "10 horas",
+    "sesiones": "Individuales, por videoconferencia; el alumno las reserva desde el botón «Reservar» del curso",
+    "consultas": "Mensajería interna de la plataforma y foro de dudas y preguntas",
+    "avisos": "Foro de avisos del curso",
+    "horario": "Lunes a viernes, de 09:00 a 14:30 y de 16:30 a 20:00",
+    "seguimiento": "El tutor corrige y califica las actividades entregables, con sus observaciones, y sigue el progreso del alumno en la plataforma"
+  },
+  "evaluacion": [
+    [
+      "Controles de aprendizaje",
+      "las actividades entregables del curso. El alumno las realiza y las entrega en la plataforma; el tutor las corrige y las califica de 0 a 10, con sus observaciones. El tutor las va proponiendo a lo largo del curso, según la programación."
+    ],
+    [
+      "Criterio de finalización",
+      "haber realizado al menos el <b>75 %</b> de las actividades entregables (controles de aprendizaje) del curso."
+    ],
+    [
+      "Registro",
+      "las entregas, las calificaciones y las observaciones del tutor quedan registradas en la plataforma (libro de calificaciones)."
+    ]
+  ],
+  "recursos": [
+    "Libro del alumno y cuaderno de ejercicios del nivel: C de C1.",
+    "Material de práctica fuera de clase.",
+    "Apuntes de las sesiones de tutoría.",
+    "Currículum y experiencia docente del tutor.",
+    "Guía de la plataforma y vídeos de ayuda (cómo enviar mensajes al tutor y cómo contactar con el soporte técnico)."
+  ],
+  "requisitos": [
+    "Ordenador, tableta o móvil con conexión a internet.",
+    "Navegador web actualizado y lector de PDF.",
+    "Micrófono y cámara (o auriculares con micrófono) para las tutorías por videoconferencia."
+  ]
+}
