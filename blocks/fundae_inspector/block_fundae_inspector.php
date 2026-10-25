@@ -21,6 +21,22 @@ class block_fundae_inspector extends block_base {
             return $this->content;
         }
 
+        // Solo el inspector FUNDAE (rol `supervisor`, «Supervisor/inspector FUNDAE») y los administradores.
+        // Sin contenido, Moodle no pinta el bloque. Antes lo veía cualquiera que entrara en el curso (25-oct-2026, T-279).
+        global $USER;
+        $ver = is_siteadmin();
+        if (!$ver) {
+            foreach (get_user_roles($PAGE->context, $USER->id, true) as $rol) {
+                if ($rol->shortname === 'supervisor') {
+                    $ver = true;
+                    break;
+                }
+            }
+        }
+        if (!$ver) {
+            return $this->content;
+        }
+
         $courseid = $PAGE->course->id;
         $base = $CFG->wwwroot . '';
 

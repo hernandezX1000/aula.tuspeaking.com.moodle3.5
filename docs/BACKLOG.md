@@ -14,6 +14,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 
 | ID | Título | Área | Prio | Estado | Detalle |
 |----|--------|------|------|--------|---------|
+| FUN-5 | Bloque «Seguimiento y control · FUNDAE» visible para cualquiera del curso | FUNDAE | **Alta** | 🟢 | 25-oct-2026, visto en la copia 3.9 (T-279) como alumna: `block_fundae_inspector` no comprobaba quién lo ve. Ahora solo el rol `supervisor` (inspector FUNDAE) del curso y los administradores. |
 | REPO-5 | **Flujo con puertas como la plataforma** (hooks, CI, gitleaks, datos personales, promoción a `main` solo con CI verde) | Infra repo | **Alta** | 🟡 | 25-oct-2026, tras el incidente de CESCE (T-279c: `.git`/`.env` por web y datos personales en el historial). **Hecho:** `.githooks/`, `.github/workflows/ci.yml`, `.gitleaks.toml`; `deploy-aula.sh` no publica las puertas. **Falta:** desplegar solo desde `main` con `deploy-aula.sh` comprobando que producción no va por delante (MIG-3), dentro de la migración del aula a Moodle 3.9 (T-279); `superficie-web.sh` diario en el servidor. |
 | SEC-1 | Rotar token GitHub expuesto (en `~/.git-credentials`) | Seguridad | **Alta** | 🔴 | Antiguo TICKET #3 |
 | SEC-2 | Sacar credenciales BD en duro + rotar contraseña | Seguridad | **Alta** | 🔴 | Ampliado por auditoría 6-ago → `docs/tickets/TICKET-SEGURIDAD-rotar-credenciales.md`. Password BD `TuspeakingFix2025!` está en el histórico de git (`misclases.php`) |
