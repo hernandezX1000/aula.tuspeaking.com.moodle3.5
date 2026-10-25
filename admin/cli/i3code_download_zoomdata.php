@@ -9,7 +9,8 @@
 define('CLI_SCRIPT', true);
 require(__DIR__.'/../../config.php');
 require_once($CFG->libdir.'/clilib.php');
-require_once(__DIR__.'/../../blocks/completion_progress/lib.php');
+// ING-15 (25-oct-2026, T-279): sin require de blocks/completion_progress/lib.php: no existe en la versión 3.9 del
+// bloque (error fatal silencioso, código 255) y sus funciones ya no se usan aquí (comentadas más abajo).
 
 global $DB;
 
