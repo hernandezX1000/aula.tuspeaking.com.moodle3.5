@@ -1,5 +1,8 @@
 <?php
 require_once './config.php';
+// SEC-11 (25-oct-2026): solo administradores (el POST no pedía sesión, inyectaba ids en el SQL y mandaba correos).
+require_login();
+require_capability('moodle/site:config', context_system::instance());
 require_once './askddbb.php';
 if (empty($_POST)) {
 $acuityID = required_param('acuityid', PARAM_INT);
@@ -181,9 +184,9 @@ if (!$isadmin) {
 </html>
 <?
 } else {
-    $student = askmysql("SELECT firstname, lastname, email FROM mdl_user WHERE id = {$_POST['studentID']}");
-    $teacher = askmysql("SELECT firstname, lastname, email FROM mdl_user WHERE id = {$_POST['teacherID']}");
-    $acuityID = $_POST['acuityID'];
+    $student = askmysql("SELECT firstname, lastname, email FROM mdl_user WHERE id = " . (int)$_POST['studentID']);   // SEC-11
+    $teacher = askmysql("SELECT firstname, lastname, email FROM mdl_user WHERE id = " . (int)$_POST['teacherID']);   // SEC-11
+    $acuityID = (int)$_POST['acuityID'];   // SEC-11
     $topic = str_replace("\n", "<br>", utf8_decode($_POST['topic']));
     $questions = str_replace("\n", "<br>", utf8_decode($_POST['questions']));
     $resource = str_replace("\n", "<br>", utf8_decode($_POST['resource']));

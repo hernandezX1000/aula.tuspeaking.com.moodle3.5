@@ -1,12 +1,18 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// SEC-11 (25-oct-2026): fuera CORS * (solo se usa desde timelog/index.html, mismo dominio).
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
 require_once('../config.php');
 $jsonInput = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $_POST['action'] ?? $jsonInput['action'] ?? '';
+// SEC-11 (25-oct-2026, T-279): sesión del aula obligatoria; admin_* y catálogo de servicios solo administradores; un
+// profesor solo ve y toca lo suyo. Antes, sin sesión se leían y cambiaban IBAN/PayPal y se marcaban pagos.
+if (!isloggedin() || isguestuser()) { http_response_code(401); die(json_encode(['success'=>false,'error'=>'Inicia sesión en el aula'])); }
+$esAdminSec11 = is_siteadmin();
+if (!$esAdminSec11 && (strpos($action, 'admin_') === 0 || in_array($action, ['addService', 'updateService', 'deleteService']))) {
+    http_response_code(403); die(json_encode(['success'=>false,'error'=>'Solo administradores']));
+}
+if (!$esAdminSec11) { $_GET['teacher_id'] = $USER->id; $jsonInput['teacher_id'] = $USER->id; }
 try { $pdo = new PDO("mysql:host={$CFG->dbhost};dbname={$CFG->dbname};charset=utf8mb4", $CFG->dbuser, $CFG->dbpass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]); } catch (PDOException $e) { die(json_encode(['success' => false, 'error' => 'DB error'])); }
 
 function getBillingPeriod($date) { $d=new DateTime($date); $day=(int)$d->format('d'); $m=(int)$d->format('m'); $y=(int)$d->format('Y'); if($day>=25){$sm=$m;$sy=$y;$em=$m+1;$ey=$y;if($em>12){$em=1;$ey++;}}else{$sm=$m-1;$sy=$y;if($sm<1){$sm=12;$sy--;}$em=$m;$ey=$y;} return sprintf('%04d-%02d-25_%04d-%02d-24',$sy,$sm,$ey,$em); }

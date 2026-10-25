@@ -22,13 +22,18 @@ require_once "./own_ZoomAPI.php";
 $error = "";
 
 if (!empty($_POST)){
-	$acuityID = $_POST['id'];
+	$acuityID = $_POST['id'] ?? '';
 } else if (!empty($_GET)){
-	$acuityID = $_GET['id'];
+	// SEC-11 (25-oct-2026): por GET (reintento desde el correo de error) solo administradores.
+	require_login();
+	if (!is_siteadmin()) { http_response_code(403); exit; }
+	$acuityID = $_GET['id'] ?? '';
 } else {
 	$error .= "Error en m&eacute;todo POST.<br><br><br>";
 	goto err;
 }
+// SEC-11: el id de la cita solo puede ser un número (antes entraba tal cual en la URL de la API y en el SQL).
+if (!ctype_digit((string)$acuityID)) { http_response_code(200); echo "Recibido."; exit; }
 
 /***** Peticion a Acuity *****/
 	/**** Credenciales ****/
@@ -67,16 +72,16 @@ if (!empty($_POST)){
 				foreach($value['values'] as $k=>$v){
 					// Añadir mas else if si metemos mas campos al Intake
 					if($v['fieldID'] == 5837866){
-						$studentID = $v['value'];
+						$studentID = (int)$v['value'];   // SEC-11: viene del formulario público de reserva de Acuity
 					} else if ($v['fieldID'] == 5915926){
-						$courseID = $v['value'];
+						$courseID = (int)$v['value'];   // SEC-11
 					}
 				}
 				break;
 			}
 		}
 
-		if ($studentID == ""){
+		if (empty($studentID)){   // SEC-11
 			goto fin;
 		}
 		
