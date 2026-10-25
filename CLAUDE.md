@@ -202,6 +202,22 @@ Purgar tras cambios de config:
 
 ## Flujo de trabajo (INVIOLABLE — no saltárselo sin permiso expreso de Hansel)
 
+### Puertas (REPO-5, 25-oct-2026 · como `tuspeaking-platform`)
+
+Instalar una vez por checkout: `git config core.hooksPath .githooks`
+
+| Puerta | Dónde | Qué para |
+|---|---|---|
+| El servidor no commitea | `pre-commit` | commits en `/home/coreadmin` o `/root` |
+| En `main` no se trabaja | `pre-commit` | commits con `main` activa |
+| Ficheros prohibidos | `pre-commit` + CI | `config.php`, `.env*`, `*.bak*`, `*.backup*`, `*.orig`, `*.old`, `*.work.php` |
+| Secretos | `pre-commit` (si hay gitleaks) + CI | `.gitleaks.toml`: reglas por defecto + contraseñas en `mysqli`/`PDO`/`define`/`$dbpass` |
+| Datos personales | `pre-commit` + CI | correos de fuera, DNI/NIE válidos, teléfonos +34 en líneas nuevas (`.githooks/datos_personales.py`) |
+| Sintaxis | CI (PHP 7.3 y 7.4, Python) | lo que cambia en el push |
+| Promoción a `main` | `pre-push` | solo si el CI de ese commit exacto está en verde (`SIN_CI=1` = urgencia) |
+
+Las puertas miran solo lo nuevo (trinquete): la deuda vieja no pone el CI en rojo. Se saltan con `--no-verify` (protegen del despiste propio, no de un atacante: GitHub Free no permite proteger ramas en repos privados).
+
 Como en tuspeaking-platform: se desarrolla en **local** sobre `dev`, se prueba, se mergea
 a `main` y se despliega al server. **Nunca editar producción a mano** (nada de nano/sed en
 el server) salvo hotfix acordado. Esto garantiza que todo funcione siempre igual.
@@ -222,9 +238,11 @@ Ramas: **`dev`** (desarrollo) → **`main`** (producción). Credenciales en `~/.
        git show origin/dev:ruta/al/script > /tmp/script_dev.py
        python3 /tmp/script_dev.py --dry-run
 
-3. **Publicar** — merge `dev→main`:
+3. **Publicar** — promoción `dev→main` **solo con el CI en verde** (lo comprueba el hook pre-push):
 
-       git checkout main && git merge dev && git push
+       git push origin dev            # el CI corre en GitHub
+       gh run watch                   # esperar el verde
+       git push origin dev:main       # el pre-push mira el CI de ESE commit
 
 4. **Desplegar** (Hetzner) — hoy es `scp` desde el Mac; NO hay despliegue automático:
 

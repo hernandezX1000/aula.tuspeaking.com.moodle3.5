@@ -1,0 +1,39 @@
+title = "aula.tuspeaking.com gitleaks config (REPO-5, 25-oct-2026)"
+
+# Reglas por defecto de gitleaks + las de la plataforma (SEC-08) + credenciales escritas en PHP,
+# que es como estaban las ~51 contraseñas en duro de este repo (SEC-2) y las 23 de CESCE (T-279c).
+# Validar en local:  gitleaks detect --no-banner --redact --no-git --source .
+# NO usar el allowlist para silenciar secretos reales: se sacan a configuración y se rotan.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "variable-secreta-con-valor"
+description = "Variable *SECRET/*PASS/*PWD/*TOKEN/*API_KEY con valor en claro (SEC-08 de la plataforma)"
+regex = '''\b[A-Z0-9_]*(SECRET|PASSWORD|PASS|PWD|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*\s*[=:]\s*["'`]?([A-Za-z0-9+/_\-]{16,})'''
+secretGroup = 2
+entropy = 3.5
+keywords = ["secret", "pass", "pwd", "token", "api_key", "private_key"]
+
+[[rules]]
+id = "php-conexion-con-contrasena"
+description = "new mysqli()/PDO()/mysqli_connect() con la contraseña escrita (tercer argumento literal)"
+regex = '''(?i)(?:new\s+(?:mysqli|PDO)|mysqli_connect)\s*\(\s*['"][^'"]*['"]\s*,\s*['"][^'"]+['"]\s*,\s*['"]([^'"]{6,})['"]'''
+secretGroup = 1
+keywords = ["mysqli", "pdo"]
+
+[[rules]]
+id = "php-define-contrasena"
+description = "define('DB_PASS', '...') y similares con valor"
+regex = '''(?i)define\(\s*['"][A-Z0-9_]*(?:PASS|PWD|SECRET|TOKEN|API_?KEY)[A-Z0-9_]*['"]\s*,\s*['"]([^'"]{6,})['"]'''
+secretGroup = 1
+keywords = ["define"]
+
+[[rules]]
+id = "php-variable-contrasena"
+description = "$dbpass / $password / $CFG->dbpass / $apiKey = '...' con valor"
+regex = '''(?i)\$(?:cfg->)?(?:db_?pass(?:word)?|password|passwd|pwd|api_?key|apikey|client_?secret|secret)\s*=\s*['"]([^'"]{6,})['"]'''
+secretGroup = 1
+entropy = 2.5
+keywords = ["pass", "pwd", "key", "secret"]

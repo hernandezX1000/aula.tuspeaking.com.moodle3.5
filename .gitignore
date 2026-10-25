@@ -219,3 +219,8 @@ __pycache__/
 !/valoracion.php
 own_resend_key.php
 .DS_Store
+
+# === Puertas del flujo (REPO-5, 25-oct-2026): se versionan, no se despliegan ===
+!/.githooks/
+!/.github/
+!/.gitleaks.toml

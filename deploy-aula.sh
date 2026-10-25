@@ -36,6 +36,9 @@ echo "== 2) sincronizar código custom -> volumen del contenedor =="
 sudo rsync -a \
   --exclude='.git/' \
   --exclude='.gitignore' \
+  --exclude='.githooks/' \
+  --exclude='.github/' \
+  --exclude='.gitleaks.toml' \
   --exclude='CLAUDE.md' \
   --exclude='docs/' \
   --exclude='tus-tools/' \

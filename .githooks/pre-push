@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# Puerta de PROMOCIÓN — a `main` solo entra lo que el CI ya ha dado por bueno.
+# Copia de tuspeaking-platform/.githooks/pre-push (allí vigila master; aquí main). REPO-5, 25-oct-2026.
+#
+# Se instala con el resto:  git config core.hooksPath .githooks
+#
+# Por qué un hook y no una regla de GitHub: la protección de ramas no existe en repos
+# PRIVADOS con plan Free (medido en la plataforma el 16-ago-2026: HTTP 403). Un hook se
+# salta con --no-verify: protege del despiste propio, no de un atacante.
+#
+# Promoción:                        git push origin dev:main
+# Urgencia real y entendida:        SIN_CI=1 git push origin dev:main
+#
+
+REMOTO="$1"
+VIGILA="refs/heads/main"
+CERO="0000000000000000000000000000000000000000"
+
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  [ "$remote_ref" = "$VIGILA" ] || continue
+  [ "$local_sha" = "$CERO" ] && continue
+
+  if [ "${SIN_CI:-0}" = "1" ]; then
+    printf '\n⚠️  SIN_CI=1 — se promociona a main SIN comprobar el CI.\n\n'
+    continue
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    printf '\n❌ No encuentro `gh`, así que no puedo comprobar el CI de %s.\n' "$(echo "$local_sha" | cut -c1-8)"
+    printf '   Comprobado a mano y con prisa:  SIN_CI=1 git push %s ...\n\n' "$REMOTO"
+    exit 1
+  fi
+
+  SLUG=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)
+  if [ -z "$SLUG" ]; then
+    printf '\n❌ `gh` no puede identificar el repositorio (¿sesión caducada? `gh auth status`).\n\n'
+    exit 1
+  fi
+
+  printf '\n🔎 Puerta de promoción · CI de %s en %s…\n' "$(echo "$local_sha" | cut -c1-8)" "$SLUG"
+
+  # El head_sha EXACTO que se empuja: «el último run de dev» puede ser de otro commit.
+  ESTADO=$(gh api "repos/$SLUG/actions/runs?head_sha=$local_sha&per_page=20" \
+             --jq '[.workflow_runs[] | select(.name=="CI")] | .[0] | "\(.status)|\(.conclusion)"' 2>/dev/null)
+
+  case "$ESTADO" in
+    completed\|success)
+      printf '   ✓ CI verde. Adelante.\n\n' ;;
+    completed\|*)
+      printf '\n❌ El CI de ese commit terminó en «%s». No se promociona.\n\n' "${ESTADO#*|}"
+      exit 1 ;;
+    *\|*)
+      printf '\n❌ El CI de ese commit está en «%s» — todavía no ha terminado.\n' "${ESTADO%%|*}"
+      printf '   Espéralo:  gh run watch\n\n'
+      exit 1 ;;
+    *)
+      printf '\n❌ No hay ningún run de CI para %s.\n' "$(echo "$local_sha" | cut -c1-8)"
+      printf '   ¿Empujaste antes a dev?   git push origin dev\n\n'
+      exit 1 ;;
+  esac
+done
+
+exit 0

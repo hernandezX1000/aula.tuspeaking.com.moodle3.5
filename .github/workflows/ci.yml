@@ -1,0 +1,80 @@
+name: CI
+
+# Puertas del repo del aula (REPO-5, 25-oct-2026). Adaptado de tuspeaking-platform/.github/workflows/ci.yml.
+# Corre en cada push a dev y main y en los PR. El pre-push (.githooks/pre-push) solo deja promocionar
+# a main un commit cuyo CI de nombre «CI» haya terminado en verde.
+#
+# Trinquete: las puertas miran SOLO lo que trae el push (rango BASE..HEAD). La deuda vieja del repo
+# (secretos ya en el historial, PHP antiguo) no pone el CI en rojo; lo nuevo, sí.
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  puertas:
+    name: Puertas (secretos, ficheros, datos personales, sintaxis)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # SIEMPRE. Usa .gitleaks.toml (reglas por defecto + credenciales PHP + variable secreta con valor).
+      - name: Secretos (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rango a revisar
+        id: rango
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base origin/main HEAD 2>/dev/null || git rev-list --max-parents=0 HEAD | tail -1)
+          fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "Rango: ${BASE:0:8}..${GITHUB_SHA:0:8}"
+          git diff --name-only --diff-filter=ACMR "$BASE"..HEAD | sed 's/^/  /'
+
+      - name: Ficheros que no se versionan (secretos y copias)
+        run: |
+          MAL=$(git diff --name-only --diff-filter=ACR "${{ steps.rango.outputs.base }}"..HEAD \
+            | grep -E '(^|/)(config\.php|\.env[^/]*|[^/]*\.(bak|backup|orig|old|swp)([._-][^/]*)?|[^/]*\.work\.php|[^/]*~)$' || true)
+          if [ -n "$MAL" ]; then echo "::error::Ficheros prohibidos:"; echo "$MAL"; exit 1; fi
+          echo "✓ ninguno"
+
+      - name: Datos personales (líneas añadidas)
+        run: python3 .githooks/datos_personales.py "${{ steps.rango.outputs.base }}..HEAD"
+
+      - name: Sintaxis PHP 7.3 (producción hoy) y 7.4 (destino de la migración)
+        run: |
+          FILES=$(git diff --name-only --diff-filter=ACMR "${{ steps.rango.outputs.base }}"..HEAD -- '*.php' | while read -r f; do [ -f "$f" ] && echo "$f"; done)
+          if [ -z "$FILES" ]; then echo "Sin PHP cambiado."; exit 0; fi
+          for v in 7.3 7.4; do
+            echo "== PHP $v"
+            docker run --rm -v "$PWD":/app -w /app php:$v-cli sh -c \
+              'r=0; for f in "$@"; do out=$(php -l "$f" 2>&1) || { echo "$out"; r=1; }; done; exit $r' sh $FILES
+          done
+          echo "✓ $(echo "$FILES" | wc -l) fichero(s) PHP sin errores de sintaxis"
+
+      - name: Sintaxis Python
+        run: |
+          git diff --name-only --diff-filter=ACMR "${{ steps.rango.outputs.base }}"..HEAD -- '*.py' | while read -r f; do
+            [ -f "$f" ] || continue
+            python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8", errors="replace").read(), sys.argv[1])' "$f" || exit 1
+          done
+          echo "✓ Python sin errores de sintaxis"

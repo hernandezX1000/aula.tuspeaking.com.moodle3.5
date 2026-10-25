@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# Puertas antes de commitear — repo del aula (aula.tuspeaking.com.moodle3.5).
+# Adaptado de tuspeaking-platform/.githooks/pre-commit (REPO-5, 25-oct-2026, tras el incidente de CESCE:
+# `.git` y `.env` descargables por web y datos personales en el historial del repo).
+#
+# Se instala una vez por checkout:   git config core.hooksPath .githooks
+# Rescate consciente:                git commit --no-verify   (el CI lo vuelve a mirar igual)
+#
+set -e
+
+# ── Puerta 0 · El servidor no commitea: solo recibe (deploy-aula.sh) ─────────────
+case "$(pwd)" in
+  /home/coreadmin/*|/root/*)
+    echo ""
+    echo "  ✗ ESTE ES EL SERVIDOR. Aquí no se commitea."
+    echo "    Los cambios se hacen en el Mac, en dev, y llegan aquí con deploy-aula.sh desde main."
+    echo "    Para deshacer un commit hecho aquí por error:  git reset --mixed origin/main"
+    echo ""
+    exit 1 ;;
+esac
+
+# ── Puerta 1 · En main no se trabaja ─────────────────────────────────────────────
+RAMA=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+if [ "$RAMA" = "main" ]; then
+  echo ""
+  echo "  ✗ Estás en main. main = lo que está en producción."
+  echo "    Se trabaja en dev:  git checkout dev"
+  echo "    Y se promociona, con el CI en verde:  git push origin dev:main"
+  echo ""
+  exit 1
+fi
+
+# ── Puerta 2 · Ficheros que nunca entran (secretos y copias) ─────────────────────
+# CESCE: 54 copias .bak/.backup y un .env servidos por web. Aquí no entran ni al repo.
+MAL=$(git diff --cached --name-only --diff-filter=ACR \
+  | grep -E '(^|/)(config\.php|\.env[^/]*|[^/]*\.(bak|backup|orig|old|swp)([._-][^/]*)?|[^/]*\.work\.php|[^/]*~)$' || true)
+if [ -n "$MAL" ]; then
+  echo ""
+  echo "  ✗ Ficheros que no se versionan (secretos o copias de trabajo):"
+  echo "$MAL" | sed 's/^/      /'
+  echo "    Quítalos:  git reset -q <fichero>"
+  echo ""
+  exit 1
+fi
+
+# ── Puerta 3 · Secretos (gitleaks, con .gitleaks.toml) ───────────────────────────
+if command -v gitleaks >/dev/null 2>&1; then
+  if gitleaks git --help >/dev/null 2>&1; then
+    gitleaks git --staged --no-banner --redact -c .gitleaks.toml || FALLO=1
+  else
+    gitleaks protect --staged --no-banner --redact -c .gitleaks.toml || FALLO=1
+  fi
+  if [ "${FALLO:-0}" = 1 ]; then
+    echo ""
+    echo "  ✗ gitleaks ha encontrado un secreto en lo preparado."
+    echo "    Las contraseñas y claves van en configuración fuera del repo (SEC-2), nunca en el código."
+    echo ""
+    exit 1
+  fi
+else
+  echo "  · gitleaks no está instalado en este Mac: lo comprobará el CI (brew install gitleaks)."
+fi
+
+# ── Puerta 4 · Datos personales en las líneas añadidas ───────────────────────────
+python3 .githooks/datos_personales.py --staged
+
+# ── Puerta 5 · Sintaxis de lo preparado (si hay PHP / Python en este Mac) ─────────
+FALLO=0
+for f in $(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.php$' || true); do
+  [ -f "$f" ] || continue
+  if command -v php >/dev/null 2>&1; then
+    php -l "$f" >/dev/null 2>&1 || { echo "  ✗ PHP con error de sintaxis: $f"; php -l "$f" 2>&1 | head -3 | sed 's/^/      /'; FALLO=1; }
+  fi
+done
+for f in $(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.py$' || true); do
+  [ -f "$f" ] || continue
+  python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8", errors="replace").read(), sys.argv[1])' "$f" 2>/dev/null \
+    || { echo "  ✗ Python con error de sintaxis: $f"; FALLO=1; }
+done
+[ "$FALLO" = 0 ] || exit 1
+command -v php >/dev/null 2>&1 || echo "  · php no está en este Mac: la sintaxis PHP (7.3 y 7.4) la comprueba el CI."
+
+exit 0
