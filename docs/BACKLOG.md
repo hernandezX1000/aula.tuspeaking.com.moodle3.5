@@ -6,7 +6,7 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 - Convención de IDs: `AREA-nn` (SEC, ING, AC, COMP, NOT, SUC, REPO, MON, MIG, OPS).
 - Estados: 🔴 abierto · 🟡 en curso · 🟢 resuelto.
 - Prioridad: **Alta** / Media / Baja.
-- Última revisión: **2026-08-20** (añadidos ING-12 e ING-13 tras el caso Berta Rodríguez / Velcro; ampliados ING-2, SEC-4 y MIG-2).
+- Última revisión: **2026-10-25** (aula en Moodle 3.9; añadidos SEC-12, SEC-13, SEC-14 y OPS-9).
 
 ---
 
@@ -14,6 +14,10 @@ Los detalles largos van en `docs/tickets/`, `docs/incidents/` y `docs/reference/
 
 | ID | Título | Área | Prio | Estado | Detalle |
 |----|--------|------|------|--------|---------|
+| SEC-12 | **`acuityapi.php` proxy abierto a la cuenta de Acuity · `cancelAcuity.php` con inyección SQL sin sesión** | Seguridad | **Crítica** | 🟢 | 25-oct-2026 (T-279). acuityapi: sesión + lista de llamadas (disponibilidad, cita propia en curso matriculado, leer una cita sin correo ni teléfono; admin todo). cancelAcuity = newAcuity (consulta Acuity y aplica el estado real). Clave de Acuity a `config.php`. Firma `X-Acuity-Signature` anotada en `moodledata/acuity_webhooks.log`. CESCE: esos ficheros 403. `docs/tickets/2026-10-25-sec12-webhooks-acuity.md` |
+| SEC-13 | Exigir la firma `X-Acuity-Signature` en newAcuity/cancelAcuity | Seguridad | Media | 🔴 | Hoy solo se anota. En ~1 semana: si todas dicen «firma ok», rechazar las que no. |
+| SEC-14 | PHP del contenedor enseña errores y versión (`display_errors=1`, `expose_php=1`) | Seguridad | Media | 🔴 | Aula y CESCE (imagen `moodle39-cesce-php74`). `.ini` montado en el compose + recrear (corte de segundos). |
+| OPS-9 | `mail()` no funciona dentro del contenedor (sin sendmail) | Operación | Media | 🔴 | Los correos de error de scripts viejos no llegan. newAcuity ya escribe a fichero; revisar el resto (cancelbymail, reminder…). |
 | SEC-11 | Páginas públicas con inyección SQL / datos de pago | Seguridad | **Crítica** | 🟢 | 25-oct-2026 (T-279, antes de abrir 3.9): timelog/api.php con sesión, admin_* solo admin y profesor limitado a lo suyo (antes, sin sesión se cambiaba el IBAN); newAcuity ids a entero (inyección desde el formulario público de Acuity) y GET solo admin; formFeedback solo admin. Bloqueados en Apache: tuspeakingvrlogin, formClass, cancelAcuity, modifyAcuity, /contenido/*.php (solo IP de Hansel). Pendiente: firma X-Acuity-Signature, rotar clave de Acuity (SEC-4), acuitytypes/acuity_zoom/coding_zoom_audit a require_capability + sesskey. |
 | ING-16 | La ingesta no guarda nada en Moodle 3.9 (tablas con mayúsculas) | Ingesta | **Alta** | 🟢 | 25-oct-2026 (T-279): Moodle 3.9 pasa a minúsculas el nombre en insert_record/update_record → «mdl_i3code_acuityzoom doesn't exist». La ingesta escribe con SQL directo y el nombre exacto (i3_guardar). Ojo con código nuevo: con estas tablas, nada de $DB->insert_record/update_record/delete_records; usar SQL con $CFG->prefix. |
 | ING-15 | La ingesta Zoom/Acuity no arranca en Moodle 3.9 | Ingesta | **Alta** | 🟢 | 25-oct-2026 (T-279, copia 3.9): `require_once` de `blocks/completion_progress/lib.php` (no existe en la versión 2023063000) → fatal silencioso, código 255. Quitado (sus funciones ya estaban comentadas). Además en la copia faltaban los ajustes `zoom/*` (borrados al desinstalar mod_zoom): t279-63 los copia del original. |

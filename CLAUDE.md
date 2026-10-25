@@ -52,6 +52,17 @@ causa real (ese error alargó 20 minutos la caída del 07-ago).
 
 ---
 
+## ✅ DESDE EL 25-OCT-2026: MOODLE 3.9 + PHP 7.4 PARCHEADO (T-279)
+
+El aula corre en una **copia nueva** al lado de la vieja: contenedor **`moodle39-app-aula`** (Moodle 3.9, PHP 7.4.34-dev de la
+rama oficial del parche CVE-2026-109618/109619), BD **`moodle39-db-aula`** (`127.0.0.1:3310`), todo en
+`/mnt/HC_Volume_104828940/moodle39-aula/`. El `moodle35-app` (3.5, PHP 7.3) está **parado**. Lo de más abajo que nombre
+`moodle35-app`, `moodle35-db`, `:3307` o `/mnt/moodle-data/moodle-code` es del aula vieja.
+- **Instalar un fichero del repo** (tras `main` con CI verde): `tuspeaking-lms/scripts/t279/t279-55-copia-aula-instalar-fichero.sh`
+  (`deploy-aula.sh` aún apunta al 3.5: MIG-3).
+- **Diferencias que muerden** (ING-15, ING-16, `{tabla}`, CLI sin errores visibles): `tuspeaking-lms/docs/runbooks/MIGRACION-AULA-39.md`.
+- **Acuity:** la clave está en `config.php` del servidor (`$CFG->ts_acuity_userid`, `$CFG->ts_acuity_key`), SEC-12.
+
 ## ⚠️ MIGRADO A HETZNER (26-jul-2026) — LEER ESTO PRIMERO
 
 **aula.tuspeaking.com ya NO está en Dinahosting.** Se migró a Hetzner el 26-jul-2026 (cutover completo). El Dinaserver se cancela el **4-ago-2026**. Todo lo que hay debajo de este bloque que mencione `vl24689.dinaserver.com` o rutas `/home/aulatuspeaking/...` es **HISTÓRICO** — la realidad actual es esta:
@@ -69,7 +80,7 @@ causa real (ese error alargó 20 minutos la caída del 07-ago).
 El código sigue viniendo de **este repo** (dev→main, igual que antes). Solo cambia el destino:
 1. Local (Mac): desarrollar en `dev` → probar → merge a `main` → push.
 2. En el Hetzner: `cd /home/coreadmin/aula-repo && git pull` → `bash deploy-aula.sh` (sincroniza el código custom al volumen del contenedor con `chown 33:33`, copia los scripts Python a `/home/coreadmin/scripts`, y purga cachés).
-- Purga manual: `docker exec -u www-data moodle35-app php /var/www/html/app/moodle/admin/cli/purge_caches.php`.
+- Purga manual: `aula-php admin/cli/purge_caches.php` (= `docker exec -u www-data moodle39-app-aula php …`; antes `moodle35-app`).
 - ⚠️ **PENDIENTE de activar en el server:** clonar este repo en `/home/coreadmin/aula-repo` y probar `deploy-aula.sh` (aún NO ejecutado en producción — ver el script en la raíz del repo).
 
 ### Repos (roles — no mezclar)
@@ -94,10 +105,10 @@ aula-php admin/cli/purge_caches.php # PHP de Moodle SIEMPRE como www-data
 
 **No hay que teclear ninguna contraseña**: los comandos las leen de `/etc/aula-sql.conf`.
 
-⚠️ **NUNCA `docker exec moodle35-app php` sin `-u www-data`.** Arranca Moodle como root,
+⚠️ **NUNCA `docker exec moodle39-app-aula php` sin `-u www-data`** (antes `moodle35-app`). Arranca Moodle como root,
 siembra ficheros de root en `moodledata/cache/` y **tumba el portal entero, login
 incluido** (caída del 07-ago-2026). Está **bloqueado** por `~/.guard-docker-php.sh` en el
-shell de `coreadmin`. Si aun así ocurre: **`docker restart moodle35-app`** lo repara (el
+shell de `coreadmin`. Si aun así ocurre: **`docker restart moodle39-app-aula`** lo repara (el
 entrypoint hace `chown` de moodledata al arrancar), y un cron cada 10 min lo detecta y
 corrige solo.
 
@@ -111,16 +122,18 @@ corrige solo.
 📖 Runbook: `tuspeaking-lms/docs/runbooks/CONSULTAS-DIARIAS-AULA.md`
 Los comandos y los `GRANT` se versionan en **`tuspeaking-lms`** (son infraestructura del host).
 
-## Servidor (VIGENTE — verificado 07-ago-2026)
+## Servidor (VIGENTE — actualizado 25-oct-2026: Moodle 3.9)
 
 - Host: Hetzner **`tuspeaking-lms`** · **46.225.232.27** · SSH `coreadmin` · Ubuntu 24.04
-- App en Docker: contenedor **`moodle35-app`** (Apache 2.4.38 / PHP 7.3.33)
-- Código: `/mnt/moodle-data/moodle-code` → `/var/www/html/app/moodle` (dueño `www-data`/33)
-- moodledata: `/mnt/moodle-data/moodledata` → `/var/moodledata`
+- App en Docker: contenedor **`moodle39-app-aula`** (Apache 2.4.67 / PHP 7.4.34-dev parcheado, `127.0.0.1:8090`)
+- Código: `/mnt/HC_Volume_104828940/moodle39-aula/app/moodle` → `/var/www/html/app/moodle` (:ro)
+- moodledata: `/mnt/HC_Volume_104828940/moodle39-aula/moodledata` → `/var/moodledata`
+- config: `/mnt/HC_Volume_104828940/moodle39-aula/compose/config-copia.php` → `config.php`
+- Aula vieja (parada, solo volver atrás): `moodle35-app`, código `/mnt/moodle-data/moodle-code`
 - URL pública: https://aula.tuspeaking.com (servido en **raíz**, sin subpath)
 - ⚠️ El servidor va en **UTC**: los crons "de las 3:00" corren a las 5:00 hora de España.
 - Scripts Python: `/home/coreadmin/scripts/` · logs en `/home/coreadmin/cron_*.log`
-- Comparte host con CESCE (`moodle35-app-cesce` / `moodle35-db-cesce`, volumen distinto).
+- Comparte host con CESCE (`moodle39-app-cesce` / `moodle39-db-cesce` desde el 25-oct-2026, volumen distinto).
 
 <details><summary>HISTÓRICO — Dinahosting (cancelado 4-ago-2026)</summary>
 
@@ -131,20 +144,22 @@ documento del repo con estas rutas es histórico.
 
 ## Base de datos
 
-- Contenedor **`moodle35-db`** (MariaDB 10.5) · **`127.0.0.1:3307`** · BD `aulatuspeaking35`
+- Contenedor **`moodle39-db-aula`** (MariaDB 10.5) · **`127.0.0.1:3310`** · BD `aulatuspeaking35` (antes `moodle35-db`, `:3307`)
   · prefijo `mdl_` · usuario app `moodle35`
 - ⚠️ Solo escucha por **TCP**. Un cliente con `host='localhost'` va por socket Unix y
-  falla con `1698 Access denied`. Usar siempre `127.0.0.1:3307`.
-- ⚠️ NO confundir con `moodle35-db-cesce` (`:3308`), que es CESCE.
+  falla con `1698 Access denied`. Usar siempre `127.0.0.1:3310`.
+- ⚠️ NO confundir con `moodle39-db-cesce`, que es CESCE.
 - Consola sin teclear contraseña:
-  `docker exec -it moodle35-db sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'`
+  `docker exec -it moodle39-db-aula sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" aulatuspeaking35'` (mejor: `aula-sql`)
 - Credenciales de la app: `config.php` en el servidor (nunca en este repo)
 - IMPORTANTE: ~51 ficheros propios llevan la contraseña en duro (SEC-2 del BACKLOG).
   Están excluidos vía `.gitignore`. Si se cambia la contraseña, hay que actualizarlos.
 
 ## Integraciones externas (claves NO en repo)
 
-- Acuity Scheduling: owner 15680788. API key en los ficheros acuity*.php (excluidos).
+- Acuity Scheduling: owner 15680788. **Desde el 25-oct-2026 (SEC-12) la clave de la API está en `config.php` del servidor**
+  (`$CFG->ts_acuity_userid`, `$CFG->ts_acuity_key`); `newAcuity.php`, `acuityapi.php` y `cancelAcuity.php` (ya en git) la
+  leen de ahí. Aún la llevan escrita `admin/cli/i3code_download_zoomdata.php` y `empresas/acuity_zoom.php` → SEC-4.
 - Zoom: credenciales OAuth vía variables de entorno (getenv ZOOM_CLIENT_ID/SECRET/ACCOUNT_ID)
   en _tszoom/. El JWT antiguo está en own_ZoomAPIToken.php (excluido).
 
