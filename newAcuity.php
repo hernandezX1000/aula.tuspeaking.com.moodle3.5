@@ -35,10 +35,26 @@ if (!empty($_POST)){
 // SEC-11: el id de la cita solo puede ser un número (antes entraba tal cual en la URL de la API y en el SQL).
 if (!ctype_digit((string)$acuityID)) { http_response_code(200); echo "Recibido."; exit; }
 
+// SEC-12 (25-oct-2026, T-279): firma de Acuity (X-Acuity-Signature = base64 del HMAC-SHA256 del cuerpo con la clave de
+// la API). De momento solo se anota en moodledata/acuity_webhooks.log; cuando se vea que todas llegan firmadas, se exige.
+// La cita siempre se consulta a Acuity, así que una petición falsa solo puede igualar el aula a lo que Acuity tiene.
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	$firmaAcuity = 'sin firma';
+	if (!empty($_SERVER['HTTP_X_ACUITY_SIGNATURE']) && !empty($CFG->ts_acuity_key)) {
+		$firmaAcuity = hash_equals(base64_encode(hash_hmac('sha256', file_get_contents('php://input'), $CFG->ts_acuity_key, true)),
+			trim($_SERVER['HTTP_X_ACUITY_SIGNATURE'])) ? 'firma ok' : 'FIRMA MALA';
+	}
+	$ipAcuity = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''))[0]);
+	@file_put_contents($CFG->dataroot . '/acuity_webhooks.log', date('c') . ' ' . basename($_SERVER['SCRIPT_NAME']) . " id=$acuityID ip=$ipAcuity $firmaAcuity\n", FILE_APPEND);
+}
+if (empty($CFG->ts_acuity_key)) {
+	@file_put_contents($CFG->dataroot . '/newacuity_errors.log', date('c') . " SEC-12: falta \$CFG->ts_acuity_key en config.php (id $acuityID)\n", FILE_APPEND);
+}
+
 /***** Peticion a Acuity *****/
 	/**** Credenciales ****/
-		$userID = '15680788';
-		$key = '7727321b66b8210424f1d4d984584693';
+		$userID = $CFG->ts_acuity_userid;   // SEC-12: de config.php
+		$key = $CFG->ts_acuity_key;          // SEC-12: de config.php (antes escrita aquí)
 	/**** Fin credenciales ****/
 	/*** URL para peticion por ID de appointment ***/
 		$url = 'https://acuityscheduling.com/api/v1/appointments/' . $acuityID;
@@ -97,8 +113,8 @@ if (!ctype_digit((string)$acuityID)) { http_response_code(200); echo "Recibido."
 	/** Fin valores Moodle ***/
 /***** Segunda llamada a API de Acuity *****/
 	/**** Credenciales ****/
-		$userID = '15680788';
-		$key = '7727321b66b8210424f1d4d984584693';
+		$userID = $CFG->ts_acuity_userid;   // SEC-12: de config.php
+		$key = $CFG->ts_acuity_key;          // SEC-12: de config.php (antes escrita aquí)
 	/**** Fin credenciales ****/
 	/*** URL para peticion de calendarios ***/
 		$url = 'https://acuityscheduling.com/api/v1/calendars';

@@ -5,12 +5,10 @@
 # --- Secretos: NUNCA versionar ---
 config.php
 tutorias_con_profesor.php
-acuityapi.php
 own_ZoomAPIToken.php
 modifyAcuity.php
 modifyAndCreateAcuity.php
 modifyAndCreateAcuity_NUEVO.php
-cancelAcuity.php
 
 # --- Backups y temporales: fuera ---
 *.bak
@@ -224,3 +222,7 @@ own_resend_key.php
 !/.githooks/
 !/.github/
 !/.gitleaks.toml
+
+# SEC-12 (25-oct-2026): ya sin secretos (la clave de Acuity está en config.php)
+!/acuityapi.php
+!/cancelAcuity.php
