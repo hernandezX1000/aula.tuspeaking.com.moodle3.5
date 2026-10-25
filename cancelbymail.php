@@ -1,3 +1,13 @@
+<?php
+// SEC-10 (25-oct-2026, T-279): solo administradores. Antes cancelaba en Acuity (admin=true) sin sesión ni comprobar
+// de quién es la cita, con eventid/acuityID tal cual en el SQL. Los alumnos cancelan en la página de Acuity.
+require_once(__DIR__ . '/config.php');
+require_login();
+if (!is_siteadmin()) {
+    http_response_code(403);
+    die('Para cancelar una clase usa el enlace de tu correo de reserva de Acuity.');
+}
+?>
 <!doctype html>
 <html lang="es">
 <head>

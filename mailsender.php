@@ -1,6 +1,10 @@
 <?php
-if(isset($_POST['email'])) {
-	$email_to = $_POST['email'];
+// SEC-10 (25-oct-2026, T-279): llamada directa = con sesión y, salvo administradores, solo al correo del propio usuario
+// (antes, relé abierto). Si se incluye desde otra página (newAcuity, cancelbymail, reminder…) no cambia nada.
+if(isset($_POST['email']) && basename($_SERVER['SCRIPT_FILENAME']) === 'mailsender.php') {
+	require_once(__DIR__ . '/config.php');
+	require_login();
+	$email_to = is_siteadmin() ? $_POST['email'] : $USER->email;
 	$email_subject = $_POST['subject'];
 	$email_content = $_POST['content'];
 	echo sendEmail($email_to, $email_subject, $email_content);

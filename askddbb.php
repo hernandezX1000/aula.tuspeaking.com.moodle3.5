@@ -56,6 +56,26 @@ if (isset($_POST['sql']) && basename($_SERVER['SCRIPT_FILENAME']) === 'askddbb.p
 
 	$sql = $_POST['sql'];
 	if ($_POST['type'] == "ask") {
+		// SEC-10 (25-oct-2026, T-279): salvo administradores, solo las consultas de own_PrintZoom.js y
+		// acuityrecursive.js y siempre sobre el usuario de la sesión (antes, cualquier SELECT de cualquier usuario).
+		if (!is_siteadmin()) {
+			$uid = (int)$USER->id;
+			$ok = false;
+			$fin = " AND \(iscancelled = 'f' OR isteached = 't'\)$/";
+			if (preg_match("/^SELECT acuityid, studentid FROM own_acuity WHERE (studentid|teacherid) = (\d+) AND courseid = (\d+)" . $fin, $sql, $m)) {
+				$ok = ((int)$m[2] === $uid);
+			} else if (preg_match("/^SELECT acuityid, studentid FROM own_acuity WHERE courseid = (\d+)" . $fin, $sql, $m)) {
+				$ctx = context_course::instance((int)$m[1], IGNORE_MISSING);
+				$ok = $ctx && has_capability('moodle/grade:viewall', $ctx);
+			} else if (preg_match("/^SELECT COUNT\(own_acuity\.id\) as cuenta, own_acuity_course\.classnmbr FROM own_acuity, own_acuity_course WHERE own_acuity_course\.courseid = (\d+) AND own_acuity\.studentid = (\d+) AND own_acuity\.courseid = (\d+) AND \(own_acuity\.iscancelled = 'f' OR own_acuity\.isteached = 't'\)$/", $sql, $m)) {
+				$ok = ((int)$m[2] === $uid && $m[1] === $m[3]);
+			}
+			if (!$ok) {
+				http_response_code(403);
+				echo json_encode(false);
+				exit;
+			}
+		}
 		echo json_encode(askmysql($sql));
 	} else if ($_POST['type'] == "set") {
 		if (!is_siteadmin()) {
