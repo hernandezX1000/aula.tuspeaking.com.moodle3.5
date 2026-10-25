@@ -51,6 +51,39 @@ function i3_fix_record_before_save($rec) {
     return $rec;
 }
 
+// ING-16 (25-oct-2026, T-279): guardar en las tablas con mayúsculas (mdl_i3code_acuityZoom*) con SQL directo.
+// Moodle 3.9 pasa el nombre a minúsculas en insert_record/update_record y la tabla «no existe» (MariaDB distingue
+// mayúsculas en Linux). Devuelve el id. Solo columnas reales; booleanos a 0/1; vacío en numérica → NULL (o 0 si NOT NULL).
+function i3_guardar($tabla, $obj, $actualizar = false) {
+    global $DB, $CFG;
+    $cols = $DB->get_columns($tabla);
+    if (!$cols) {
+        throw new moodle_exception('i3_guardar: no encuentro las columnas de ' . $tabla);
+    }
+    $datos = array();
+    foreach ((array)$obj as $k => $v) {
+        if ($k === 'id' || !isset($cols[$k])) {
+            continue;
+        }
+        if (is_bool($v)) {
+            $v = (int)$v;
+        }
+        if ($v === '' && in_array($cols[$k]->meta_type, array('I', 'N', 'F', 'R'))) {
+            $v = $cols[$k]->not_null ? 0 : null;
+        }
+        $datos[$k] = $v;
+    }
+    $t = $CFG->prefix . $tabla;
+    if ($actualizar) {
+        $sets = implode(', ', array_map(function($k) { return "$k = ?"; }, array_keys($datos)));
+        $DB->execute("UPDATE $t SET $sets WHERE id = ?", array_merge(array_values($datos), array((int)$obj->id)));
+        return (int)$obj->id;
+    }
+    $DB->execute("INSERT INTO $t (" . implode(', ', array_keys($datos)) . ") VALUES (" .
+        implode(', ', array_fill(0, count($datos), '?')) . ")", array_values($datos));
+    return (int)$DB->get_field_sql('SELECT LAST_INSERT_ID()');
+}
+
 // ============================================
 // FUNCIONES API
 // ============================================
@@ -332,11 +365,11 @@ try {
             $existe = $DB->get_record_sql("SELECT * FROM $tbl WHERE acuityid = ?", [$acuityItem->acuityid]);
 
             if (!$existe) {
-                $i3code_acuityZoom->id = $DB->insert_record('i3code_acuityZoom', $i3code_acuityZoom);
+                $i3code_acuityZoom->id = i3_guardar('i3code_acuityZoom', $i3code_acuityZoom);   // ING-16
                 cli_i3code_log("Insertado nuevo registro: " . $i3code_acuityZoom->id);
             } else {
                 $i3code_acuityZoom->id = $existe->id;
-                $DB->update_record('i3code_acuityZoom', $i3code_acuityZoom);
+                i3_guardar('i3code_acuityZoom', $i3code_acuityZoom, true);   // ING-16
                 cli_i3code_log("Actualizado registro: " . $i3code_acuityZoom->id);
             }
         } catch (Exception $e) {
@@ -384,7 +417,7 @@ try {
                         $i3code_acuityZoom_participant->zoom_leavetime = str_replace(["T", "Z"], [" ", ""], $leavetime);
                     }
 
-                    $DB->insert_record('i3code_acuityZoom_participants', $i3code_acuityZoom_participant);
+                    i3_guardar('i3code_acuityZoom_participants', $i3code_acuityZoom_participant);   // ING-16
                 }
                 cli_i3code_log("Guardados participantes para meeting: " . $zoomItem->zoom_meetingid);
             }
@@ -517,7 +550,7 @@ foreach ($informeLineas as $informeLinea) {
             $informeLinea->porcentaje_total = "0.00";
         }
 
-        $DB->insert_record('i3code_acuityZoom_informe', $informeLinea);
+        i3_guardar('i3code_acuityZoom_informe', $informeLinea);   // ING-16
     } catch (Exception $e) {
         cli_i3code_log(json_encode($informeLinea));
         cli_i3code_log("Error al guardar línea del informe: " . $e->getMessage());
