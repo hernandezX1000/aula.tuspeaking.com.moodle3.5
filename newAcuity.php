@@ -1,6 +1,6 @@
 <?php
 //si948
-$datosver = $_GET['veradm'];
+$datosver = '';   // SEC-9 (25-oct-2026): fuera el volcado ?veradm= (datos personales de la cita sin sesión).
 //Calculamos las horas que faltan para que no se pueda cancelar o modificar
 				$strStart = date("Y-m-d HH:mm:ss");
 				$strEnd   = "2021-04-30 12:00:00";

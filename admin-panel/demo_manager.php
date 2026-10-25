@@ -3,6 +3,12 @@
  * Gestor de Demos - tuSpeaking
  * Panel para crear, ver y gestionar demos de empresa
  */
+// SEC-9 (25-oct-2026, T-279): solo administradores de Moodle. Antes no pedía sesión: cualquiera desde Internet.
+require_once(__DIR__ . '/../config.php');
+require_login();
+if (!has_capability('moodle/site:config', context_system::instance())) {
+    die('<h1>⛔ Acceso denegado</h1><p>Solo administradores.</p>');
+}
 require_once __DIR__ . '/config.php';
 
 $pdo = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME.";charset=utf8mb4", DB_USER, DB_PASS);

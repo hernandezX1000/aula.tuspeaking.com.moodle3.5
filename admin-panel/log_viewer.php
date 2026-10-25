@@ -2,6 +2,12 @@
 /**
  * Visor de Logs - TuSpeaking (PHP 7.1 compatible)
  */
+// SEC-9 (25-oct-2026, T-279): solo administradores de Moodle. Antes no pedía sesión: cualquiera desde Internet.
+require_once(__DIR__ . '/../config.php');
+require_login();
+if (!has_capability('moodle/site:config', context_system::instance())) {
+    die('<h1>⛔ Acceso denegado</h1><p>Solo administradores.</p>');
+}
 
 $logs = array(
     'Limpieza CESCE' => '/var/www/html/app/moodle/reportes_cesce/limpieza.log',

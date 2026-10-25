@@ -4,6 +4,9 @@ require_once '/home/aulatuspeaking/www/app/moodle/config.php';
 require_once('/home/aulatuspeaking/www/app/moodle/askddbb.php');
 require_once('/home/aulatuspeaking/www/app/moodle/mailsender.php');*/
 require_once './config.php';
+// SEC-9 (25-oct-2026): solo administradores (antes, público y listaba correos de alumnos).
+require_login();
+if (!has_capability('moodle/site:config', context_system::instance())) { die('Acceso denegado'); }
 require_once './askddbb.php';
 require_once './mailsender.php';
 global $CFG;

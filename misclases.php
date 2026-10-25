@@ -9,7 +9,8 @@ $PAGE->set_title('Mis Clases');
 $PAGE->set_heading('Mis Clases');
 
 $is_admin = is_siteadmin();
-$view_userid = optional_param('userid', $USER->id, PARAM_INT);
+// SEC-9 (25-oct-2026): solo un administrador puede ver las clases de otro usuario (antes, cualquiera con ?userid=).
+$view_userid = $is_admin ? optional_param('userid', $USER->id, PARAM_INT) : $USER->id;
 $view_courseid = optional_param('courseid', 0, PARAM_INT);
 $view_user = $DB->get_record('user', ['id' => $view_userid]);
 

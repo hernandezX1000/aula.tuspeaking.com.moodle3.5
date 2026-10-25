@@ -4,6 +4,12 @@
  * Vista principal
  */
 
+// SEC-9 (25-oct-2026, T-279): solo administradores de Moodle. Antes no pedía sesión: cualquiera desde Internet.
+require_once(__DIR__ . '/../config.php');
+require_login();
+if (!has_capability('moodle/site:config', context_system::instance())) {
+    die('<h1>⛔ Acceso denegado</h1><p>Solo administradores.</p>');
+}
 require_once __DIR__ . '/functions.php';
 
 // Datos FUNDAE
