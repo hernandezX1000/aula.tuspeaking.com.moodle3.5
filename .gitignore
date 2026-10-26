@@ -4,7 +4,6 @@
 
 # --- Secretos: NUNCA versionar ---
 config.php
-tutorias_con_profesor.php
 own_ZoomAPIToken.php
 modifyAcuity.php
 modifyAndCreateAcuity.php
@@ -226,3 +225,12 @@ own_resend_key.php
 # SEC-12 (25-oct-2026): ya sin secretos (la clave de Acuity está en config.php)
 !/acuityapi.php
 !/cancelAcuity.php
+
+# --- T-279 (26/10/2026): páginas del bloque «Seguimiento y control · FUNDAE» (antes solo en el servidor) ---
+!/tutorias_programadas.php
+!/reservas_grupo.php
+!/conexiones_grupo.php
+!/accesos_grupo.php
+!/finalizacion_75.php
+!/finalizacion_actividad.php
+!/tutorias_con_profesor.php

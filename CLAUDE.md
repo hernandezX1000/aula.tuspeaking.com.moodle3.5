@@ -188,7 +188,7 @@ crear código custom, añadir SIEMPRE su `!/` en `.gitignore`. Auditoría comple
 - ❌ **Ficheros con secretos en duro** — fuera hasta refactor a `secrets.php`: `config.php`,
   `acuityapi.php`/`cancelAcuity.php`/`modifyAcuity.php`/`modifyAndCreateAcuity.php`,
   `own_ZoomAPIToken.php`, `db_api.php`, `monitor_zoom.php`, `admin-panel/config.php`,
-  `local/misclases/lib.php`, `tutorias_con_profesor.php`, `webhook_jotform_evaluaciones.php`,
+  `local/misclases/lib.php`, `webhook_jotform_evaluaciones.php`,
   `portal/rrhh.php`, y todos los `feedback/*`, `empresas/*`, `evaluaciones/*`, `reportes*/*`.
 - 🔴 **Rotación de credenciales PENDIENTE:** `docs/tickets/TICKET-SEGURIDAD-rotar-credenciales.md`.
   La Acuity key, la password BD `TuspeakingFix2025!`, `Success2026!` y el Zoom JWT **están en el
@@ -198,6 +198,7 @@ crear código custom, añadir SIEMPRE su `!/` en `.gitignore`. Auditoría comple
   y la **herramienta de gestión de requerimientos FUNDAE**. Los DATOS sobreviven
   (`own_feedback_nps` 15.332 · `mdl_fundae_requerimientos` 17 + `mdl_fundae_documentos` 58);
   hay que REHACER el código (ver docs/tickets/).
+- ✅ **26-oct-2026 (T-279):** versionadas las 7 páginas del bloque del inspector FUNDAE (`tutorias_programadas`, `reservas_grupo`, `conexiones_grupo`, `accesos_grupo`, `finalizacion_75`, `finalizacion_actividad`, `tutorias_con_profesor`); leen la BD con `$CFG`, sin secretos.
 - ❌ Basura: `*.bak*`, `*.pyc`, `__pycache__/`, `blocks/rocketchat.disabled-*`, `*_test.php`.
 
 ## Componente _tszoom (botón Reservas / modal Acuity)
