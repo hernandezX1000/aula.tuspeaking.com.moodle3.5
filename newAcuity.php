@@ -226,10 +226,13 @@ if ($esCancelacion || $previa) {
 			/* ─── RAMA 2: REPROGRAMACION ──────────────────────────────────── */
 			$nuevoTs = strtotime($appointment['datetime']);
 
+			/* T-303 (26-oct-2026): en esta rama la descripcion se guarda con $connU->quote(), que ya escapa las comillas.
+			 * Con \' la barra quedaba en la BD y el boton Modificar/Cancelar llevaba a /calendar/%5C'https... (roto).
+			 * Aqui van comillas simples normales; en el alta (INSERT con la descripcion dentro del literal SQL) sigue \'. */
 			/* Se rehace la descripcion: lleva la fecha y la hora dentro */
 			$calNameU = escapeshellcmd($appointment['type']) . " " . escapeshellcmd($appointment['calendar']);
 			$locTxtU  = ($locationURL != "%location%")
-				? "<br>URL: <a href=\'$locationURL\'  target=\'_blank\'>$locationURL</a>" : "";
+				? "<br>URL: <a href='$locationURL'  target='_blank'>$locationURL</a>" : "";
 			$calDescU = $appointment['type'] . " (" . $appointment['firstName'] . " " . $appointment['lastName'] . ") "
 				. $appointment['date'] . " " . $appointment['time'] . " - " . $appointment['endTime'] . " "
 				. escapeshellcmd($appointment['calendar']) . $locTxtU;
@@ -237,8 +240,8 @@ if ($esCancelacion || $previa) {
 			/* Los botones se reconstruyen igual que en el alta, no se recortan de la
 			 * descripcion anterior: si el texto no coincidiera, el alumno se quedaria
 			 * sin el boton de Modificar/Cancelar. */
-			$confirmTxtU = "<br><a href=\'$confirmPage\' target=\'_blank\' class=\'acuity-embed-button\' style=\'background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;\'>Modificar/Cancelar Sesi&oacute;n</a>";
-			$feedbackU   = "<br><a href=\'https://aula.tuspeaking.com/formFeedback.php?acuityid=".$acuityID."\' target=\'_blank\' class=\'acuity-embed-button\' style=\'background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;\'>Feedback</a>";
+			$confirmTxtU = "<br><a href='$confirmPage' target='_blank' class='acuity-embed-button' style='background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;'>Modificar/Cancelar Sesi&oacute;n</a>";
+			$feedbackU   = "<br><a href='https://aula.tuspeaking.com/formFeedback.php?acuityid=".$acuityID."' target='_blank' class='acuity-embed-button' style='background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;'>Feedback</a>";
 
 			if ($nuevoTs) {
 				/* Alumno: descripcion + boton Modificar/Cancelar */
