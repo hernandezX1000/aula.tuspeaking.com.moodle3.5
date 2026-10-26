@@ -1,0 +1,157 @@
+{
+ "_fuente": "Objetivos y contenidos copiados literalmente de la ficha de la AF en la aplicación de FUNDAE (6/10/2026). Cabecera: listado AccionesFormativas.xls + ficha del grupo. v2 (6/10/2026): apartado 6 con lo publicado en el curso (aula, salida 2026-10-06_1537) y lo previsto por unidades del libro del nivel (índice del libro en el aula). v2.1 (6/10/2026): sin «Horas de tutoría» (se comunicaron 10 y se imparten 8; decisión de En: solo la duración de 53 h). v2.2 (26/10/2026): vuelve «Horas de tutoría» con el desglose que da En: 10 h comunicadas = 8 por videoconferencia + 2 de atención en la plataforma y revisión de entregables. Ningún otro cambio.",
+ "af": "114",
+ "grupo": "01",
+ "id_fundae": "786566",
+ "denominacion": "Español C1",
+ "modalidad": "Teleformación",
+ "horas": 53,
+ "fecha_inicio": "10/09/2026",
+ "fecha_fin": "20/12/2026",
+ "area": "Lenguas y dialectos españoles (FCOL)",
+ "empresa": "MOVILIDAD TERRESTRE INTEGRAL, S.L.",
+ "tutor": "Álvaro Bonino",
+ "cursos": [
+  4077
+ ],
+ "destinatarios": [
+  "Personas trabajadoras de MOVILIDAD TERRESTRE INTEGRAL, S.L. inscritas en el grupo 114-01.",
+  "El acceso es por internet, en <b>aula.tuspeaking.com</b>, con el usuario y la contraseña personales que recibe cada alumno al inicio. La plataforma está disponible a cualquier hora durante las fechas del curso."
+ ],
+ "objetivos": "Reconocer un nivel de competencia en el conocimiento del idioma con un mínimo de conocimientos específicos del lenguaje de los negocios, suficiente para el desarrollo de las actividades más elementales dentro de la empresa. Valorar un nivel de competencia en lengua española que permita al candidato la comunicación en situaciones de la vida diaria y en situaciones elementales de la actividad administrativa y comercial de la empresa. Comprensión oral: comprender, incluso en malas condiciones acústicas, textos extensos, lingüística y conceptualmente complejos, que contengan expresiones idiomáticas y coloquiales y que traten temas tanto concretos como abstractos o desconocidos para el alumno, incluyendo aquellos de carácter técnico o especializado, en diversas variedades estándar de la lengua y articulados a velocidad normal o rápida, aunque puede que necesite confirmar ciertos detalles, sobre todo si el acento no le resulta familiar. Expresión e interacción oral: producir textos claros y detallados sobre temas complejos, integrando otros temas, desarrollando ideas concretas y terminando con una conclusión adecuada, así como dominar un amplio repertorio léxico que le permita suplir las deficiencias fácilmente con circunloquios cuando toma parte activa en intercambios extensos de diversos tipos, expresándose con fluidez, espontaneidad y casi sin esfuerzo. Comprensión escrita: comprender con todo detalle textos extensos y complejos, tanto si se relacionan con su especialidad como si no, siempre que pueda volver a leer las secciones difíciles. Expresión e interacción escrita: escribir textos claros y bien estructurados sobre temas complejos resaltando las ideas principales, ampliando con cierta extensión y defendiendo sus puntos de vista con ideas complementarias, motivos y ejemplos adecuados, y terminando con una conclusión apropiada.",
+ "contenidos": "CONTENIDO GRAMATICAL: elementos compositivos que se asocian con sustantivos, prefijos y sufijos de uso frecuente; adjetivos con ambos géneros; construcciones comparativas del tipo más o menos de, más o menos que y cuanto más o menos; usos de ser y estar con adjetivo calificativo; morfología y usos de los pretéritos de indicativo en español; marcadores temporales; organizadores del relato; perífrasis verbales para marcar la perspectiva temporal (estar más gerundio o participio, ir a más infinitivo, estar a punto de más infinitivo); morfología y usos del presente e imperfecto de subjuntivo; morfología y usos del condicional; usos del subjuntivo y del condicional en oraciones sustantivas para expresar la opinión, aconsejar, formular deseos y expresar sentimientos y estados de ánimo; usos del indicativo y del subjuntivo en oraciones finales, modales y temporales; pronombres y adverbios relativos, morfología y usos frecuentes; construcciones oracionales con pronombres y adverbios relativos con preposición. CONTENIDO FUNCIONAL: entender y saber utilizar el vocabulario propio del sector; negociar y debatir con colegas, jefes, clientes y proveedores sobre precios, entregas o condiciones; comprender textos, informes o artículos técnicos; mantener conversaciones largas por teléfono o por videoconferencia; redactar cartas y correos electrónicos de forma formal; conocer las costumbres y normas sociales de los países hispanohablantes aplicadas en la empresa.",
+ "metodologia_intro": [
+  "La acción formativa se imparte en modalidad de <b>teleformación</b> a través de la plataforma aula.tuspeaking.com. El curso está organizado por semanas (temas); la cronología de lo publicado está en el apartado 6."
+ ],
+ "metodologia": [
+  "<b>Trabajo autónomo</b> del alumno con el material del curso y con las actividades que propone el tutor.",
+  "<b>Tutorías individuales por videoconferencia</b> con el tutor, para practicar la expresión oral, resolver dudas y revisar el progreso. El alumno las reserva desde el botón «Reservar» del curso.",
+  "<b>Apuntes de las sesiones:</b> el tutor publica en la plataforma los apuntes de las tutorías.",
+  "<b>Actividades entregables</b> que el alumno realiza y entrega en la plataforma, y que el tutor corrige y califica."
+ ],
+ "tutoria": {
+  "horas": "10 horas: 8 por videoconferencia y 2 de atención en la plataforma y revisión de los entregables",
+  "sesiones": "Individuales, por videoconferencia; el alumno las reserva desde el botón «Reservar» del curso",
+  "consultas": "Mensajería interna de la plataforma y foro de dudas y preguntas",
+  "avisos": "Foro de avisos del curso",
+  "horario": "Lunes a viernes, de 09:00 a 14:30 y de 16:30 a 20:00",
+  "seguimiento": "El tutor corrige y califica las actividades entregables, con sus observaciones, y sigue el progreso del alumno en la plataforma"
+ },
+ "evaluacion": [
+  [
+   "Controles de aprendizaje",
+   "las actividades entregables del curso. El alumno las realiza y las entrega en la plataforma; el tutor las corrige y las califica de 0 a 10, con sus observaciones. Cada actividad tiene su plazo de entrega en el curso; las publicadas y sus plazos están en el apartado 6."
+  ],
+  [
+   "Criterio de finalización",
+   "haber realizado al menos el <b>75 %</b> de las actividades entregables (controles de aprendizaje) del curso."
+  ],
+  [
+   "Registro",
+   "las entregas, las calificaciones y las observaciones del tutor quedan registradas en la plataforma (libro de calificaciones)."
+  ]
+ ],
+ "recursos": [
+  "Libro del alumno y cuaderno de ejercicios del nivel: C de C1.",
+  "Material de práctica fuera de clase.",
+  "Apuntes de las sesiones de tutoría.",
+  "Currículum y experiencia docente del tutor."
+ ],
+ "requisitos": [
+  "Ordenador, tableta o móvil con conexión a internet.",
+  "Navegador web actualizado y lector de PDF.",
+  "Micrófono y cámara (o auriculares con micrófono) para las tutorías por videoconferencia."
+ ],
+ "curso": 4077,
+ "cmid": 545247,
+ "cronologia": {
+  "intro": "El curso se organiza en 14 temas semanales y sigue el libro del nivel, «C de C1», que está en el tema 1 junto con el cuaderno de ejercicios; en el tema 0 están la práctica fuera de clase, los foros, el registro de tutorías y la experiencia docente del tutor. Las 16 unidades del libro son independientes y el propio libro no fija su orden: «Previsto» es la programación del resto del curso, una unidad por semana, elegidas por su relación con los contenidos de la acción formativa (contratos y reclamaciones, horarios y trabajo, datos e informes, discursos, persuasión y negociación). «Publicado» es lo que ya está en el curso a fecha 06/10/2026. La programación se ajusta al ritmo del alumno y esta guía se actualiza en el curso a medida que se publican los temas.",
+  "filas": [
+   [
+    1,
+    "14/09 – 20/09/2026",
+    "Publicado: «C de C1», libro del alumno y cuaderno de ejercicios",
+    "—"
+   ],
+   [
+    2,
+    "21/09 – 27/09/2026",
+    "Publicado: Apuntes de la clase del 23/09",
+    "Actividad 1 – Presentación personal (entrega: 11/10/2026); Actividad 2 – Desde, desde hace, hace que o hace (entrega: 11/10/2026)"
+   ],
+   [
+    3,
+    "28/09 – 04/10/2026",
+    "Publicado: Apuntes de la clase del 30/09",
+    "Actividad 3 – Deletrear con palabras comunes (entrega: 18/10/2026)"
+   ],
+   [
+    4,
+    "05/10 – 11/10/2026",
+    "Previsto: unidad «C de Consumo» de C de C1: derechos del consumidor; condiciones generales de un contrato; oraciones y conectores condicionales (salvo que, siempre y cuando, excepto que); atención telefónica y recursos para quejarse.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    5,
+    "12/10 – 18/10/2026",
+    "Previsto: unidad «H de Horarios» de C de C1: hábitos y horarios de trabajo; correlación temporal en oraciones subordinadas (presente / imperfecto de subjuntivo); construcciones con como + subjuntivo; el artículo periodístico y el manifiesto.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    6,
+    "19/10 – 25/10/2026",
+    "Previsto: unidad «A de Aprendizaje» de C de C1: la carrera profesional; el aprendizaje a distancia; perífrasis de continuidad y de cambio (seguir + gerundio, dejar de + infinitivo); recursos para comparar; anglicismos.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    7,
+    "26/10 – 01/11/2026",
+    "Previsto: unidad «T de Tecnología» de C de C1: cambios tecnológicos; léxico de la economía y del trabajo; contraste entre el y lo; verbos con se (voz media); subjuntivo en la nominalización.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    8,
+    "02/11 – 08/11/2026",
+    "Previsto: unidad «D de Datos» de C de C1: análisis de datos e información; expresar finalidad (para que, de modo que + subjuntivo); léxico del papeleo y la burocracia; participio presente; la campaña institucional.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    9,
+    "09/11 – 15/11/2026",
+    "Previsto: unidad «D de Discurso» de C de C1: discursos y frases célebres; expresar arrepentimiento y lamentarse (infinitivo simple y compuesto); marcadores consecutivos; técnicas para preparar y pronunciar un buen discurso.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    10,
+    "16/11 – 22/11/2026",
+    "Previsto: unidad «S de Seducción» de C de C1: habilidades de persuasión; como si para comparar; oraciones temporales de simultaneidad (según, conforme, a medida que); técnicas de persuasión en la publicidad.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    11,
+    "23/11 – 29/11/2026",
+    "Previsto: unidad «F de Fronteras» de C de C1: estereotipos y relaciones entre personas; futuro y condicional (simple y compuesto) para expresar hipótesis; estilo directo e indirecto.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    12,
+    "30/11 – 06/12/2026",
+    "Previsto: unidad «I de Identidad» de C de C1: la imagen propia y ajena; expresiones para hablar del carácter; adverbios evaluativos en -mente; recursos para reforzar, rectificar o matizar una información.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    13,
+    "07/12 – 13/12/2026",
+    "Previsto: unidad «N de Naturaleza» de C de C1: naturaleza y medio ambiente; usos de por y para; oraciones y marcadores concesivos; el registro formal; la carta abierta.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ],
+   [
+    14,
+    "14/12 – 20/12/2026",
+    "Previsto: unidad «E de Emociones» de C de C1: emociones y contenido viral; uso pronominal del verbo tener; pronombres reflexivos tónicos; perífrasis de inicio de acción; mecanismos de generalización.",
+    "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+   ]
+  ],
+  "pruebas": "3 actividades entregables publicadas a 06/10/2026, con plazos del 11/10/2026 al 18/10/2026 (tabla). Las de los temas siguientes se publican en el curso con su plazo y se añaden a esta guía. Cada actividad se califica de 0 a 10."
+ }
+}

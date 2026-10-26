@@ -1,0 +1,157 @@
+{
+  "_fuente": "Objetivos y contenidos copiados literalmente de la ficha de la AF en la aplicación de FUNDAE (6/10/2026). Cabecera: listado AccionesFormativas.xls + ficha del grupo. v2 (6/10/2026): apartado 6 con lo publicado en el curso (aula, salida 2026-10-06_1537) y lo previsto por unidades del libro del nivel (índice del libro en el aula). v2.1 (6/10/2026): sin «Horas de tutoría» (se comunicaron 10 y se imparten 8; decisión de En: solo la duración de 53 h).",
+  "af": "113",
+  "grupo": "01",
+  "id_fundae": "786554",
+  "denominacion": "Español B2",
+  "modalidad": "Teleformación",
+  "horas": 53,
+  "fecha_inicio": "10/09/2026",
+  "fecha_fin": "20/12/2026",
+  "area": "Lenguas y dialectos españoles (FCOL)",
+  "empresa": "MOVILIDAD TERRESTRE INTEGRAL, S.L.",
+  "tutor": "Álvaro Bonino",
+  "cursos": [
+    4091
+  ],
+  "destinatarios": [
+    "Personas trabajadoras de MOVILIDAD TERRESTRE INTEGRAL, S.L. inscritas en el grupo 113-01.",
+    "El acceso es por internet, en <b>aula.tuspeaking.com</b>, con el usuario y la contraseña personales que recibe cada alumno al inicio. La plataforma está disponible a cualquier hora durante las fechas del curso."
+  ],
+  "objetivos": "Expresión oral e interacción: el alumno será capaz de llevar a cabo, con razonable fluidez, una descripción sencilla de una variedad de temas que sean de su interés, presentándolos como una secuencia lineal de elementos. Realiza descripciones sencillas sobre una variedad de asuntos habituales dentro de su especialidad. Realiza con razonable fluidez narraciones o descripciones sencillas e igualmente relaciones detalladas de experiencias describiendo sentimientos y reacciones. Relata los detalles de acontecimientos impredecibles, como, por ejemplo, un accidente. Relata argumentos de libros o películas y describe sus reacciones. Describe sueños, esperanzas y ambiciones. Describe hechos reales o imaginados. Narra historias. Expresión escrita: el alumno será capaz de escribir textos sencillos y cohesionados sobre una serie de temas cotidianos dentro de su campo de interés enlazando una serie de distintos elementos breves en una secuencia lineal. Escribe descripciones sencillas y detalladas sobre una serie de temas cotidianos dentro de su especialidad. Igualmente escribe relaciones de experiencias describiendo sentimientos y reacciones en textos sencillos y estructurados. Es capaz de escribir una descripción de un hecho determinado, un viaje reciente, real o imaginado y puede narrar una historia. Comprensión auditiva: el alumno será capaz de entender información concreta relativa a temas cotidianos o al trabajo e identifica tanto el mensaje general como los detalles específicos siempre que el discurso esté articulado con claridad y con un acento normal. Comprende las principales ideas de un discurso claro y en lengua estándar que trate temas cotidianos relativos al trabajo, la escuela, el tiempo de ocio, incluyendo breves narraciones. Comprensión de lectura: el alumno será capaz de comprender textos sencillos sobre hechos concretos que tratan sobre temas relacionados con su especialidad con un nivel de comprensión satisfactorio. Identifica las conclusiones principales en textos de carácter claramente argumentativo. Reconoce la línea argumental en el tratamiento del asunto presentado, aunque no necesariamente con todo detalle e igualmente ideas significativas de artículos sencillos de periódico que tratan temas cotidianos.",
+  "contenidos": "CONTENIDOS COMUNICATIVOS: expresar preferencias y deseos; pedir, expresar e intercambiar opiniones; contar y reaccionar ante una anécdota personal; expresar hechos y planes futuros, hipótesis y condiciones; relacionar dos hechos del futuro; preguntar y contar planes y preferencias sobre viajes; hacer, aceptar o rechazar peticiones; transmitir informaciones y peticiones; pedir la opinión; expresar acuerdo y desacuerdo; valorar un hecho o una opinión; organizar el discurso; expresar la impersonalidad; dar y recibir instrucciones; expresar finalidad; describir objetos y su funcionamiento; describir situaciones en el pasado; contar cuentos; narrar y describir personas y lugares del pasado; hablar de hechos pasados ocurridos con anterioridad a lo que ya se ha contado; comparar; hacer recomendaciones o sugerencias; proponer planes; lamentarse; expresar deseos; transmitir las palabras de otros. CONTENIDOS FORMALES: tiempos verbales (gerundio, presente de subjuntivo, pretérito perfecto, pretérito imperfecto, pretérito indefinido, pretérito pluscuamperfecto, futuro simple, condicional simple, imperativo); perífrasis verbales; conectores; cuál y qué; verbos gustar y preferir; presente con valor de futuro; oraciones condicionales; cuando + subjuntivo; complementos del verbo, complemento directo e indirecto; estilo indirecto; ser y estar + adjetivo o adverbio + que + verbo en indicativo, subjuntivo o infinitivo; creo que + verbo en indicativo; no creo que + verbo en subjuntivo; impersonalidad; para + infinitivo y para que + subjuntivo; contraste pretérito e imperfecto; estructuras comparativas y superlativos; estructuras para sugerir o recomendar, lamentarse y proponer planes; que + presente de subjuntivo.",
+  "metodologia_intro": [
+    "La acción formativa se imparte en modalidad de <b>teleformación</b> a través de la plataforma aula.tuspeaking.com. El curso está organizado por semanas (temas); la cronología de lo publicado está en el apartado 6."
+  ],
+  "metodologia": [
+    "<b>Trabajo autónomo</b> del alumno con el material del curso y con las actividades que propone el tutor.",
+    "<b>Tutorías individuales por videoconferencia</b> con el tutor, para practicar la expresión oral, resolver dudas y revisar el progreso. El alumno las reserva desde el botón «Reservar» del curso.",
+    "<b>Apuntes de las sesiones:</b> el tutor publica en la plataforma los apuntes de las tutorías.",
+    "<b>Actividades entregables</b> que el alumno realiza y entrega en la plataforma, y que el tutor corrige y califica."
+  ],
+  "tutoria": {
+    "sesiones": "Individuales, por videoconferencia; el alumno las reserva desde el botón «Reservar» del curso",
+    "consultas": "Mensajería interna de la plataforma y foro de dudas y preguntas",
+    "avisos": "Foro de avisos del curso",
+    "horario": "Lunes a viernes, de 09:00 a 14:30 y de 16:30 a 20:00",
+    "seguimiento": "El tutor corrige y califica las actividades entregables, con sus observaciones, y sigue el progreso del alumno en la plataforma"
+  },
+  "evaluacion": [
+    [
+      "Controles de aprendizaje",
+      "las actividades entregables del curso. El alumno las realiza y las entrega en la plataforma; el tutor las corrige y las califica de 0 a 10, con sus observaciones. Cada actividad tiene su plazo de entrega en el curso; las publicadas y sus plazos están en el apartado 6."
+    ],
+    [
+      "Criterio de finalización",
+      "haber realizado al menos el <b>75 %</b> de las actividades entregables (controles de aprendizaje) del curso."
+    ],
+    [
+      "Registro",
+      "las entregas, las calificaciones y las observaciones del tutor quedan registradas en la plataforma (libro de calificaciones)."
+    ]
+  ],
+  "recursos": [
+    "Libro del alumno y cuaderno de ejercicios del nivel: Español en Marcha 4.",
+    "Lecturas graduadas (novelas B1-B2).",
+    "Material de práctica fuera de clase.",
+    "Apuntes de las sesiones de tutoría.",
+    "Currículum y experiencia docente del tutor."
+  ],
+  "requisitos": [
+    "Ordenador, tableta o móvil con conexión a internet.",
+    "Navegador web actualizado y lector de PDF.",
+    "Micrófono y cámara (o auriculares con micrófono) para las tutorías por videoconferencia."
+  ],
+  "curso": 4091,
+  "cmid": 545246,
+  "cronologia": {
+    "intro": "El curso se organiza en 14 temas semanales y sigue el libro del nivel, «Español en Marcha 4» (12 unidades), que está en el tema 0 junto con el cuaderno de ejercicios, las lecturas graduadas, la práctica fuera de clase, los foros y el registro de tutorías. «Publicado» es lo que ya está en el curso a fecha 06/10/2026; «Previsto» es la programación del resto del curso, por unidades del libro. La programación se ajusta al ritmo del alumno y esta guía se actualiza en el curso a medida que se publican los temas.",
+    "filas": [
+      [
+        1,
+        "14/09 – 20/09/2026",
+        "Sin apuntes publicados (aún no ha habido tutorías)",
+        "Actividad 1 – Presentación personal (entrega: 04/10/2026)"
+      ],
+      [
+        2,
+        "21/09 – 27/09/2026",
+        "Sin apuntes publicados (aún no ha habido tutorías)",
+        "Actividad 2 – Desde, desde hace, hace que o hace (entrega: 11/10/2026); Actividad 3 – Monosílabas con tilde (entrega: 11/10/2026)"
+      ],
+      [
+        3,
+        "28/09 – 04/10/2026",
+        "Sin contenidos nuevos publicados",
+        "—"
+      ],
+      [
+        4,
+        "05/10 – 11/10/2026",
+        "Previsto: Unidad 2 «El futuro que viene» de Español en Marcha 4: objetos imprescindibles y léxico de nueva tecnología; la casa del futuro: futuro imperfecto y perfecto para expresar probabilidad; léxico del hogar; expresar gustos y opiniones: subjuntivo con verbos de sentimiento; escribir correos electrónicos.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        5,
+        "12/10 – 18/10/2026",
+        "Previsto: Unidad 3 «Comida y salud» de Español en Marcha 4: hablar de la alimentación y léxico de la comida; recetas de cocina; oraciones temporales (cuando, en cuanto, tan pronto como, antes de que, mientras); hablar de salud y enfermedad; expresiones idiomáticas con partes del cuerpo; condicionales (si hubieras ido…, te habría…); escribir anuncios.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        6,
+        "19/10 – 25/10/2026",
+        "Previsto: Unidad 4 «Socialización» de Español en Marcha 4: la convivencia y los amigos; formación de palabras: la sustantivación; el sentimiento amoroso; oraciones de relativo con preposición; el fenómeno de la emigración; el artículo neutro lo; escribir un artículo para una revista.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        7,
+        "26/10 – 01/11/2026",
+        "Previsto: Unidad 5 «Consumo» de Español en Marcha 4: la publicidad y el lenguaje publicitario; estilo indirecto para reclamar; la compra por internet y léxico de la economía; comercio justo; formación de palabras: la adjetivación; escribir una carta de reclamación.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        8,
+        "02/11 – 08/11/2026",
+        "Previsto: Unidad 6 «Medios de comunicación» de Español en Marcha 4: la influencia de la televisión; expresión de la finalidad (para que, con el fin de que, con el objeto de que); la prensa escrita; expresión de la causa (porque + subjuntivo); el periódico y los blogs; conectores discursivos (además, por eso, aunque, como); escribir para expresar la opinión.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        9,
+        "09/11 – 15/11/2026",
+        "Previsto: Unidad 7 «Ocio» de Español en Marcha 4: elaborar una crítica de una película; actividades de tiempo libre; indicativo o subjuntivo con verbos de opinión o de percepción física o intelectual (veo, pienso que…); escribir una carta al director de un periódico.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        10,
+        "16/11 – 22/11/2026",
+        "Previsto: Unidad 8 de Español en Marcha 4 (Viajar · Viajar para sentirse vivo · Historia de una travesía): hablar de viajes y de vacaciones ideales; ser y estar; formación de verbos; escribir: contar historias.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        11,
+        "23/11 – 29/11/2026",
+        "Previsto: Unidad 9 de Español en Marcha 4 (Ser autónomo · La mujer trabajadora · Servicios públicos): debatir sobre distintos tipos de trabajo; género de los nombres de seres animados; hablar de los servicios públicos y expresar condiciones; escribir el currículum.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        12,
+        "30/11 – 06/12/2026",
+        "Previsto: Unidad 10 de Español en Marcha 4 (Si conduces, no bebas · Me han robado la cartera · Se me ha estropeado el coche): hablar de delitos y penas; indicativo o subjuntivo en oraciones de relativo; el coche, averías y reparaciones; expresar involuntariedad; escribir un informe de un accidente.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        13,
+        "07/12 – 13/12/2026",
+        "Previsto: Unidad 11 de Español en Marcha 4 (Animales · El clima · Desastres naturales): el mundo animal y expresiones idiomáticas; el tiempo atmosférico y los cambios climáticos; formación de diminutivos; escribir cartas formales.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ],
+      [
+        14,
+        "14/12 – 20/12/2026",
+        "Previsto: Unidad 12 de Español en Marcha 4 (Ficciones · Turismo cultural · ¿Sigues pintando?): hablar de la novela hispanoamericana; la voz pasiva; perífrasis verbales; escribir una descripción.",
+        "Previsto: las actividades entregables de la unidad se publican en el curso con su plazo"
+      ]
+    ],
+    "pruebas": "3 actividades entregables publicadas a 06/10/2026, con plazos del 04/10/2026 al 11/10/2026 (tabla). Las de los temas siguientes se publican en el curso con su plazo y se añaden a esta guía. Cada actividad se califica de 0 a 10."
+  }
+}
