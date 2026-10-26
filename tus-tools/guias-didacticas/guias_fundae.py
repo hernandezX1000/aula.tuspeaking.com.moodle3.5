@@ -8,6 +8,16 @@ Añadido en v3:
   · colores del portal del aula (docs/ESTILO-PAGINAS-AULA.md del repo del aula): cabeceras #008ba3, etiquetas #e0f7fa,
     texto de color #006b7f (AZUL_OSC), bordes #dee2e6, pie #6c757d — los mismos que la guía de DriiveMe v2.3;
   · modo --update del PHP: sustituye HTML y PDF de la página que ya existe (mismo cm), sin crear otra.
+Añadido en v4 (27/10/2026, T-306 / FUN-8, guía ÚNICA: ya no hay guía de la plataforma aparte):
+  · apartados nuevos: «10. Cómo usar la plataforma» (`uso_plataforma`) y «11. Atención al usuario» (`atencion_usuario`);
+    «Dedicación estimada» (`dedicacion`) en el apartado 5; requisitos técnicos concretos (`requisitos`). Anexo III.B Orden TMS/369/2019;
+  · BASE COMÚN + PERSONALIZACIÓN: base-aula.json (junto a este fichero) lleva los textos comunes; la ficha de cada AF los
+    sobrescribe (un dict como `tutoria` se mezcla clave a clave; una lista se sustituye entera; `_quitar: [claves]` quita
+    apartados de la base en ese curso). `--base otra.json` o `--sin-base` para no usarla;
+  · LA FICHA SE GUARDA EN LA BASE DE DATOS: el PHP, al crear (--apply) o actualizar (--update) la página, y con
+    --registrar, guarda la ficha completa en mdl_fundae_guia_didactica.ficha_json (fila por c_fundae = «AF-grupo»; rellena
+    también objetivo_general, criterio_evaluacion, tutor_fundae_nombre, herramienta_sincrona, pdf_path, estado) y registra
+    la guía en mdl_fundae_documentos (tipo guia_didactica; la anterior de esa AF pasa a vigente = 0). --exportar la lee.
 Sustituye a las versiones anteriores (v1 del 6/10 y copia T-189). guias_fundae_v2.py (DriiveMe) sigue funcionando: importa de aquí.
 
 Una ficha JSON por acción formativa (AF) → PDF (Doc4, estilo tuSpeaking) + script PHP que publica en
@@ -15,6 +25,7 @@ el aula Moodle una Página con la guía en HTML y el PDF descargable dentro.
 
   python3 guias_fundae.py pdf    fichas/*.json -o salida/      # PDF + comprobación literal
   python3 guias_fundae.py moodle fichas/*.json -o salida/publicar-guias.php   # requiere los PDF en salida/
+  (las dos aplican base-aula.json si está junto a este fichero; --sin-base para no aplicarla)
 
 Reglas (no negociables):
   · objetivos y contenidos = texto LITERAL de la ficha de la AF comunicada a FUNDAE (se comprueba en el PDF);
@@ -32,8 +43,20 @@ PAT_OBJ = r'((?:Comprensión|Expresión|Competencia|Resultado esperado|Interacci
 PAT_CON = r'((?:\d+\. )?[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ]{3,}[A-ZÁÉÍÓÚÑ]:)'
 FONT_DIRS = ['/usr/share/fonts/truetype/dejavu/', '/Library/Fonts/', os.path.expanduser('~/Library/Fonts/')]
 
-def cargar(p):
+BASE_DEF = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'base-aula.json')
+
+def mezclar(base, ficha):
+    """Ficha sobre base: dict → clave a clave; lista o texto → lo de la ficha; `_quitar` borra claves de la base."""
+    d = json.loads(json.dumps(base))
+    for k in ficha.get('_quitar', []): d.pop(k, None)
+    for k, v in ficha.items():
+        if k == '_quitar': continue
+        d[k] = {**d[k], **v} if isinstance(v, dict) and isinstance(d.get(k), dict) else v
+    return d
+
+def cargar(p, base=None):
     d = json.load(open(p, encoding='utf-8'))
+    if base: d = mezclar({k: v for k, v in base.items() if not k.startswith('_')}, d)
     falta = [k for k in ('af', 'grupo', 'denominacion', 'horas', 'fecha_inicio', 'fecha_fin', 'empresa', 'tutor',
                          'objetivos', 'contenidos', 'evaluacion', 'cursos') if not d.get(k)]
     if falta: sys.exit(f'{p}: faltan campos {falta}')
@@ -134,6 +157,7 @@ def pdf(d, salida):
          hdr('4. Contenidos'), Spacer(1, 4)] + par(partir(d['contenidos'], d.get('patron_contenidos', PAT_CON))) + [Spacer(1, 6),
          hdr('5. Metodología y funcionamiento del curso'), Spacer(1, 4)]
     s += [Paragraph(x, B) for x in d.get('metodologia_intro', [])] + [bl(x) for x in d.get('metodologia', [])] + [Spacer(1, 6)]
+    if d.get('dedicacion'): s += [Paragraph(f"<b>Dedicación estimada:</b> {d['dedicacion']}", B), Spacer(1, 6)]
     cr = d.get('cronologia')
     if cr:
         TH = ParagraphStyle('th', fontName='DVB', fontSize=8, textColor=white, leading=10)
@@ -148,7 +172,11 @@ def pdf(d, salida):
     ev = d['evaluacion']
     s += [KeepTogether([hdr('7. Evaluación'), Spacer(1, 4)] + [Paragraph(f'<b>{k}:</b> {v}', B) for k, v in ev] + [Spacer(1, 6)])]
     s += [KeepTogether([hdr('8. Recursos y materiales'), Spacer(1, 4)] + [bl(x) for x in d.get('recursos', [])] + [Spacer(1, 6)])]
-    s += [KeepTogether([hdr('9. Requisitos técnicos'), Spacer(1, 4)] + [bl(x) for x in d.get('requisitos', [])] + [Spacer(1, 14)])]
+    s += [KeepTogether([hdr('9. Requisitos técnicos'), Spacer(1, 4)] + [bl(x) for x in d.get('requisitos', [])] + [Spacer(1, 10)])]
+    if d.get('uso_plataforma'):
+        s += [hdr('10. Cómo usar la plataforma'), Spacer(1, 4)] + [Paragraph(f'<b>{k}:</b> {v}', B) for k, v in d['uso_plataforma']] + [Spacer(1, 10)]
+    if d.get('atencion_usuario'):
+        s += [KeepTogether([hdr('11. Atención al usuario (soporte técnico)'), Spacer(1, 4), kv(d['atencion_usuario']), Spacer(1, 14)])]
     s += [Paragraph(f"{e(d['entidad'])} · Guía didáctica de la acción formativa {d['af']}-{d['grupo']} «{e(d['denominacion'])}»", FT)]
     SimpleDocTemplate(salida, pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm, topMargin=1.6 * cm, bottomMargin=1.6 * cm,
                       title=d['titulo_pagina'], author=d['entidad']).build(s)
@@ -183,7 +211,8 @@ def html_pagina(d):
                 + ''.join(f'<th style="{td};background:{AZUL};color:#fff;text-align:left">{e(c)}</th>' for c in cr['cabecera']) + '</tr>'
                 + ''.join('<tr>' + ''.join(f'<td style="{td}">{e(str(c))}</td>' for c in f) + '</tr>' for f in cr['filas']) + '</table>'
                 + ''.join(f'<p>{n}</p>' for n in cr.get('notas', [])))
-    return '\n'.join([
+    # v4: los apartados nuevos que no estén en la ficha dan None y no se escriben (así las guías anteriores no cambian ni un byte)
+    return '\n'.join(x for x in [
         f'<p><a class="btn btn-primary" href="@@PLUGINFILE@@/{d["pdf"]}">&#11015; Descargar la guía didáctica en PDF</a></p>',
         f"<p><em>Acción formativa {d['af']} · Grupo {d['grupo']} · {e(d['modalidad'])}</em></p>",
         h('1. Datos de la acción formativa'), tabla(filas_datos(d)),
@@ -192,12 +221,15 @@ def html_pagina(d):
         f'<p style="margin-top:8px"><em>{e(d["nota_objetivos"])}</em></p>' if d.get('nota_objetivos') else '',
         h('4. Contenidos'), ps(partir(d['contenidos'], d.get('patron_contenidos', PAT_CON))),
         h('5. Metodología y funcionamiento del curso'), ''.join(f'<p>{x}</p>' for x in d.get('metodologia_intro', [])), ul(d.get('metodologia', [])),
+        f"<p><strong>Dedicación estimada:</strong> {d['dedicacion']}</p>" if d.get('dedicacion') else None,
         tabla_cr(d.get('cronologia')),
         h('6. Tutoría y seguimiento'), tabla(filas_tutoria(d)),
         h('7. Evaluación'), ''.join(f'<p><strong>{k}:</strong> {v}</p>' for k, v in d['evaluacion']),
         h('8. Recursos y materiales'), ul(d.get('recursos', [])),
         h('9. Requisitos técnicos'), ul(d.get('requisitos', [])),
-        f'<p style="font-size:0.85em;color:{GRIS}"><em>{e(d["entidad"])} · Guía didáctica de la acción formativa {d["af"]}-{d["grupo"]} «{e(d["denominacion"])}»</em></p>'])
+        (h('10. Cómo usar la plataforma') + ''.join(f'<p><strong>{e(k)}:</strong> {v}</p>' for k, v in d['uso_plataforma'])) if d.get('uso_plataforma') else None,
+        (h('11. Atención al usuario (soporte técnico)') + tabla(d['atencion_usuario'])) if d.get('atencion_usuario') else None,
+        f'<p style="font-size:0.85em;color:{GRIS}"><em>{e(d["entidad"])} · Guía didáctica de la acción formativa {d["af"]}-{d["grupo"]} «{e(d["denominacion"])}»</em></p>'] if x is not None)
 
 PHP_HEAD = r"""<?php
 // Publica guías didácticas FUNDAE en el aula: una Página por curso con la guía en HTML y el PDF descargable dentro.
@@ -208,6 +240,11 @@ PHP_HEAD = r"""<?php
 //   aula-php /tmp/SCRIPT.php --ensayo-update → ensayo del cambio: md5 del HTML y sha1 del PDF de antes y de después (no escribe)
 //   aula-php /tmp/SCRIPT.php --update   → sustituye HTML y PDF de la página que YA existe (mismo cm, misma posición); no crea ni borra nada más
 //   Antes de --update: comprobar con Q75 (MD5 de mdl_page.content) que la página publicada no se ha editado a mano.
+//   aula-php /tmp/SCRIPT.php --ensayo-registrar → enseña qué guardaría en la base de datos (no escribe)
+//   aula-php /tmp/SCRIPT.php --registrar → solo guarda la ficha en mdl_fundae_guia_didactica.ficha_json y registra la guía en
+//                                          mdl_fundae_documentos, para páginas que YA existen (no toca la página)
+//   aula-php /tmp/SCRIPT.php --exportar  → escribe la ficha guardada en la base de datos de cada AF (no escribe nada)
+//   --apply (al crear) y --update guardan también la ficha en la base de datos (v4, FUN-8).
 define('CLI_SCRIPT', true);
 if (function_exists('posix_geteuid') && posix_geteuid() === 0) { fwrite(STDERR, "ABORTA: no se ejecuta como root. Usa aula-php.\n"); exit(1); }
 foreach ([getcwd() . '/config.php', '/var/www/html/app/moodle/config.php', '/var/www/html/config.php'] as $cfg) {
@@ -218,12 +255,52 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/modlib.php');
 require_once($CFG->libdir . '/resourcelib.php');
 \core\session\manager::set_user(get_admin());
-$mode = in_array('--apply', $argv) ? 'apply' : (in_array('--revert', $argv) ? 'revert' : (in_array('--update', $argv) ? 'update' : 'ensayo'));
+$mode = in_array('--apply', $argv) ? 'apply' : (in_array('--revert', $argv) ? 'revert' : (in_array('--update', $argv) ? 'update'
+      : (in_array('--registrar', $argv) ? 'registrar' : (in_array('--exportar', $argv) ? 'exportar' : 'ensayo'))));
 echo "Modo: $mode · usuario PHP: " . (function_exists('posix_geteuid') ? posix_getpwuid(posix_geteuid())['name'] : '?') . "\n";
-$PDF = []; $HTML = []; $G = [];
+$PDF = []; $HTML = []; $G = []; $F = [];
 """
 
 PHP_TAIL = r"""
+// ── v4 (FUN-8): la ficha completa de la AF en la base de datos (fila por c_fundae) + registro en mdl_fundae_documentos ──
+// SQL directo con parámetros: son tablas propias (no de Moodle) con columnas ENUM y ficha_json nueva.
+$T306_HECHO = [];
+function t306_guardar_bd($cf, $ficha_json, $cmid, $pdfname, $escribir) {
+    global $DB, $CFG, $T306_HECHO;
+    if (!$cf || $ficha_json === null) { return; }   // guías generadas sin ficha (p. ej. guias_fundae_v2.py)
+    if (!$DB->get_records_sql("SHOW COLUMNS FROM {fundae_guia_didactica} LIKE 'ficha_json'")) { echo "  BD: falta la columna ficha_json (t306-11): no se guarda\n"; return; }
+    $f = json_decode($ficha_json, true); $now = time();
+    $crit = null; foreach (($f['evaluacion'] ?? []) as $r) { if (stripos($r[0], 'criterio') !== false) { $crit = trim(strip_tags($r[1])); } }
+    $herr = strpos(json_encode($f['tutoria'] ?? []), 'Teams') !== false ? 'Teams' : 'Zoom';
+    $url = $CFG->wwwroot . '/mod/page/view.php?id=' . $cmid;
+    $fila = $DB->get_record_sql("SELECT id, estado FROM {fundae_guia_didactica} WHERE c_fundae = ?", [$cf]);
+    $cif = $DB->get_field_sql("SELECT MAX(cif) FROM {fundae} WHERE c_fundae = ?", [$cf]);
+    echo "  BD: " . ($fila ? "actualiza la fila {$fila->id} (estado {$fila->estado})" : "crea la fila") . " de {$cf} en mdl_fundae_guia_didactica (ficha_json " . strlen($ficha_json) . " bytes)"
+       . " · registra «{$pdfname}» en mdl_fundae_documentos (" . (isset($T306_HECHO[$cf]) ? 'otro curso de la misma AF' : 'la anterior de esa AF pasa a vigente = 0') . ", CIF " . ($cif ?: '-') . ")\n";
+    if (!$escribir) return;
+    $v = [$ficha_json, $f['objetivos'] ?? null, $crit, $f['tutor'] ?? null, $herr, $url, date('Y-m-d H:i:s'), $now];
+    if ($fila) {
+        $DB->execute("UPDATE {fundae_guia_didactica} SET ficha_json = ?, objetivo_general = ?, criterio_evaluacion = ?, tutor_fundae_nombre = ?,
+            herramienta_sincrona = ?, pdf_path = ?, pdf_generado_at = ?, estado = 'generado', timemodified = ? WHERE id = ?", array_merge($v, [$fila->id]));
+    } else {
+        $DB->execute("INSERT INTO {fundae_guia_didactica} (ficha_json, objetivo_general, criterio_evaluacion, tutor_fundae_nombre, herramienta_sincrona,
+            pdf_path, pdf_generado_at, estado, timemodified, c_fundae, timecreated) VALUES (?, ?, ?, ?, ?, ?, ?, 'generado', ?, ?, ?)", array_merge($v, [$cf, $now]));
+    }
+    if (!isset($T306_HECHO[$cf])) {
+        $DB->execute("UPDATE {fundae_documentos} SET vigente = 0 WHERE tipo_documento = 'guia_didactica' AND c_fundae = ?", [$cf]);
+        $T306_HECHO[$cf] = 1;
+    }
+    $DB->execute("INSERT INTO {fundae_documentos} (tipo_documento, c_fundae, cif_empresa, user_id, path_archivo, nombre_archivo, fecha_documento,
+        reutilizable, vigente, timecreated) VALUES ('guia_didactica', ?, ?, NULL, ?, ?, ?, 0, 1, ?)", [$cf, $cif ?: null, $url, $pdfname, date('Y-m-d'), $now]);
+    echo "  BD: GUARDADA la ficha de {$cf} y registrada la guía\n";
+}
+if ($mode === 'exportar') {
+    foreach (array_unique(array_map(function ($g) { return $g['cf']; }, $G)) as $cf) {
+        $j = $DB->get_field_sql("SELECT ficha_json FROM {fundae_guia_didactica} WHERE c_fundae = ?", [$cf]);
+        echo "== {$cf}\n" . ($j ? json_encode(json_decode($j), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '(sin ficha guardada)') . "\n";
+    }
+    exit(0);
+}
 foreach ($G as $courseid => $g) {
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
     echo "\n== Curso $courseid · {$course->fullname}\n";
@@ -235,19 +312,25 @@ foreach ($G as $courseid => $g) {
         continue;
     }
     if ($existing) { echo "  YA EXISTE la página «{$g['name']}» (cm " . implode(',', array_keys($existing)) . ") → no se crea otra" . (count($existing) === 1 ? ' (--update la sustituye)' : '') . "\n"; }
+    if ($mode === 'registrar' || in_array('--ensayo-registrar', $argv)) {
+        if (count($existing) !== 1) { echo "  --registrar: hace falta exactamente UNA página «{$g['name']}» (hay " . count($existing) . ")\n"; continue; }
+        t306_guardar_bd($g['cf'] ?? null, $F[$g['cf'] ?? ''] ?? null, (int)array_key_first_t306($existing), $g['pdf'], $mode === 'registrar');
+        continue;
+    }
     if ($mode === 'update' || in_array('--ensayo-update', $argv)) {
         if (count($existing) !== 1) { echo "  --update: hace falta exactamente UNA página «{$g['name']}» en el curso (hay " . count($existing) . "): no se toca\n"; continue; }
         $x = reset($existing); $ctx = context_module::instance($x->id); $fs = get_file_storage();
         $act = array_values(array_filter($fs->get_area_files($ctx->id, 'mod_page', 'content', 0, 'id', false), function ($f) { return $f->get_filename() !== '.'; }));
         $pdf = base64_decode($PDF[$g['pdf']]); $page = $DB->get_record('page', ['id' => $DB->get_field('course_modules', 'instance', ['id' => $x->id])], '*', MUST_EXIST);
         echo "  --update cm {$x->id}: HTML md5 " . md5($page->content) . " → " . md5($HTML[$g['pdf']]) . " · PDF " . ($act ? $act[0]->get_filename() . ' sha1 ' . $act[0]->get_contenthash() : '(ninguno)') . " → {$g['pdf']} sha1 " . sha1($pdf) . "\n";
-        if ($mode !== 'update') continue;
+        if ($mode !== 'update') { t306_guardar_bd($g['cf'] ?? null, $F[$g['cf'] ?? ''] ?? null, (int)$x->id, $g['pdf'], false); continue; }
         $page->content = $HTML[$g['pdf']]; $page->contentformat = FORMAT_HTML; $page->revision++; $page->timemodified = time();
         $DB->update_record('page', $page);
         $fs->delete_area_files($ctx->id, 'mod_page', 'content');
         $fs->create_file_from_string(['contextid' => $ctx->id, 'component' => 'mod_page', 'filearea' => 'content', 'itemid' => 0, 'filepath' => '/', 'filename' => $g['pdf']], $pdf);
         rebuild_course_cache($courseid, true);
         echo "  ACTUALIZADA (revisión {$page->revision}) → {$CFG->wwwroot}/mod/page/view.php?id={$x->id}\n";
+        t306_guardar_bd($g['cf'] ?? null, $F[$g['cf'] ?? ''] ?? null, (int)$x->id, $g['pdf'], true);
         continue;
     }
     $viejos = [];
@@ -283,11 +366,13 @@ foreach ($G as $courseid => $g) {
         if ($antes) { moveto_module($cmnuevo, $sec0, $antes); }
         else if ($secnum === 0 && count($seq) >= 2) { moveto_module($cmnuevo, $sec0, (int)$seq[1]); }
         echo "  CREADA cm {$mi->coursemodule} → {$CFG->wwwroot}/mod/page/view.php?id={$mi->coursemodule}\n";
+        t306_guardar_bd($g['cf'] ?? null, $F[$g['cf'] ?? ''] ?? null, (int)$mi->coursemodule, $g['pdf'], true);
     }
     foreach ($viejos as $v) { course_delete_module($v->id); echo "  BORRADO recurso cm {$v->id}\n"; }
     rebuild_course_cache($courseid, true);
 }
 echo "\nFin ($mode).\n";
+function array_key_first_t306($a) { foreach ($a as $k => $x) { return $k; } return null; }
 """
 
 def php(fichas, dir_pdf, salida):
@@ -301,9 +386,11 @@ def php(fichas, dir_pdf, salida):
         if not os.path.exists(ruta): sys.exit(f'Falta el PDF {ruta}: ejecuta antes «pdf»')
         out.append(f"$PDF[{q(d['pdf'])}] = '{base64.b64encode(open(ruta, 'rb').read()).decode()}';\n")
         out.append(f"$HTML[{q(d['pdf'])}] = {nowdoc(html_pagina(d))};\n")
+        cf = f"{d['af']}-{d['grupo']}"
+        out.append(f"$F[{q(cf)}] = {nowdoc(json.dumps(d, ensure_ascii=False, sort_keys=True))};\n")
         for c in d['cursos']:
             borrar = ', '.join(q(x) for x in d.get('borrar_recursos', {}).get(str(c), []))
-            out.append(f"$G[{int(c)}] = ['name' => {q(d['titulo_pagina'])}, 'pdf' => {q(d['pdf'])}, 'borrar' => [{borrar}], 'seccion' => {int(d.get('seccion', 0))}];\n")
+            out.append(f"$G[{int(c)}] = ['name' => {q(d['titulo_pagina'])}, 'pdf' => {q(d['pdf'])}, 'borrar' => [{borrar}], 'seccion' => {int(d.get('seccion', 0))}, 'cf' => {q(cf)}];\n")
     out.append(PHP_TAIL)
     open(salida, 'w', encoding='utf-8').write(''.join(out))
 
@@ -312,8 +399,12 @@ def main():
     ap.add_argument('accion', choices=['pdf', 'moodle'])
     ap.add_argument('fichas', nargs='+')
     ap.add_argument('-o', '--salida', required=True)
+    ap.add_argument('--base', default=BASE_DEF, help='textos comunes (por defecto base-aula.json junto a este fichero)')
+    ap.add_argument('--sin-base', action='store_true', help='no aplicar textos comunes (guías anteriores a v4)')
     a = ap.parse_args()
-    fichas = [cargar(p) for p in a.fichas]
+    base = None if a.sin_base or not os.path.exists(a.base) else json.load(open(a.base, encoding='utf-8'))
+    if base: print(f"base común: {a.base}", file=sys.stderr)
+    fichas = [cargar(p, base) for p in a.fichas]
     if a.accion == 'pdf':
         os.makedirs(a.salida, exist_ok=True)
         err = 0

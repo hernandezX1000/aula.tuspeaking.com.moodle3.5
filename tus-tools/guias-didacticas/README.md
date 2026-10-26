@@ -9,10 +9,12 @@
 ## Herramientas de esta carpeta
 | Fichero | Qué es | Cuándo se usa |
 |---|---|---|
-| `guias_fundae.py` **v3 (base)** | Herramienta base desde el 26/10/2026 (T-306). Sale de la versión con la que se hicieron las guías de **CENIEH** (T-189, 15/10, W24–W38) y añade **los colores del portal** y el modo **`--update`** | **Toda guía nueva** y todo cambio de una guía de CENIEH |
+| `guias_fundae.py` **v4 (base)** | Herramienta base. v3 (26/10): guías de **CENIEH** + colores del portal + `--update`. **v4 (27/10, FUN-8): guía ÚNICA** (apartados 10 «Cómo usar la plataforma» y 11 «Atención al usuario», dedicación, requisitos concretos), **base común + personalización** y **ficha guardada en la base de datos** | **Toda guía nueva** y todo cambio de una guía |
+| `base-aula.json` | Textos comunes de la guía única (consultas, requisitos, uso de la plataforma, atención al usuario). Se aplica sola si está junto a la herramienta | Siempre; la ficha del curso la sobrescribe |
 | `guias_fundae_v2.py` | Variante de **DriiveMe**: añade el apartado «6. Cronología, temas y plazos» por curso (una ficha por curso). Importa colores y funciones de la base | Solo las guías de DriiveMe ya publicadas (`fichas-driiveme-2026-v22/`), mientras no se pasen a la base |
 | `fichas-cenieh-2026/` | Fichas publicadas de CENIEH (las de W38) | Modelo de ficha |
 | `fichas-driiveme-2026*/` | Fichas de DriiveMe (v1, v2.1 y v2.2 publicada) | Solo DriiveMe |
+| `fichas-lin3s-2026/` | Fichas v4 de Lin3s 2.ª (00068–00072) + los textos literales de objetivos y contenidos de los que salen | Modelo de guía única |
 
 La copia de `cumplimiento-sepe/herramientas/guias-didacticas/` (v1, v2.1–v2.3 del 6 y el 26/10) queda **obsoleta** desde que esta carpeta del repo del aula pasa a ser la única. Allí solo queda un README que apunta aquí.
 
@@ -24,6 +26,23 @@ La copia de `cumplimiento-sepe/herramientas/guias-didacticas/` (v1, v2.1–v2.3 
    - Si no hay autocorregidos, las actividades entregables que califica el tutor (decisión de En, 6/10/2026).
    - Criterio: realizar al menos el 75 % de los controles.
 4. El PHP de publicación corre **siempre como www-data** (`aula-php`) y aborta si es root. No envía correos.
+
+## Guía ÚNICA, base común y base de datos (v4, 27/10/2026, FUN-8)
+- **Una sola guía por curso:** la didáctica lleva todo lo que pide el Anexo III.B, también el uso de la plataforma y la atención al usuario. No hay guía de la plataforma aparte; la sección 1 del curso es la guía y el registro de tutorías (`docs/reference/2026-10-26-curso-fundae-seccion1-y-guia-plataforma.md`).
+- **Base común + personalización:**
+  - `base-aula.json` lleva los textos comunes;
+  - la ficha de la AF los sobrescribe: un dict como `tutoria` se mezcla clave a clave; una lista o un texto se sustituye entero; `"_quitar": ["clave"]` quita un apartado de la base en ese curso;
+  - `--sin-base` genera sin la base: así salen idénticas, byte a byte, las guías anteriores a v4 (comprobado con CENIEH W38 y Lin3s v3).
+- **Campos nuevos de la ficha:**
+  - `dedicacion`: va al apartado 5;
+  - `uso_plataforma`: `[[título, texto], …]`;
+  - `atencion_usuario`: `[[etiqueta, valor], …]`.
+- **Base de datos (fuente de la ficha publicada):** el PHP, al crear (`--apply`) o actualizar (`--update`) la página, guarda la **ficha completa ya mezclada** en `mdl_fundae_guia_didactica.ficha_json`, una fila por `c_fundae` = «AF-grupo» (clave única `uk_cfundae`).
+  - Rellena también `objetivo_general`, `criterio_evaluacion`, `tutor_fundae_nombre`, `herramienta_sincrona`, `pdf_path` (URL de la página), `pdf_generado_at` y `estado = 'generado'`.
+  - Registra la guía en `mdl_fundae_documentos` (`tipo_documento = 'guia_didactica'`); la anterior de esa AF pasa a `vigente = 0`.
+  - `--ensayo-registrar` / `--registrar`: solo la base de datos, para guías que ya están publicadas.
+  - `--exportar`: lee la ficha guardada.
+  - La columna `ficha_json` la creó `t306-11` (con copia `mdl_fundae_guia_didactica_bak_t306_11`).
 
 ## Procedimiento
 
@@ -93,7 +112,7 @@ Este es el molde del 26/10, con el que se cambió la guía de DriiveMe sin tocar
   - pie #6c757d.
 - Botón «Descargar la guía didáctica en PDF» con la clase `btn btn-primary` del tema.
 - Fuente DejaVu Sans, cuerpo de 9,2 pt, A4 con márgenes de 2 cm.
-- **9 apartados** (Orden TMS/369/2019, Anexo III): datos de la acción · destinatarios y acceso · objetivos · contenidos · metodología (con la cronología si la hay) · tutoría y seguimiento · evaluación · recursos · requisitos técnicos.
+- **11 apartados** (Orden TMS/369/2019, Anexo III.B): datos de la acción · destinatarios y acceso · objetivos · contenidos · metodología (con la dedicación y la cronología) · tutoría y seguimiento · evaluación · recursos · requisitos técnicos · cómo usar la plataforma · atención al usuario. Los dos últimos y la dedicación solo salen si están en la ficha o en la base (v4).
 
 ## Historial
 | Fecha | Versión | Qué cambió | Dónde se usó |
@@ -103,4 +122,5 @@ Este es el molde del 26/10, con el que se cambió la guía de DriiveMe sin tocar
 | 15/10/2026 | copia T-189 | Saltos de línea literales, subtítulos y listas, `nota_objetivos`, cronología en tabla, botón del tema, `seccion`, borrado de la guía vieja, doble lectura del PDF | CENIEH 035–039 (W24–W38) |
 | 26/10/2026 | v2.2 | DriiveMe: «Horas de tutoría: 10 = 8 por videoconferencia + 2 de atención en plataforma y revisión de entregables» (decisión de En) | DriiveMe, 21:01 |
 | 26/10/2026 | v2.3 | Colores del portal | DriiveMe, 21:06 (revisión 4) |
+| 27/10/2026 | **v4 (base)** | Guía única: apartados 10 y 11, dedicación y requisitos concretos; `base-aula.json` + personalización; ficha en `mdl_fundae_guia_didactica.ficha_json` y registro en `mdl_fundae_documentos`. Con `--sin-base`, las guías anteriores salen idénticas (CENIEH W38 y Lin3s v3: mismo md5 de HTML y mismo texto de PDF) | Lin3s 2.ª (00068–00072) |
 | 26/10/2026 | **v3 (base)** | Base = copia T-189 de CENIEH + colores del portal + `--update`. Comprobado: con las fichas W38 de CENIEH el texto de los 5 PDF es idéntico al publicado (solo cambian los colores), y DriiveMe con `guias_fundae_v2.py` sobre la base sale igual que lo publicado (md5 del HTML 2500f124…) | Base para Lin3s y el resto |

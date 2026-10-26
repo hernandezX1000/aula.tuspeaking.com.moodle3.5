@@ -1,0 +1,82 @@
+{
+ "_que_es": "Textos comunes de la guía didáctica ÚNICA del aula (v4, FUN-8, 27/10/2026). La ficha de cada AF los sobrescribe: un dict (tutoria) se mezcla clave a clave; una lista o un texto se sustituye entero; «_quitar»: [claves] quita un apartado de la base en ese curso. Lenguaje: tutora/tutor, tutoría, sesión; nunca clase, profesor, consumido ni bono. Atención al usuario: valores de En del 16/10/2026 (ESPECIFICACION-GUIA-DIDACTICA §G9), sin plazo de respuesta. Requisitos: G10. Consultas: texto de En del 27/10/2026.",
+ "tutoria": {
+  "consultas": "La mejor forma de plantear tus dudas y valorar tu progreso es en las tutorías por videoconferencia con tu tutora. También puedes escribirle desde la plataforma (mensajería)."
+ },
+ "requisitos": [
+  "Ordenador o portátil (Windows, macOS o Linux) o tableta. Para las tutorías también sirve el móvil.",
+  "Navegador en su versión actual: Google Chrome, Mozilla Firefox, Microsoft Edge o Safari.",
+  "Conexión a internet estable.",
+  "Micrófono, altavoces o auriculares y cámara, para las tutorías por videoconferencia y las entregas de audio.",
+  "Zoom, para las tutorías: la aplicación gratuita (ordenador o móvil) o el navegador.",
+  "Lector de PDF, para la teoría y esta guía."
+ ],
+ "uso_plataforma": [
+  [
+   "Entrar",
+   "ve a <b>aula.tuspeaking.com</b> y escribe el usuario y la contraseña que recibiste al inicio del curso. Si no los recuerdas, pulsa «¿Olvidó su nombre de usuario o contraseña?» en la página de acceso."
+  ],
+  [
+   "Tu curso",
+   "desde el área personal, en «Mis cursos», entra en tu curso."
+  ],
+  [
+   "Cómo está organizado",
+   "arriba está la sección con esta guía y el registro de tutorías; debajo, los temas, cada uno con su teoría y sus actividades."
+  ],
+  [
+   "Teoría",
+   "pulsa el fichero (PDF o PowerPoint) para abrirlo o descargarlo."
+  ],
+  [
+   "Actividades interactivas y cuestionarios",
+   "se corrigen al momento. Al terminar cada una verás la marca de completada en el curso («Su progreso»)."
+  ],
+  [
+   "Tareas",
+   "abre la tarea, pulsa «Agregar entrega», escribe el texto o sube el fichero (por ejemplo, el audio) y pulsa «Guardar cambios». Si aparece «Enviar tarea», púlsalo para que la tutora la reciba."
+  ],
+  [
+   "Mensajes a tu tutora",
+   "para una duda puntual entre tutorías, pulsa el icono de mensajes (arriba a la derecha) y escribe a tu tutora."
+  ],
+  [
+   "Reservar una tutoría",
+   "en el bloque «Mis sesiones / tutorías» del curso, pulsa «Reservar» y elige día y hora. El enlace de Zoom aparece en la plataforma y en el recordatorio que te llega por correo."
+  ],
+  [
+   "Mis sesiones / tutorías",
+   "en el menú de arriba, «Mis sesiones / tutorías»: tus sesiones realizadas y programadas y el botón para conectarte a la próxima."
+  ],
+  [
+   "Registro de tutorías",
+   "en la sección de arriba del curso puedes ver las tutorías realizadas y las programadas."
+  ],
+  [
+   "Calificaciones y progreso",
+   "en el menú del curso, «Calificaciones»; tu avance, en las marcas de completado de cada actividad."
+  ]
+ ],
+ "atencion_usuario": [
+  [
+   "Para qué",
+   "problemas técnicos o de acceso a la plataforma (usuario, contraseña, actividades que no cargan, Zoom)."
+  ],
+  [
+   "Correo",
+   "soporte@tuspeaking.com"
+  ],
+  [
+   "Teléfono",
+   "686 25 64 25"
+  ],
+  [
+   "Horario",
+   "de lunes a viernes, de 9:00 a 18:00"
+  ],
+  [
+   "En la plataforma",
+   "enlace «Soporte», al pie de cada página"
+  ]
+ ]
+}
