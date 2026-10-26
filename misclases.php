@@ -5,8 +5,8 @@ global $USER, $DB, $PAGE, $OUTPUT;
 
 $PAGE->set_url('/misclases.php');
 $PAGE->set_context(context_system::instance());
-$PAGE->set_title('Mis Clases');
-$PAGE->set_heading('Mis Clases');
+$PAGE->set_title('Mis sesiones / tutorías');
+$PAGE->set_heading('Mis sesiones / tutorías');
 
 $is_admin = is_siteadmin();
 // SEC-9 (25-oct-2026): solo un administrador puede ver las clases de otro usuario (antes, cualquiera con ?userid=).
@@ -162,7 +162,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
 @media (max-width:768px){.btn-conectar{width:calc(100% - 40px);padding:14px 20px}.proxima-clase{flex-direction:column;text-align:center}.proxima-clase .btn-conectar{width:100%;margin:12px 0 0 0}.clase{flex-direction:column;align-items:flex-start;gap:10px}.badge-conectar{width:100%;justify-content:center;padding:10px 16px}.resumen-stats{grid-template-columns:repeat(3,1fr)}}
 </style>
 <div class="mc">
-<h2 style="margin:0 0 20px;color:var(--ts-dark)">📚 <?php echo ($view_userid != $USER->id) ? 'Clases de '.fullname($view_user) : 'Mis Clases'; ?></h2>
+<h2 style="margin:0 0 20px;color:var(--ts-dark)">📚 <?php echo ($view_userid != $USER->id) ? 'Sesiones / tutorías de '.fullname($view_user) : 'Mis sesiones / tutorías'; ?></h2>
 <?php if ($is_admin): ?><div class="admin-box">🔧 Admin: <input id="uid" value="<?php echo $view_userid; ?>" style="width:60px;padding:4px 8px;border:1px solid #ddd;border-radius:4px"> <button onclick="location='?userid='+document.getElementById('uid').value" style="padding:4px 12px;cursor:pointer">Ver</button> <span style="margin-left:15px">📧 <?php echo $view_user->email; ?></span><span class="chevron">›</span></div><?php endif; ?>
 <?php if ($view_courseid > 0 && $curso_actual): 
     $contratadas = intval($curso_actual['contratadas']);
@@ -178,7 +178,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
 <div class="resumen-curso">
     <div class="resumen-header"><h4><?php echo htmlspecialchars($curso_actual['curso']); ?></h4><?php if ($curso_actual['fecha_inicio']): ?><p class="periodo-white">📅 <?php echo date('d/m/Y', strtotime($curso_actual['fecha_inicio'])); ?> → <?php echo date('d/m/Y', strtotime($curso_actual['fecha_fin'])); ?></p><?php endif; ?></div>
     <div class="resumen-stats">
-        <div class="stat-box blue"><strong><?php echo $contratadas ?: '-'; ?></strong><small>Contratadas</small></div>
+        <div class="stat-box blue"><strong><?php echo $contratadas ?: '-'; ?></strong><small>Previstas</small></div>
         <div class="stat-box green"><strong><?php echo $asistidas; ?></strong><small>Asistidas</small></div>
         <div class="stat-box red"><strong><?php echo $ausencias; ?></strong><small>Ausencias</small></div>
         <div class="stat-box orange"><strong><?php echo $agendadas; ?></strong><small>Agendadas</small></div>
@@ -186,12 +186,12 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
         <div class="stat-box <?php echo $pct >= 75 ? 'green' : ($pct >= 50 ? 'orange' : 'red'); ?>"><strong><?php echo $pct; ?>%</strong><small>Asistencia</small></div>
         <?php if ($canceladas > 0): ?><div class="stat-box canceled"><strong><?php echo $canceladas; ?></strong><small>Canceladas</small></div><?php endif; ?>
     </div>
-    <?php if ($contratadas > 0 && ($asistidas + $agendadas) >= $contratadas): ?><div style="background:#fff3cd;border:1px solid #f39c12;border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:8px"><span style="font-size:1.3em">⚠️</span><span style="color:#856404"><strong>Límite alcanzado:</strong> Has consumido o agendado todas tus <?php echo $contratadas; ?> clases contratadas. Contacta con administración para ampliar tu bono.</span></div><?php endif; ?>
+    <?php if ($contratadas > 0 && ($asistidas + $agendadas) >= $contratadas): ?><div style="background:#fff3cd;border:1px solid #f39c12;border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:8px"><span style="font-size:1.3em">⚠️</span><span style="color:#856404"><strong>Límite alcanzado:</strong> Ya has realizado o reservado todas las <?php echo $contratadas; ?> sesiones previstas. Si necesitas ampliarlas, escribe a soporte@tuspeaking.com.</span></div><?php endif; ?>
     <?php $proxima_curso = null; foreach ($clases as $cl) { if ($cl['estado'] == 3 && ($cl['zoom_meetingid'] || $cl['zoom_url']) && !$cl['acuity_canceled'] && strtotime($cl['fecha']) > time()) { $proxima_curso = $cl; } } if ($proxima_curso): ?>
-    <a href="<?php echo $proxima_curso['zoom_url'] ?: 'https://zoom.us/j/'.$proxima_curso['zoom_meetingid']; ?>" target="_blank" class="btn-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar a clase · <?php echo date('d/m H:i', strtotime($proxima_curso['fecha'])); ?> · <?php echo htmlspecialchars($proxima_curso['profesor']); ?></a>
+    <a href="<?php echo $proxima_curso['zoom_url'] ?: 'https://zoom.us/j/'.$proxima_curso['zoom_meetingid']; ?>" target="_blank" class="btn-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar a la sesión · <?php echo date('d/m H:i', strtotime($proxima_curso['fecha'])); ?> · <?php echo htmlspecialchars($proxima_curso['profesor']); ?></a>
     <?php endif; ?>
 </div>
-<h3 class="section">📅 Historial de Clases (<?php echo count($clases); ?>)</h3>
+<h3 class="section">📅 Historial de sesiones / tutorías (<?php echo count($clases); ?>)</h3>
 <div class="leyenda">
     <div class="leyenda-item"><span class="leyenda-color" style="background:var(--ts-success)"></span> Asistió</div>
     <div class="leyenda-item"><span class="leyenda-color" style="background:var(--ts-danger)"></span> Ausencia</div>
@@ -242,7 +242,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
     <div class="curso-header"><h4><?php echo htmlspecialchars($c['curso']); ?></h4><span class="tipo-badge tipo-<?php echo $c['tipo_clase'] ?: 'GRUPAL'; ?>"><?php echo $c['tipo_clase'] == '1TO1' ? '1 to 1' : 'Grupal'; ?></span><span class="chevron">›</span></div>
     <div class="periodo <?php echo $has_dates ? 'has-dates' : ''; ?>">📅 <?php echo $f_ini; ?> → <?php echo $f_fin; ?></div>
     <div class="curso-stats">
-        <div class="curso-stat"><strong><?php echo $contratadas ?: '-'; ?></strong><small>Contratadas</small></div>
+        <div class="curso-stat"><strong><?php echo $contratadas ?: '-'; ?></strong><small>Previstas</small></div>
         <div class="curso-stat ok"><strong><?php echo $asistidas; ?></strong><small>Asistidas</small></div>
         <div class="curso-stat bad"><strong><?php echo $ausencias; ?></strong><small>Ausencias</small></div>
         <div class="curso-stat warn"><strong><?php echo $agendadas; ?></strong><small>Agendadas</small></div>
