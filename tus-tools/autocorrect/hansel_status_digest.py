@@ -38,8 +38,10 @@ CHECKS = [
              path=f'{HL}/cron_ingesta.log', max_h=26),
         dict(t='feeder', name='Feeder reservas (Acuity→own_acuity)',
              why='si cae el webhook, las reservas se pierden en silencio'),
-        dict(t='log',  name='Autocorrector (cada 2h)',   why='corrige writings/audios',
-             path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True),
+        # AC-7 (26-oct-2026): PAUSADO a propósito (no debe corregir solo en cursos FUNDAE). Antes: t='log',
+        # path=f'{HL}/cron_autocorrect.log', max_h=3, tail_done=True — volver a eso si se reactiva.
+        dict(t='note', name='Autocorrector',             why='corrige writings/audios',
+             status='OK', msg='pausado a propósito (AC-7)'),
         dict(t='log',  name='Quiz grader (cada 4h)',     why='corrige quiz/essays',
              path=f'{HL}/cron_quiz.log', max_h=5),
         dict(t='moodle_cron', name='Moodle cron (4:15)',  why='tareas programadas internas',

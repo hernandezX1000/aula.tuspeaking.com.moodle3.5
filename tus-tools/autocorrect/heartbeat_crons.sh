@@ -39,7 +39,9 @@ chk() {
 }
 
 # ── Procesos (rutas reales del Hetzner: los logs van a ~/cron_*.log) ──
-chk "${LOGDIR}/cron_autocorrect.log"   4  "Autocorrector (cada 2h)"
+# AC-7 (26-oct-2026): autocorrector PAUSADO a propósito (no debe corregir solo en cursos FUNDAE). Se deja de vigilar:
+# daba un fallo falso cada hora. Si se reactiva, quitar el # de la línea siguiente.
+# chk "${LOGDIR}/cron_autocorrect.log"   4  "Autocorrector (cada 2h)"
 chk "${LOGDIR}/cron_quiz.log"          6  "Quiz grader (cada 4h)"
 chk "${LOGDIR}/cron_ingesta.log"      30  "Ingesta Zoom (4:05 diaria)"
 chk "${LOGDIR}/cron_moodle.log"       30  "Moodle cron aula (4:15 diaria)"
