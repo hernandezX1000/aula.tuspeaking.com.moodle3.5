@@ -11,7 +11,7 @@
  * grupo e ID de FUNDAE, empresa, curso, profesor, participante, estado y botón «Entrar» (enlace de Zoom de la reserva). Filtros por
  * periodo, empresa y acción; Excel y calendario (.ics). Es la vista conjunta de tutorias_programadas.php (por curso): mismos datos
  * (mdl_i3code_acuityZoom) y mismas reglas (participantes = rol de alumno sin cuenta @tuspeaking; canceladas fuera). Enlace desde el
- * panel «Dashboard FUNDAE» (block_fundae).
+ * «Panel FUNDAE» (block_fundae).
  * Seguridad: solo lectura; con sesión; entra un administrador (todas las acciones) o quien sea supervisor en al menos un curso FUNDAE
  * (solo esas acciones); parámetros con lista blanca; todo lo que se pinta va escapado; el enlace de Zoom solo si es https://…zoom.us.
  *
@@ -163,50 +163,101 @@ if ($export === 'excel') {
     exit;
 }
 
-// ─── Pantalla ───
+// ─── Pantalla ───  (T-279e, 26/10/2026: mismo diseño que el panel FUNDAE de block_fundae; solo presentación)
 $empresas = []; $codigos = [];
 foreach ($cursos as $c) { foreach ($c['afs'] as $cod => $d) { $empresas[$d['empresa']] = true; $codigos[str_replace('-', '/', $cod)] = true; } }
 ksort($empresas); ksort($codigos);
+// Lista larga en una celda (p. ej. un participante sin grupo de su acción: salen todas las del curso): se enseña la primera
+// y «+N»; al pulsar se despliegan las demás. Así la tabla no se rompe.
+$celda_lista = function ($v) {
+    $partes = array_values(array_filter(array_map('trim', explode(',', (string)$v)), 'strlen'));
+    if (count($partes) <= 1) { return s((string)$v); }
+    return '<details class="tp-mas"><summary>' . s($partes[0]) . ' <span class="tp-mas-n" title="' . s(implode(', ', $partes)) . '">+'
+         . (count($partes) - 1) . '</span></summary><div class="tp-mas-resto">' . implode('<br>', array_map('s', array_slice($partes, 1))) . '</div></details>';
+};
+$ESTADOS = ['En curso ahora' => 'tp-e-ahora', 'Hoy' => 'tp-e-hoy', 'Programada' => 'tp-e-prog'];
 echo $OUTPUT->header();
 ?>
 <style>
-.tp-filtros{background:#f7f9fa;border:1px solid #d6dde3;padding:10px;margin:8px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.tp-wrap{overflow-x:auto;margin:10px 0 18px}
-.tp-tabla{border-collapse:collapse;font-size:13px;width:100%}
-.tp-tabla th{background:#008ba3;color:#fff;padding:6px 8px;text-align:left;white-space:nowrap}
-.tp-tabla td{border-bottom:1px solid #e2e8f0;padding:5px 8px;white-space:nowrap}
-.tp-tabla tr.tp-encurso td{background:#e8f5e9;font-weight:bold}
-.tp-entrar{background:#2e7d32;color:#fff !important;padding:4px 10px;border-radius:4px;text-decoration:none;display:inline-block}
-.tp-nota{color:#666;font-style:italic;font-size:12px}
+.tp-pagina{font-size:.875rem;line-height:1.5}
+.tp-pagina .tp-filtros{display:flex;flex-direction:row;flex-wrap:wrap;gap:.75rem;align-items:flex-end}
+.tp-pagina .tp-filtros label{display:flex;flex-direction:column;gap:.25rem;margin:0;font-size:.8125rem;font-weight:600;color:#6c757d}
+.tp-pagina .tp-filtros .custom-select{font-size:.875rem;width:auto;min-width:10rem}
+.tp-pagina .tp-barra{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;margin:0 0 .75rem}
+.tp-pagina .tp-resumen{color:#6c757d}
+.tp-pagina .tp-cuenta{display:inline-block;background:#e0f7fa;color:#006b7f;font-weight:600;border-radius:999px;padding:.25rem .75rem;margin-right:.375rem;white-space:nowrap}
+.tp-pagina .tp-ahora-n{display:inline-block;background:#e8f5e9;color:#1b5e20;font-weight:600;border-radius:999px;padding:.25rem .75rem;margin-right:.375rem;white-space:nowrap}
+.tp-pagina .tp-btn,.tp-pagina a.tp-btn:visited{display:inline-flex;align-items:center;gap:.5rem;background:#008ba3;border:1px solid #008ba3;color:#fff!important;border-radius:.375rem;padding:.4rem .9rem;font-size:.875rem;font-weight:600;line-height:1.4;text-decoration:none!important;cursor:pointer}
+.tp-pagina .tp-btn:hover,.tp-pagina .tp-btn:focus{background:#006b7f;border-color:#006b7f;color:#fff!important}
+.tp-pagina a.tp-btn-sec,.tp-pagina a.tp-btn-sec:visited{display:inline-flex;align-items:center;gap:.5rem;background:#fff;border:1px solid #008ba3;color:#006b7f!important;border-radius:.375rem;padding:.4rem .9rem;font-size:.875rem;font-weight:600;line-height:1.4;text-decoration:none!important}
+.tp-pagina a.tp-btn-sec:hover,.tp-pagina a.tp-btn-sec:focus{background:#e0f7fa}
+.tp-pagina .tp-marco{border:1px solid #dee2e6;border-radius:.5rem;overflow:auto;max-height:75vh;background:#fff;margin:0 0 1rem}
+.tp-pagina .tp-tabla{width:100%;border-collapse:separate;border-spacing:0;margin:0;font-size:.875rem}
+.tp-pagina .tp-tabla th{position:sticky;top:0;z-index:1;background:#008ba3;color:#fff;padding:.6rem .625rem;font-weight:600;text-align:left;white-space:nowrap;border:0}
+.tp-pagina .tp-tabla td{padding:.5rem .625rem;border-bottom:1px solid #eef1f3;vertical-align:middle;white-space:nowrap}
+.tp-pagina .tp-tabla tbody tr:last-child td{border-bottom:0}
+.tp-pagina .tp-tabla tbody tr:hover td{background:#f0fbfc}
+.tp-pagina .tp-tabla tr.tp-encurso td{background:#f1f8f2}
+.tp-pagina .tp-tabla tr.tp-encurso td:first-child{box-shadow:inset 3px 0 0 #2e7d32}
+.tp-pagina .tp-num{font-variant-numeric:tabular-nums}
+.tp-pagina .tp-sec{color:#6c757d}
+.tp-pagina .tp-ag{font-weight:600;color:#006b7f}
+.tp-pagina .tp-emp{font-weight:600}
+.tp-pagina .tp-curso{white-space:normal!important;min-width:14rem}
+.tp-pagina .tp-curso a{color:#006b7f}
+.tp-pagina .tp-mas summary{cursor:pointer;list-style:none;white-space:nowrap}
+.tp-pagina .tp-mas summary::-webkit-details-marker{display:none}
+.tp-pagina .tp-mas-n{display:inline-block;background:#e0f7fa;color:#006b7f;border-radius:999px;padding:0 .5rem;font-size:.75rem;font-weight:600;margin-left:.25rem}
+.tp-pagina .tp-mas[open] .tp-mas-n{background:#008ba3;color:#fff}
+.tp-pagina .tp-mas-resto{padding-top:.25rem;color:#6c757d}
+.tp-pagina .tp-estado{display:inline-block;border-radius:999px;padding:.125rem .625rem;font-size:.8125rem;font-weight:600;white-space:nowrap;background:#f1f3f5;color:#495057}
+.tp-pagina .tp-e-ahora{background:#e8f5e9;color:#1b5e20}
+.tp-pagina .tp-e-pronto{background:#fff4d6;color:#7a5a00}
+.tp-pagina .tp-e-hoy{background:#e0f7fa;color:#006b7f}
+.tp-pagina a.tp-entrar,.tp-pagina a.tp-entrar:visited{display:inline-flex;align-items:center;gap:.375rem;background:#008ba3;color:#fff!important;border-radius:999px;padding:.2rem .8rem;font-size:.8125rem;font-weight:600;text-decoration:none!important;white-space:nowrap}
+.tp-pagina a.tp-entrar:hover,.tp-pagina a.tp-entrar:focus{background:#006b7f}
+.tp-pagina tr.tp-encurso a.tp-entrar{background:#2e7d32}
+.tp-pagina tr.tp-encurso a.tp-entrar:hover{background:#1b5e20}
+.tp-pagina .tp-nota{color:#6c757d;font-size:.8125rem}
 </style>
 <?php
 $base = new moodle_url('/tutorias_programadas_todas.php');
-echo '<form method="get" action="' . $base->out() . '" class="tp-filtros">';
-echo '<label>Periodo <select name="periodo">';
-foreach ($PERIODOS as $k => $t) { echo '<option value="' . s($k) . '"' . ($k === $periodo ? ' selected' : '') . '>' . s($t) . '</option>'; }
-echo '</select></label><label>Empresa <select name="empresa"><option value="">Todas</option>';
-foreach (array_keys($empresas) as $e) { echo '<option value="' . s($e) . '"' . ($e === $fempresa ? ' selected' : '') . '>' . s($e) . '</option>'; }
-echo '</select></label><label>Acción / grupo <select name="af"><option value="">Todas</option>';
-foreach (array_keys($codigos) as $c) { echo '<option value="' . s($c) . '"' . ($c === $faf ? ' selected' : '') . '>' . s($c) . '</option>'; }
-echo '</select></label><button type="submit" class="btn btn-primary">Ver</button></form>';
+echo '<div class="tp-pagina">';
+echo '<form method="get" action="' . $base->out() . '" class="card card-body p-3 mb-3 tp-filtros">';
+echo '<label>Periodo <select name="periodo" class="custom-select">';
+foreach ($PERIODOS as $k => $t) { echo '<option value="' . s($k) . '"' . ((string)$k === $periodo ? ' selected' : '') . '>' . s($t) . '</option>'; }
+echo '</select></label><label>Empresa <select name="empresa" class="custom-select"><option value="">Todas</option>';
+foreach (array_keys($empresas) as $e) { echo '<option value="' . s($e) . '"' . ((string)$e === $fempresa ? ' selected' : '') . '>' . s($e) . '</option>'; }
+echo '</select></label><label>Acción / grupo <select name="af" class="custom-select"><option value="">Todas</option>';
+foreach (array_keys($codigos) as $c) { echo '<option value="' . s($c) . '"' . ((string)$c === $faf ? ' selected' : '') . '>' . s($c) . '</option>'; }
+echo '</select></label><button type="submit" class="tp-btn"><i class="fa fa-filter" aria-hidden="true"></i>Ver</button></form>';
 $q = ['periodo' => $periodo, 'empresa' => $fempresa, 'af' => $faf];
-echo '<p><a class="btn btn-secondary" href="' . (new moodle_url('/tutorias_programadas_todas.php', $q + ['export' => 'excel']))->out() . '">Descargar Excel</a> '
-   . '<a class="btn btn-secondary" href="' . (new moodle_url('/tutorias_programadas_todas.php', $q + ['export' => 'ics']))->out() . '">Añadir a mi calendario (.ics)</a></p>';
 $nen = count(array_filter($filas, function ($f) { return $f['encurso']; }));
-echo '<p>' . count($filas) . ' tutorías programadas · ' . s($PERIODOS[$periodo]) . ($nen ? ' · <b>' . $nen . ' en curso ahora</b>' : '')
-   . ' · consultado ' . s($fmt($ahora, 'd/m/Y H:i')) . ' (hora de Madrid).</p>';
-echo '<div class="tp-wrap"><table class="tp-tabla"><thead><tr>';
+echo '<div class="tp-barra"><div class="tp-resumen"><span class="tp-cuenta">' . count($filas) . ' tutorías</span>'
+   . ($nen ? '<span class="tp-ahora-n">' . $nen . ' en curso ahora</span>' : '')
+   . s($PERIODOS[$periodo]) . ' · consultado ' . s($fmt($ahora, 'd/m/Y H:i')) . ' (hora de Madrid)</div><div>'
+   . '<a class="tp-btn-sec" href="' . (new moodle_url('/tutorias_programadas_todas.php', $q + ['export' => 'excel']))->out() . '"><i class="fa fa-file-excel-o" aria-hidden="true"></i>Descargar Excel</a> '
+   . '<a class="tp-btn-sec" href="' . (new moodle_url('/tutorias_programadas_todas.php', $q + ['export' => 'ics']))->out() . '"><i class="fa fa-calendar-plus-o" aria-hidden="true"></i>Añadir a mi calendario (.ics)</a></div></div>';
+echo '<div class="tp-marco"><table class="tp-tabla"><thead><tr>';
 foreach ($CAB as $t) { echo '<th>' . s($t) . '</th>'; }
 echo '<th>Entrar</th></tr></thead><tbody>';
 foreach ($filas as $f) {
     echo '<tr' . ($f['encurso'] ? ' class="tp-encurso"' : '') . '>';
     foreach ($f['v'] as $i => $v) {
-        if ($i === 7) { echo '<td><a href="' . (new moodle_url('/course/view.php', ['id' => $f['courseid']]))->out() . '">' . s((string)$v) . '</a></td>'; continue; }
-        echo '<td>' . s((string)$v) . '</td>';
+        switch ($i) {
+            case 0: case 1: case 2: case 3: echo '<td class="tp-num">' . s((string)$v) . '</td>'; break;
+            case 4: echo '<td class="tp-num tp-ag">' . $celda_lista($v) . '</td>'; break;
+            case 5: echo '<td class="tp-num">' . $celda_lista($v) . '</td>'; break;
+            case 6: echo '<td class="tp-emp">' . $celda_lista($v) . '</td>'; break;
+            case 7: echo '<td class="tp-curso"><a href="' . (new moodle_url('/course/view.php', ['id' => $f['courseid']]))->out() . '">' . s((string)$v) . '</a></td>'; break;
+            case 10: echo '<td><span class="tp-estado ' . ($ESTADOS[$v] ?? 'tp-e-pronto') . '">' . s((string)$v) . '</span></td>'; break;
+            default: echo '<td>' . s((string)$v) . '</td>';
+        }
     }
-    echo '<td>' . ($f['url'] ? '<a class="tp-entrar" target="_blank" rel="noopener noreferrer" href="' . s($f['url']) . '">Entrar</a>' : 'Sin enlace') . '</td></tr>';
+    echo '<td>' . ($f['url'] ? '<a class="tp-entrar" target="_blank" rel="noopener noreferrer" href="' . s($f['url']) . '"><i class="fa fa-video-camera" aria-hidden="true"></i>Entrar</a>' : '<span class="tp-sec">Sin enlace</span>') . '</td></tr>';
 }
-if (!$filas) { echo '<tr><td colspan="' . (count($CAB) + 1) . '">No hay tutorías programadas en este periodo.</td></tr>'; }
+if (!$filas) { echo '<tr><td colspan="' . (count($CAB) + 1) . '" class="tp-sec">No hay tutorías programadas en este periodo.</td></tr>'; }
 echo '</tbody></table></div>';
 echo '<p class="tp-nota">' . s($NOTA) . '</p>';
+echo '</div>';
 echo $OUTPUT->footer();
