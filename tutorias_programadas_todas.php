@@ -37,7 +37,8 @@ $PAGE->set_heading('Tutorías programadas · todas las acciones');
 
 // ─── Cursos FUNDAE que puede ver ───
 $admin = is_siteadmin();
-$sql = "SELECT f.id AS ficha, f.courseid, f.c_fundae, f.empresa, o.id_grupo, c.fullname
+$sql = "SELECT f.id AS ficha, f.courseid, f.c_fundae, f.empresa, o.id_grupo, c.fullname,
+               COALESCE(o.fecha_inicio, f.fecha_inicio) AS ini_af, COALESCE(o.fecha_fin, f.fecha_fin) AS fin_af
           FROM {fundae} f JOIN {course} c ON c.id = f.courseid
           LEFT JOIN fundae_oficial_stg o ON o.c_fundae = f.c_fundae
          WHERE f.bonificable = 1 AND f.validado = 1";
@@ -52,7 +53,10 @@ if (!$fichas && !$admin) { throw new moodle_exception('nopermissions', 'error', 
 $cursos = [];   // courseid => ['nombre', 'afs' => [c_fundae => ['id' => id_grupo, 'empresa']]]
 foreach ($fichas as $f) {
     $cursos[$f->courseid]['nombre'] = $f->fullname;
-    $cursos[$f->courseid]['afs'][(string)$f->c_fundae] = ['id' => $f->id_grupo ?: '-', 'empresa' => (string)$f->empresa];
+    // Fechas de la acción: las de FUNDAE (fundae_oficial_stg) y, si no hay, las de la ficha. T-279e: una tutoría fuera de ellas
+    // no es de la acción y no se enseña (caso GKN 014/01, terminada el 30/06/2026, con reservas en octubre).
+    $cursos[$f->courseid]['afs'][(string)$f->c_fundae] = ['id' => $f->id_grupo ?: '-', 'empresa' => (string)$f->empresa,
+        'ini' => substr((string)$f->ini_af, 0, 10), 'fin' => substr((string)$f->fin_af, 0, 10)];
 }
 
 // ─── Participantes (rol de alumno, sin cuentas @tuspeaking) y su grupo de Moodle (para elegir la AF si el curso tiene varias) ───
@@ -97,6 +101,9 @@ if ($cursos) {
         if ($fin <= $ahora || $ini >= $hasta) { continue; }
         $af = $grupoaf[$z->courseid . '-' . $z->studentid] ?? null;
         $afs = $af !== null ? [$af => $cursos[$z->courseid]['afs'][$af]] : $cursos[$z->courseid]['afs'];
+        $dia = $fmt($ini, 'Y-m-d');
+        $afs = array_filter($afs, function ($a) use ($dia) { return ($a['ini'] === '' || $a['ini'] <= $dia) && ($a['fin'] === '' || $dia <= $a['fin']); });
+        if (!$afs) { continue; }   // fuera de las fechas de su acción
         $codigos = implode(', ', array_map(function ($c) { return str_replace('-', '/', $c); }, array_keys($afs)));
         $idsg = implode(', ', array_unique(array_column($afs, 'id')));
         $empresa = implode(', ', array_unique(array_column($afs, 'empresa')));
@@ -114,7 +121,7 @@ if ($cursos) {
 }
 usort($filas, function ($a, $b) { return [$a['ini'], $a['v'][4]] <=> [$b['ini'], $b['v'][4]]; });
 $CAB = ['Fecha', 'Inicio (Madrid)', 'Fin (Madrid)', 'Duración (min)', 'Acción / grupo', 'ID de grupo FUNDAE', 'Empresa', 'Curso', 'Profesor', 'Participante', 'Estado'];
-$NOTA = 'Tutorías individuales por videoconferencia (Zoom) reservadas por los participantes de las acciones formativas que aún no han terminado. Hora de Madrid. Las canceladas no salen. El botón «Entrar» abre la videoconferencia de la reserva; si tiene sala de espera, el profesor admite la entrada.';
+$NOTA = 'Tutorías individuales por videoconferencia (Zoom) reservadas por los participantes de las acciones formativas que aún no han terminado, solo las que caen dentro de las fechas de su acción. Hora de Madrid. Las canceladas no salen. El botón «Entrar» abre la videoconferencia de la reserva; si tiene sala de espera, el profesor admite la entrada.';
 $limpio = function ($s) { return trim(preg_replace('/[^A-Za-z0-9]+/', '_', core_text::specialtoascii($s)), '_'); };
 $PERIODOS = ['hoy' => 'Hoy', '7' => 'Próximos 7 días', '14' => 'Próximos 14 días', 'todo' => 'Todas'];
 
