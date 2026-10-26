@@ -143,11 +143,35 @@ if ($participantes) {
     $rs->close();
 }
 
+// T-279e (26/10/2026), regla de En: una clase solo se muestra si su fecha cae dentro de las fechas de SU acción formativa
+// (las de FUNDAE y, si no hay, las de la ficha). La acción del participante es su grupo de Moodle con el nombre del código;
+// si no está en ninguno, vale cualquiera de las del curso. Curso sin ficha FUNDAE: se muestra todo.
+$tus_afs = []; $tus_grupo = [];
+try {
+    foreach ($DB->get_records_sql("SELECT f.id, f.c_fundae, COALESCE(o.fecha_inicio, f.fecha_inicio) AS ini, COALESCE(o.fecha_fin, f.fecha_fin) AS fin
+            FROM {fundae} f LEFT JOIN fundae_oficial_stg o ON o.c_fundae = f.c_fundae WHERE f.courseid = ?", [$courseid]) as $f) {
+        $tus_afs[(string)$f->c_fundae] = [substr((string)$f->ini, 0, 10), substr((string)$f->fin, 0, 10)];
+    }
+    foreach ($DB->get_records_sql("SELECT gm.id, gm.userid, g.name FROM {groups} g JOIN {groups_members} gm ON gm.groupid = g.id
+            WHERE g.courseid = ?", [$courseid]) as $g) {
+        if (isset($tus_afs[(string)$g->name])) { $tus_grupo[(int)$g->userid] = (string)$g->name; }
+    }
+} catch (Exception $e) { }
+$en_su_accion = function ($userid, $t) use ($tus_afs, $tus_grupo) {
+    if (!$tus_afs) { return true; }
+    if (!$t) { return false; }
+    $d = (new DateTime('@' . $t))->setTimezone(new DateTimeZone('Europe/Madrid'))->format('Y-m-d');
+    $afs = isset($tus_grupo[(int)$userid]) ? [$tus_afs[$tus_grupo[(int)$userid]]] : array_values($tus_afs);
+    foreach ($afs as $a) { if (($a[0] === '' || $a[0] <= $d) && ($a[1] === '' || $d <= $a[1])) { return true; } }
+    return false;
+};
+
 // ─── Datos de cada participante ───
 $ESTADOS = ['ASISTIO' => 'Asistió', 'AUSENCIA' => 'Ausencia', 'VERIFICANDO' => 'Verificando', 'SIN DATOS' => 'Sin datos', 'PENDIENTE' => 'Pendiente'];
 $datos = []; $todas = [];
 foreach ($participantes as $u) {
     list($clases, $zoom) = tutorias_de($pdo, $courseid, $u->id);
+    $clases = array_values(array_filter($clases, function ($c) use ($en_su_accion, $u) { return $en_su_accion($u->id, $c['ts']); }));
     $cuenta = array_fill_keys(array_keys($ESTADOS), 0); $tutores = [];
     foreach ($clases as $cl) {
         $cuenta[$cl['estado']] = ($cuenta[$cl['estado']] ?? 0) + 1;

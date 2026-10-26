@@ -296,6 +296,31 @@ $fichas_fundae = $stmt_fundae->fetchAll(PDO::FETCH_ASSOC);
 // T-181: lo que se enseña y se exporta son las tutorías; las clases canceladas no lo son y no se listan.
 $detalle_clases = array_values(array_filter($detalle_clases, function ($c) { return $c['estado'] !== 'CANCELADA'; }));
 
+// T-279e (26/10/2026), regla de En: una clase solo se muestra si su fecha cae dentro de las fechas de SU acción formativa
+// (las de FUNDAE y, si no hay, las de la ficha). La acción del participante es su grupo de Moodle con el nombre del código;
+// si no está en ninguno, vale cualquiera de las del curso. Curso sin ficha FUNDAE: se muestra todo.
+$tus_afs = []; $tus_grupo = [];
+try {
+    foreach ($DB->get_records_sql("SELECT f.id, f.c_fundae, COALESCE(o.fecha_inicio, f.fecha_inicio) AS ini, COALESCE(o.fecha_fin, f.fecha_fin) AS fin
+            FROM {fundae} f LEFT JOIN fundae_oficial_stg o ON o.c_fundae = f.c_fundae WHERE f.courseid = ?", [$courseid]) as $f) {
+        $tus_afs[(string)$f->c_fundae] = [substr((string)$f->ini, 0, 10), substr((string)$f->fin, 0, 10)];
+    }
+    foreach ($DB->get_records_sql("SELECT gm.id, gm.userid, g.name FROM {groups} g JOIN {groups_members} gm ON gm.groupid = g.id
+            WHERE g.courseid = ?", [$courseid]) as $g) {
+        if (isset($tus_afs[(string)$g->name])) { $tus_grupo[(int)$g->userid] = (string)$g->name; }
+    }
+} catch (Exception $e) { }
+$en_su_accion = function ($userid, $t) use ($tus_afs, $tus_grupo) {
+    if (!$tus_afs) { return true; }
+    if (!$t) { return false; }
+    $d = (new DateTime('@' . $t))->setTimezone(new DateTimeZone('Europe/Madrid'))->format('Y-m-d');
+    $afs = isset($tus_grupo[(int)$userid]) ? [$tus_afs[$tus_grupo[(int)$userid]]] : array_values($tus_afs);
+    foreach ($afs as $a) { if (($a[0] === '' || $a[0] <= $d) && ($a[1] === '' || $d <= $a[1])) { return true; } }
+    return false;
+};
+
+$detalle_clases = array_values(array_filter($detalle_clases, function ($c) use ($en_su_accion, $view_userid) { return $en_su_accion($view_userid, $c['ts']); }));   // fuera de las fechas de su acción
+
 // ─── QUERY 4: Info del curso desde own_acuity_course ───
 $sql_curso_info = "
     SELECT tipo_clase, classnmbr, isfundae, fecha_inicio
@@ -761,11 +786,11 @@ echo $OUTPUT->header();
         <?php if ($resumen): ?>
         <div class="tp-field">
             <label>Primera clase</label>
-            <span><?php echo $resumen['primera_clase'] ? date('d/m/Y', strtotime($resumen['primera_clase'])) : '-'; ?></span>
+            <span><?php echo $detalle_clases ? $detalle_clases[0]['fecha'] : '-'; ?></span>
         </div>
         <div class="tp-field">
             <label>Última clase</label>
-            <span><?php echo $resumen['ultima_clase'] ? date('d/m/Y', strtotime($resumen['ultima_clase'])) : '-'; ?></span>
+            <span><?php echo $detalle_clases ? $detalle_clases[count($detalle_clases) - 1]['fecha'] : '-'; ?></span>
         </div>
         <?php endif; ?>
     </div>
