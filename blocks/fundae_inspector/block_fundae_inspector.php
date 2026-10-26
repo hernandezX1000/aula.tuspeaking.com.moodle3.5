@@ -55,8 +55,10 @@ class block_fundae_inspector extends block_base {
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/conexiones_grupo.php?courseid=' . $courseid . '">Conexiones de Zoom</a></li>';
         $html .= '<li style="list-style:none;margin:10px 0 4px -14px;font-weight:bold;color:#555;">Seguimiento de los participantes</li>';
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/accesos_grupo.php?courseid=' . $courseid . '">Registros de actividad</a></li>';
-        // T-189 Fase 3 (15/10): en CENIEH la guía declara «realizar al menos el 75 % de los controles» → página con ese cálculo.
-        if (in_array((int)$courseid, [3230, 3231, 3232, 3233, 3234], true)) {
+        // Página del 75 % SOLO en los cursos cuya guía declara «realizar al menos el 75 % de los controles» (H5P con nota, cuestionarios
+        // y tareas entregadas de los temas) y en los que se ha comprobado que la cuenta coincide con la guía. Se añade curso a curso.
+        // T-189 Fase 3 (15/10): CENIEH 3230–3234. T-306 (26/10): Lin3s 2.ª 4064–4070 (tareas voluntarias: cuentan si se entregan).
+        if (in_array((int)$courseid, [3230, 3231, 3232, 3233, 3234, 4064, 4065, 4066, 4067, 4068, 4069, 4070], true)) {
             $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/finalizacion_75.php?courseid=' . $courseid . '">Finalización de actividad (75 %)</a></li>';
         } else {
             $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/finalizacion_actividad.php?courseid=' . $courseid . '">Finalización de actividad</a></li>';
