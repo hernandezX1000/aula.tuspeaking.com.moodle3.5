@@ -50,17 +50,16 @@ class block_fundae extends block_base {
         $empresas = array_keys($empresas);
         $modalidades = array_keys($modalidades);
 
-        $teal = '#00bcd4';
-        $teal_dark = '#008ba3';
-        $teal_light = '#f7f9fa';
         $uid = 'fundae_' . uniqid();
 
-        $html = '<style>.ts-fundae-panel{font-size:.9375rem}.ts-fundae-panel .ts-tabla{width:100%;border-collapse:collapse;font-size:.875rem}.ts-fundae-panel .ts-tabla thead tr{background:#008ba3;color:#fff}.ts-fundae-panel .ts-tabla th{padding:.5rem;font-weight:600;white-space:nowrap}.ts-fundae-panel .ts-tabla td{padding:.5rem;border-bottom:1px solid #dee2e6;vertical-align:middle}.ts-fundae-panel .ts-tabla tbody tr:hover{background:#e0f7fa}.ts-fundae-panel .ts-sec{font-size:.8125rem;color:#6c757d}.ts-fundae-panel .ts-num{font-variant-numeric:tabular-nums}.ts-fundae-panel .ts-ver{color:#008ba3;font-weight:600;text-decoration:none}.ts-fundae-panel .ts-ver:hover{color:#006b7f;text-decoration:underline}</style><div class="ts-fundae-panel" style="padding:4px 0;">';
+        $html = '<style>.ts-fundae-panel{font-size:.875rem;line-height:1.5}.ts-fundae-panel .ts-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;margin:0 0 .75rem}.ts-fundae-panel .ts-cab-tit{font-size:.875rem;font-weight:600}.ts-fundae-panel .ts-cab-sub{color:#6c757d;margin-left:.375rem}.ts-fundae-panel a.ts-btn,.ts-fundae-panel a.ts-btn:visited{display:inline-flex;align-items:center;gap:.5rem;background:#008ba3;border:1px solid #008ba3;color:#fff!important;border-radius:.375rem;padding:.4rem .9rem;font-size:.875rem;font-weight:600;line-height:1.4;text-decoration:none!important;box-shadow:0 1px 2px rgba(0,0,0,.08)}.ts-fundae-panel a.ts-btn:hover,.ts-fundae-panel a.ts-btn:focus{background:#006b7f;border-color:#006b7f;color:#fff!important}.ts-fundae-panel .ts-filtros{display:flex;flex-direction:row;flex-wrap:wrap;gap:.5rem;align-items:center}.ts-fundae-panel .ts-filtros .form-control,.ts-fundae-panel .ts-filtros .custom-select{font-size:.875rem}.ts-fundae-panel .ts-cuenta{display:inline-block;background:#e0f7fa;color:#006b7f;font-weight:600;border-radius:999px;padding:.25rem .75rem;white-space:nowrap}.ts-fundae-panel .ts-marco{border:1px solid #dee2e6;border-radius:.5rem;overflow:auto;max-height:70vh;background:#fff}.ts-fundae-panel .ts-tabla{width:100%;border-collapse:separate;border-spacing:0;margin:0;font-size:.875rem}.ts-fundae-panel .ts-tabla th{position:sticky;top:0;z-index:1;background:#008ba3;color:#fff;padding:.6rem .625rem;font-weight:600;text-align:left;white-space:nowrap;border:0}.ts-fundae-panel .ts-tabla td{padding:.5rem .625rem;border-bottom:1px solid #eef1f3;vertical-align:middle}.ts-fundae-panel .ts-tabla tbody tr:last-child td{border-bottom:0}.ts-fundae-panel .ts-tabla tbody tr:hover td{background:#f0fbfc}.ts-fundae-panel .ts-tabla strong{font-weight:600}.ts-fundae-panel .ts-sec{color:#6c757d}.ts-fundae-panel .ts-num{font-variant-numeric:tabular-nums;white-space:nowrap}.ts-fundae-panel .ts-ag{font-weight:600;color:#006b7f}.ts-fundae-panel .ts-den{min-width:18rem}.ts-fundae-panel .ts-badge{display:inline-block;background:#e0f7fa;color:#006b7f;border-radius:999px;padding:.125rem .625rem;font-size:.8125rem;font-weight:600;white-space:nowrap}.ts-fundae-panel a.ts-ver{display:inline-block;border:1px solid #008ba3;color:#006b7f!important;border-radius:999px;padding:.125rem .75rem;font-size:.8125rem;font-weight:600;text-decoration:none!important;white-space:nowrap}.ts-fundae-panel a.ts-ver:hover,.ts-fundae-panel a.ts-ver:focus{background:#008ba3;color:#fff!important}</style><div class="ts-fundae-panel" style="padding:4px 0;">';
         // T-279e (26/10/2026): actas SEPE 10/06 [P2] y 14/10 [2] — ver con antelación y entrar en directo en las tutorías.
-        $html .= '<div style="margin:0 0 10px;"><a class="btn btn-primary" href="' . (new moodle_url('/tutorias_programadas_todas.php'))->out() . '">'
-               . 'Tutorías programadas · todas las acciones (ver y entrar en directo)</a></div>';
+        $html .= '<div class="ts-cab"><div><span class="ts-cab-tit">Acciones formativas bonificadas</span>'
+               . '<span class="ts-cab-sub">· ' . count($empresas) . ' empresas</span></div>'
+               . '<a class="ts-btn" href="' . (new moodle_url('/tutorias_programadas_todas.php'))->out() . '">'
+               . '<i class="fa fa-calendar" aria-hidden="true"></i>Tutorías programadas · ver y entrar en directo</a></div>';
 
-        $html .= '<div class="card card-body p-2 mb-2" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:.5rem;align-items:center;">';
+        $html .= '<div class="card card-body p-2 mb-3 ts-filtros">';
         $html .= '<input type="text" id="' . $uid . '_search" placeholder="Buscar por ID, acción/grupo, empresa, CIF o denominación…" class="form-control" style="flex:1;min-width:200px;width:auto;">';
         $html .= '<select id="' . $uid . '_empresa" class="custom-select" style="width:auto;"><option value="">Todas las empresas</option>';
         foreach ($empresas as $e) $html .= '<option value="' . htmlspecialchars($e) . '">' . htmlspecialchars($e) . '</option>';
@@ -68,11 +67,11 @@ class block_fundae extends block_base {
         $html .= '<select id="' . $uid . '_modalidad" class="custom-select" style="width:auto;"><option value="">Todas modalidades</option>';
         foreach ($modalidades as $m) $html .= '<option value="' . htmlspecialchars($m) . '">' . htmlspecialchars($m) . '</option>';
         $html .= '</select>';
-        $html .= '<span id="' . $uid . '_count" style="color:' . $teal_dark . ';font-weight:bold;">' . count($cursos) . ' acciones</span>';
+        $html .= '<span id="' . $uid . '_count" class="ts-cuenta">' . count($cursos) . ' acciones</span>';
         $html .= '</div>';
 
         if (!empty($cursos)) {
-            $html .= '<div style="overflow-x:auto;"><table id="' . $uid . '_table" class="ts-tabla">';
+            $html .= '<div class="ts-marco"><table id="' . $uid . '_table" class="ts-tabla">';
             $html .= '<thead><tr>';
             $html .= '<th class="text-center">ID</th>';
             $html .= '<th class="text-center">Acción/Grupo</th>';
@@ -115,15 +114,15 @@ class block_fundae extends block_base {
                 // exportaciones y aquí se enseña con barra (070/01): se añade la forma con guion, oculta, para que
                 // el inspector lo encuentre escriba como lo escriba (T-180, 14/10/2026).
                 $accgrupo_guion = !empty($r->c_fundae) ? '<span style="display:none;"> ' . htmlspecialchars($r->c_fundae) . '</span>' : '';
-                $html .= '<td class="text-center ts-num" style="font-weight:600;color:' . $teal_dark . ';">' . htmlspecialchars($accgrupo) . $accgrupo_guion . '</td>';
+                $html .= '<td class="text-center ts-num ts-ag">' . htmlspecialchars($accgrupo) . $accgrupo_guion . '</td>';
                 $html .= '<td class="text-center">' . htmlspecialchars($tipo) . '</td>';
-                $html .= '<td>' . htmlspecialchars($r->denom_final) . '</td>';
+                $html .= '<td class="ts-den">' . htmlspecialchars($r->denom_final) . '</td>';
                 $html .= '<td class="text-center ts-num">' . $inicio . '</td>';
                 $html .= '<td class="text-center ts-num">' . $fin . '</td>';
                 $html .= '<td><strong>' . htmlspecialchars($r->empresa) . '</strong></td>';
                 $html .= '<td class="ts-sec">' . htmlspecialchars($r->razon_social ?: '-') . '</td>';
                 $html .= '<td class="text-center ts-num ts-sec">' . htmlspecialchars($r->cif ?: '-') . '</td>';
-                $html .= '<td class="text-center ts-num">' . htmlspecialchars($r->modalidad_final ?: '-') . '</td>';
+                $html .= '<td class="text-center">' . (!empty($r->modalidad_final) ? '<span class="ts-badge">' . htmlspecialchars($r->modalidad_final) . '</span>' : '<span class="text-muted">—</span>') . '</td>';
                 $html .= '<td class="text-center"><a href="' . $url . '" target="_blank" class="ts-ver">Ver</a></td>';
                 $html .= '</tr>';
             }
