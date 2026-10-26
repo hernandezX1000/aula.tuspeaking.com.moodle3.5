@@ -55,36 +55,36 @@ class block_fundae extends block_base {
         $teal_light = '#f7f9fa';
         $uid = 'fundae_' . uniqid();
 
-        $html = '<div style="padding:10px;font-family:Arial,sans-serif;">';
+        $html = '<style>.ts-fundae-panel{font-size:.9375rem}.ts-fundae-panel .ts-tabla{width:100%;border-collapse:collapse;font-size:.875rem}.ts-fundae-panel .ts-tabla thead tr{background:#008ba3;color:#fff}.ts-fundae-panel .ts-tabla th{padding:.5rem;font-weight:600;white-space:nowrap}.ts-fundae-panel .ts-tabla td{padding:.5rem;border-bottom:1px solid #dee2e6;vertical-align:middle}.ts-fundae-panel .ts-tabla tbody tr:hover{background:#e0f7fa}.ts-fundae-panel .ts-sec{font-size:.8125rem;color:#6c757d}.ts-fundae-panel .ts-num{font-variant-numeric:tabular-nums}.ts-fundae-panel .ts-ver{color:#008ba3;font-weight:600;text-decoration:none}.ts-fundae-panel .ts-ver:hover{color:#006b7f;text-decoration:underline}</style><div class="ts-fundae-panel" style="padding:4px 0;">';
         // T-279e (26/10/2026): actas SEPE 10/06 [P2] y 14/10 [2] — ver con antelación y entrar en directo en las tutorías.
         $html .= '<div style="margin:0 0 10px;"><a class="btn btn-primary" href="' . (new moodle_url('/tutorias_programadas_todas.php'))->out() . '">'
                . 'Tutorías programadas · todas las acciones (ver y entrar en directo)</a></div>';
 
-        $html .= '<div style="background:#fff;border:1px solid #ddd;padding:10px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">';
-        $html .= '<input type="text" id="' . $uid . '_search" placeholder="Buscar por ID, acción/grupo, empresa, CIF o denominación…" style="flex:1;min-width:200px;padding:6px;border:1px solid #ccc;border-radius:4px;">';
-        $html .= '<select id="' . $uid . '_empresa" style="padding:6px;border:1px solid #ccc;border-radius:4px;"><option value="">Todas las empresas</option>';
+        $html .= '<div class="card card-body p-2 mb-2" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:.5rem;align-items:center;">';
+        $html .= '<input type="text" id="' . $uid . '_search" placeholder="Buscar por ID, acción/grupo, empresa, CIF o denominación…" class="form-control" style="flex:1;min-width:200px;width:auto;">';
+        $html .= '<select id="' . $uid . '_empresa" class="custom-select" style="width:auto;"><option value="">Todas las empresas</option>';
         foreach ($empresas as $e) $html .= '<option value="' . htmlspecialchars($e) . '">' . htmlspecialchars($e) . '</option>';
         $html .= '</select>';
-        $html .= '<select id="' . $uid . '_modalidad" style="padding:6px;border:1px solid #ccc;border-radius:4px;"><option value="">Todas modalidades</option>';
+        $html .= '<select id="' . $uid . '_modalidad" class="custom-select" style="width:auto;"><option value="">Todas modalidades</option>';
         foreach ($modalidades as $m) $html .= '<option value="' . htmlspecialchars($m) . '">' . htmlspecialchars($m) . '</option>';
         $html .= '</select>';
         $html .= '<span id="' . $uid . '_count" style="color:' . $teal_dark . ';font-weight:bold;">' . count($cursos) . ' acciones</span>';
         $html .= '</div>';
 
         if (!empty($cursos)) {
-            $html .= '<div style="overflow-x:auto;"><table id="' . $uid . '_table" style="width:100%;border-collapse:collapse;font-size:12px;">';
-            $html .= '<thead><tr style="background:' . $teal . ';color:white;">';
-            $html .= '<th style="padding:8px;text-align:center;">ID</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Acción/Grupo</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Tipo de acción</th>';
-            $html .= '<th style="padding:8px;text-align:left;">Denom.</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Inicio</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Fin</th>';
-            $html .= '<th style="padding:8px;text-align:left;">Empresa</th>';
-            $html .= '<th style="padding:8px;text-align:left;">Razón Social</th>';
-            $html .= '<th style="padding:8px;text-align:center;">CIF</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Modalidad</th>';
-            $html .= '<th style="padding:8px;text-align:center;">Ver</th>';
+            $html .= '<div style="overflow-x:auto;"><table id="' . $uid . '_table" class="ts-tabla">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="text-center">ID</th>';
+            $html .= '<th class="text-center">Acción/Grupo</th>';
+            $html .= '<th class="text-center">Tipo de acción</th>';
+            $html .= '<th>Denom.</th>';
+            $html .= '<th class="text-center">Inicio</th>';
+            $html .= '<th class="text-center">Fin</th>';
+            $html .= '<th>Empresa</th>';
+            $html .= '<th>Razón Social</th>';
+            $html .= '<th class="text-center">CIF</th>';
+            $html .= '<th class="text-center">Modalidad</th>';
+            $html .= '<th class="text-center">Ver</th>';
             $html .= '</tr></thead><tbody>';
 
             foreach ($cursos as $r) {
@@ -98,7 +98,7 @@ class block_fundae extends block_base {
                 // ID de grupo FUNDAE; en blanco (muted) si aún no reconcilia con el oficial.
                 $id_html = !empty($r->id_grupo)
                     ? '<strong>' . htmlspecialchars($r->id_grupo) . '</strong>'
-                    : '<span style="color:#ccc;">—</span>';
+                    : '<span class="text-muted">—</span>';
 
                 // Tipo de acción: Propia / Externa (derivado de gestion_bonificacion).
                 if (empty($r->gestion_bonificacion)) {
@@ -109,22 +109,22 @@ class block_fundae extends block_base {
                     $tipo = 'Propia';
                 }
 
-                $html .= '<tr style="border-bottom:1px solid #eee;" data-empresa="' . htmlspecialchars($r->empresa) . '" data-modalidad="' . htmlspecialchars($r->modalidad_final ?: '') . '">';
-                $html .= '<td style="padding:8px;text-align:center;font-family:monospace;">' . $id_html . '</td>';
+                $html .= '<tr data-empresa="' . htmlspecialchars($r->empresa) . '" data-modalidad="' . htmlspecialchars($r->modalidad_final ?: '') . '">';
+                $html .= '<td class="text-center ts-num">' . $id_html . '</td>';
                 // El buscador filtra por el texto de la fila. FUNDAE escribe el grupo con guion (070-01) en sus
                 // exportaciones y aquí se enseña con barra (070/01): se añade la forma con guion, oculta, para que
                 // el inspector lo encuentre escriba como lo escriba (T-180, 14/10/2026).
                 $accgrupo_guion = !empty($r->c_fundae) ? '<span style="display:none;"> ' . htmlspecialchars($r->c_fundae) . '</span>' : '';
-                $html .= '<td style="padding:8px;text-align:center;font-weight:bold;color:' . $teal_dark . ';">' . htmlspecialchars($accgrupo) . $accgrupo_guion . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;">' . htmlspecialchars($tipo) . '</td>';
-                $html .= '<td style="padding:8px;font-size:11px;">' . htmlspecialchars($r->denom_final) . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;font-size:11px;">' . $inicio . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;font-size:11px;">' . $fin . '</td>';
-                $html .= '<td style="padding:8px;"><strong>' . htmlspecialchars($r->empresa) . '</strong></td>';
-                $html .= '<td style="padding:8px;font-size:11px;color:#555;">' . htmlspecialchars($r->razon_social ?: '-') . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;font-size:11px;font-family:monospace;">' . htmlspecialchars($r->cif ?: '-') . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;font-size:11px;">' . htmlspecialchars($r->modalidad_final ?: '-') . '</td>';
-                $html .= '<td style="padding:8px;text-align:center;"><a href="' . $url . '" target="_blank" style="color:' . $teal . ';text-decoration:none;font-weight:bold;">Ver</a></td>';
+                $html .= '<td class="text-center ts-num" style="font-weight:600;color:' . $teal_dark . ';">' . htmlspecialchars($accgrupo) . $accgrupo_guion . '</td>';
+                $html .= '<td class="text-center">' . htmlspecialchars($tipo) . '</td>';
+                $html .= '<td>' . htmlspecialchars($r->denom_final) . '</td>';
+                $html .= '<td class="text-center ts-num">' . $inicio . '</td>';
+                $html .= '<td class="text-center ts-num">' . $fin . '</td>';
+                $html .= '<td><strong>' . htmlspecialchars($r->empresa) . '</strong></td>';
+                $html .= '<td class="ts-sec">' . htmlspecialchars($r->razon_social ?: '-') . '</td>';
+                $html .= '<td class="text-center ts-num ts-sec">' . htmlspecialchars($r->cif ?: '-') . '</td>';
+                $html .= '<td class="text-center ts-num">' . htmlspecialchars($r->modalidad_final ?: '-') . '</td>';
+                $html .= '<td class="text-center"><a href="' . $url . '" target="_blank" class="ts-ver">Ver</a></td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table></div>';
