@@ -56,6 +56,9 @@ class block_fundae extends block_base {
         $uid = 'fundae_' . uniqid();
 
         $html = '<div style="padding:10px;font-family:Arial,sans-serif;">';
+        // T-279e (26/10/2026): actas SEPE 10/06 [P2] y 14/10 [2] — ver con antelación y entrar en directo en las tutorías.
+        $html .= '<div style="margin:0 0 10px;"><a class="btn btn-primary" href="' . (new moodle_url('/tutorias_programadas_todas.php'))->out() . '">'
+               . 'Tutorías programadas · todas las acciones (ver y entrar en directo)</a></div>';
 
         $html .= '<div style="background:#fff;border:1px solid #ddd;padding:10px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">';
         $html .= '<input type="text" id="' . $uid . '_search" placeholder="Buscar por ID, acción/grupo, empresa, CIF o denominación…" style="flex:1;min-width:200px;padding:6px;border:1px solid #ccc;border-radius:4px;">';
