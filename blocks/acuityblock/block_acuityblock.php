@@ -78,10 +78,23 @@ class block_acuityblock extends block_base {
 			$this->content->text .= html_writer::tag("a", "Reservar Clases", array("href" => $url, "target" => "_blank", "class" => "acuity-embed-button", "style" => "background: #00bcd4; color: #fff; padding: 8px 12px; margin-top: 5px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;"));
 			
 		} else {
+			// T-306 (27/10/2026), regla de En: en los cursos con tope de tutorías (config_plugins tuspeaking_tutorias / c<courseid> = tutorías
+			// comunicadas a FUNDAE; script t306-32), el botón «Reservar» desaparece cuando el alumno tiene ese número de tutorías sin cancelar
+			// (reservadas o realizadas; las ausencias cuentan, política de cancelación con 2 h). Cancelar a tiempo libera el hueco.
+			// Cursos sin tope: como siempre.
+			$tope = (int)get_config('tuspeaking_tutorias', 'c' . (int)$courseid);
+			$usadas = 0;
+			if ($tope > 0) {
+				global $DB;
+				$usadas = (int)$DB->count_records_sql("SELECT COUNT(*) FROM " . $CFG->prefix . "i3code_acuityZoom WHERE courseid = ? AND studentid = ? AND acuity_canceled = 0", [(int)$courseid, (int)$userid]);
+				$quedan = max(0, $tope - $usadas);
+				$this->content->text .= html_writer::tag('p', "Tutorías de tu curso: $tope · " . ($quedan > 0 ? "te quedan $quedan por reservar." : "ya las tienes todas reservadas o realizadas. Si cancelas una con al menos 2 horas de antelación, podrás reservar otra."), array('style' => 'margin:4px 0 8px;font-size:.9em'));
+			}
+			if ($tope <= 0 || $usadas < $tope) {
+				$url = new moodle_url('https://tuspeaking.as.me', array('field:5837866' => $userid, 'field:5915926' => $courseid, 'firstName' => $firstname, 'lastName' => $lastname, 'email' => $email, 'phone' => $phone, 'owner' => 15680788, 'appointmentType' => $acuityid));
+				$this->content->text .= html_writer::tag("a", "Reservar", array("href" => $url, "target" => "_blank", "class" => "acuity-embed-button", "style" => "background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;"));
 			
-			$url = new moodle_url('https://tuspeaking.as.me', array('field:5837866' => $userid, 'field:5915926' => $courseid, 'firstName' => $firstname, 'lastName' => $lastname, 'email' => $email, 'phone' => $phone, 'owner' => 15680788, 'appointmentType' => $acuityid));
-			$this->content->text .= html_writer::tag("a", "Reservar", array("href" => $url, "target" => "_blank", "class" => "acuity-embed-button", "style" => "background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;"));
-			
+			}
 		}
 
 		return $this->content;
