@@ -322,22 +322,12 @@ $en_su_accion = function ($userid, $t) use ($tus_afs, $tus_grupo) {
 $detalle_clases = array_values(array_filter($detalle_clases, function ($c) use ($en_su_accion, $view_userid) { return $en_su_accion($view_userid, $c['ts']); }));   // fuera de las fechas de su acción
 
 // T-306 (27/10/2026): el feedback que el tutor escribe en Learn tras cada tutoría (y que el alumno recibe por correo) se ve aquí,
-// en su tutoría. Sale de la copia mdl_tuspeaking_tutor_feedback (piloto Lin3s 2.ª, script t306-26), emparejada con su fila de
-// mdl_i3code_acuityZoom. Solo se enseña el feedback que existe (decisión de En: no se marca «pendiente»). Si la tabla no existe, nada.
-$feedback_por_clase = [];
-try {
-    foreach ($DB->get_records('tuspeaking_tutor_feedback', ['courseid' => $courseid, 'userid' => $view_userid]) as $fb) {
-        if ($fb->acuityzoomid) { $feedback_por_clase[(int)$fb->acuityzoomid] = $fb; }
-    }
-} catch (Exception $e) { $feedback_por_clase = []; }
-$feedback_campos = [
-    'main_topic' => 'Tema de la sesión', 'topic_questions' => 'Preguntas y temas tratados', 'used_resources' => 'Recursos utilizados',
-    'vocabulary' => 'Vocabulario', 'what_did_well' => 'Lo que ha hecho bien', 'where_improve' => 'Qué mejorar',
-    'for_next_class' => 'Para la próxima sesión', 'platform_progress' => 'Progreso en la plataforma',
-    'platform_completion' => 'Avance en la plataforma', 'teacher_comments' => 'Comentarios del tutor', 'class_recording' => 'Grabación de la clase',
-];
-$total_feedback = 0;
-foreach ($detalle_clases as $cl) { if (isset($feedback_por_clase[$cl['id']])) { $total_feedback++; } }
+// en su tutoría, SOLO si lo permite tus_feedback_lib.php (reglas de En): curso encendido con t306-29, informe que pasa los controles
+// de calidad o aprobado por En, y como mucho tantos como tutorías comunicadas a FUNDAE. Lo que falta no se marca. Sin tabla, nada.
+require_once($CFG->dirroot . '/tus_feedback_lib.php');
+$feedback_campos = tus_feedback_campos();
+$feedback_por_clase = tus_feedback_visibles($courseid, $view_userid, array_column($detalle_clases, 'id'));
+$total_feedback = count($feedback_por_clase);
 
 // ─── QUERY 4: Info del curso desde own_acuity_course ───
 $sql_curso_info = "
@@ -457,7 +447,7 @@ if ($export === 'excel') {
         $r = $r0 + 1;
         foreach ($detalle_clases as $cl) {
             if (!isset($feedback_por_clase[$cl['id']])) { continue; }
-            $fb = $feedback_por_clase[$cl['id']]; $fbc = json_decode((string)$fb->campos, true) ?: [];
+            $fb = $feedback_por_clase[$cl['id']]; $fbc = $fb->datos;
             $fila = [$cl['fecha'], $fb->teacher_name, userdate($fb->timewritten, '%d/%m/%Y %H:%M')];
             foreach (array_keys($feedback_campos) as $k) { $fila[] = (string)($fbc[$k] ?? ''); }
             foreach ($fila as $c => $v) { $escribe($ws, $r, $c, $v); }
@@ -921,7 +911,7 @@ echo $OUTPUT->header();
         </div>
         <?php endif; ?>
 
-        <?php $fb = $feedback_por_clase[$cl['id']] ?? null; if ($fb): $fbc = json_decode((string)$fb->campos, true) ?: []; ?>
+        <?php $fb = $feedback_por_clase[$cl['id']] ?? null; if ($fb): $fbc = $fb->datos; ?>
         <details class="tp-feedback">
             <summary>📝 Feedback de la tutoría · <?php echo htmlspecialchars($fb->teacher_name); ?> · escrito el <?php echo userdate($fb->timewritten, '%d/%m/%Y'); ?></summary>
             <dl>

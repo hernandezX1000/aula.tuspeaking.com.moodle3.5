@@ -53,6 +53,14 @@ class block_fundae_inspector extends block_base {
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/tutorias_programadas.php?courseid=' . $courseid . '">Programadas: entrar en directo</a></li>';
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/reservas_grupo.php?courseid=' . $courseid . '">Historial de reservas</a></li>';
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/conexiones_grupo.php?courseid=' . $courseid . '">Conexiones de Zoom</a></li>';
+        // T-306 (27/10/2026): «Feedback del tutor» solo si el curso lo tiene encendido y hay algún informe que se pueda enseñar
+        // (reglas en tus_feedback_lib.php: interruptor por curso, controles de calidad, tope de tutorías comunicadas a FUNDAE).
+        if (is_readable($CFG->dirroot . '/tus_feedback_lib.php')) {
+            require_once($CFG->dirroot . '/tus_feedback_lib.php');
+            if (tus_feedback_visibles($courseid)) {
+                $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/feedback_grupo.php?courseid=' . $courseid . '">Feedback del tutor</a></li>';
+            }
+        }
         $html .= '<li style="list-style:none;margin:10px 0 4px -14px;font-weight:bold;color:#555;">Seguimiento de los participantes</li>';
         $html .= '<li style="margin-bottom:8px;"><a href="' . $base . '/accesos_grupo.php?courseid=' . $courseid . '">Registros de actividad</a></li>';
         // Página del 75 % SOLO en los cursos cuya guía declara «realizar al menos el 75 % de los controles» (H5P con nota, cuestionarios

@@ -235,4 +235,6 @@ own_resend_key.php
 !/finalizacion_actividad.php
 !/tutorias_con_profesor.php
 !/tutorias_programadas_todas.php
+!/feedback_grupo.php
+!/tus_feedback_lib.php
 !/correcciones_tutor.php
