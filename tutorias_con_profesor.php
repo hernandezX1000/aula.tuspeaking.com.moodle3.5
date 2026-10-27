@@ -321,6 +321,24 @@ $en_su_accion = function ($userid, $t) use ($tus_afs, $tus_grupo) {
 
 $detalle_clases = array_values(array_filter($detalle_clases, function ($c) use ($en_su_accion, $view_userid) { return $en_su_accion($view_userid, $c['ts']); }));   // fuera de las fechas de su acción
 
+// T-306 (27/10/2026): el feedback que el tutor escribe en Learn tras cada tutoría (y que el alumno recibe por correo) se ve aquí,
+// en su tutoría. Sale de la copia mdl_tuspeaking_tutor_feedback (piloto Lin3s 2.ª, script t306-26), emparejada con su fila de
+// mdl_i3code_acuityZoom. Solo se enseña el feedback que existe (decisión de En: no se marca «pendiente»). Si la tabla no existe, nada.
+$feedback_por_clase = [];
+try {
+    foreach ($DB->get_records('tuspeaking_tutor_feedback', ['courseid' => $courseid, 'userid' => $view_userid]) as $fb) {
+        if ($fb->acuityzoomid) { $feedback_por_clase[(int)$fb->acuityzoomid] = $fb; }
+    }
+} catch (Exception $e) { $feedback_por_clase = []; }
+$feedback_campos = [
+    'main_topic' => 'Tema de la sesión', 'topic_questions' => 'Preguntas y temas tratados', 'used_resources' => 'Recursos utilizados',
+    'vocabulary' => 'Vocabulario', 'what_did_well' => 'Lo que ha hecho bien', 'where_improve' => 'Qué mejorar',
+    'for_next_class' => 'Para la próxima sesión', 'platform_progress' => 'Progreso en la plataforma',
+    'platform_completion' => 'Avance en la plataforma', 'teacher_comments' => 'Comentarios del tutor', 'class_recording' => 'Grabación de la clase',
+];
+$total_feedback = 0;
+foreach ($detalle_clases as $cl) { if (isset($feedback_por_clase[$cl['id']])) { $total_feedback++; } }
+
 // ─── QUERY 4: Info del curso desde own_acuity_course ───
 $sql_curso_info = "
     SELECT tipo_clase, classnmbr, isfundae, fecha_inicio
@@ -395,15 +413,16 @@ if ($export === 'excel') {
     // Hoja 1: Tutorías
     $ws = $workbook->add_worksheet('Tutorías');
     $r0 = $cabecera($ws);
-    $cab = ['Fecha', 'Hora (Madrid)', 'Tutor', 'Participante', 'Estado', 'Zoom ID', 'Nombre de la reunión en Zoom', 'Observación'];
+    $cab = ['Fecha', 'Hora (Madrid)', 'Tutor', 'Participante', 'Estado', 'Zoom ID', 'Nombre de la reunión en Zoom', 'Observación', 'Feedback del tutor'];
     foreach ($cab as $c => $t) { $ws->write_string($r0, $c, $t, $f_cabecera); }
-    foreach ([30, 14, 22, 28, 12, 15, 62, 50] as $c => $a) { $ws->set_column($c, $c, $a); }
+    foreach ([30, 14, 22, 28, 12, 15, 62, 50, 40] as $c => $a) { $ws->set_column($c, $c, $a); }
     $r = $r0 + 1;
     foreach ($detalle_clases as $cl) {
         $obs = $cl['nota'];
         if ($cl['manual'] !== 'No') { $obs = trim($obs . ($obs ? '. ' : '') . 'Corrección manual: ' . substr($cl['manual'], strlen('Sí: '))); }
         $fila = [$cl['fecha'], $cl['hora_agendada'], $cl['profesor'] ?: 'Sin datos', fullname($view_user),
-                 $etiqueta[$cl['estado']] ?? $cl['estado'], $cl['meeting_id'] ? (string)$cl['meeting_id'] : '', $cl['tema'], $obs];
+                 $etiqueta[$cl['estado']] ?? $cl['estado'], $cl['meeting_id'] ? (string)$cl['meeting_id'] : '', $cl['tema'], $obs,
+                 isset($feedback_por_clase[$cl['id']]) ? 'Sí: ' . $feedback_por_clase[$cl['id']]->teacher_name . ', escrito el ' . userdate($feedback_por_clase[$cl['id']]->timewritten, '%d/%m/%Y') . ' (hoja «Feedback»)' : ''];
         foreach ($fila as $c => $v) { $escribe($ws, $r, $c, $v); }
         $r++;
     }
@@ -427,6 +446,25 @@ if ($export === 'excel') {
         }
     }
     $ws->write_string($r + 1, 0, 'Datos del registro automático de conexiones de Zoom. Horas en hora de Madrid (CET/CEST) y, al lado, tal cual las da Zoom (UTC).', $f_nota);
+
+    // Hoja 3: Feedback (T-306): el informe que el tutor escribió tras cada tutoría, tal cual
+    if ($total_feedback) {
+        $ws = $workbook->add_worksheet('Feedback');
+        $r0 = $cabecera($ws);
+        $cab = array_merge(['Fecha', 'Tutor', 'Escrito el'], array_values($feedback_campos));
+        foreach ($cab as $c => $t) { $ws->write_string($r0, $c, $t, $f_cabecera); }
+        foreach ($cab as $c => $t) { $ws->set_column($c, $c, $c < 3 ? 22 : 45); }
+        $r = $r0 + 1;
+        foreach ($detalle_clases as $cl) {
+            if (!isset($feedback_por_clase[$cl['id']])) { continue; }
+            $fb = $feedback_por_clase[$cl['id']]; $fbc = json_decode((string)$fb->campos, true) ?: [];
+            $fila = [$cl['fecha'], $fb->teacher_name, userdate($fb->timewritten, '%d/%m/%Y %H:%M')];
+            foreach (array_keys($feedback_campos) as $k) { $fila[] = (string)($fbc[$k] ?? ''); }
+            foreach ($fila as $c => $v) { $escribe($ws, $r, $c, $v); }
+            $r++;
+        }
+        $ws->write_string($r + 1, 0, 'Informe que el tutor escribe tras cada tutoría y que el participante recibe por correo. Copia literal.', $f_nota);
+    }
 
     $workbook->close();
     exit;
@@ -731,6 +769,40 @@ echo $OUTPUT->header();
     box-shadow: 0 4px 12px rgba(0,139,163,.3);
 }
 
+.tp-feedback {
+    margin: 12px 0 4px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid var(--ts-primary);
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.tp-feedback summary {
+    cursor: pointer;
+    padding: 10px 16px;
+    font-weight: 600;
+    color: var(--ts-dark);
+}
+
+.tp-feedback dl {
+    margin: 0;
+    padding: 4px 16px 12px;
+}
+
+.tp-feedback dt {
+    margin-top: 10px;
+    font-size: .8em;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--ts-gray);
+}
+
+.tp-feedback dd {
+    margin: 2px 0 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 768px) {
     .tp-stats { grid-template-columns: repeat(3, 1fr); }
     .tp-sesion-header { flex-direction: column; align-items: flex-start; }
@@ -796,7 +868,7 @@ echo $OUTPUT->header();
     </div>
 
     <!-- ─── DETALLE POR SESIÓN ─── -->
-    <h3 class="tp-section-title">📅 Registro de sesiones (<?php echo count($detalle_clases); ?>)</h3>
+    <h3 class="tp-section-title">📅 Registro de sesiones (<?php echo count($detalle_clases); ?>)<?php if ($total_feedback): ?> · 📝 con feedback del tutor: <?php echo $total_feedback; ?><?php endif; ?></h3>
 
     <?php foreach ($detalle_clases as $cl):
         $estado = trim($cl['estado']);
@@ -847,6 +919,18 @@ echo $OUTPUT->header();
             <?php if ($cl['tema'] !== ''): ?><span>🏷 Reunión en Zoom: <strong><?php echo htmlspecialchars($cl['tema']); ?></strong></span><?php endif; ?>
             <?php if ($cl['manual'] !== 'No'): ?><span>✍️ Corrección manual: <strong><?php echo htmlspecialchars($cl['manual']); ?></strong></span><?php endif; ?>
         </div>
+        <?php endif; ?>
+
+        <?php $fb = $feedback_por_clase[$cl['id']] ?? null; if ($fb): $fbc = json_decode((string)$fb->campos, true) ?: []; ?>
+        <details class="tp-feedback">
+            <summary>📝 Feedback de la tutoría · <?php echo htmlspecialchars($fb->teacher_name); ?> · escrito el <?php echo userdate($fb->timewritten, '%d/%m/%Y'); ?></summary>
+            <dl>
+                <?php foreach ($feedback_campos as $k => $etq): if (!isset($fbc[$k]) || trim((string)$fbc[$k]) === '') { continue; } ?>
+                <dt><?php echo $etq; ?></dt>
+                <dd><?php echo nl2br(htmlspecialchars((string)$fbc[$k])); ?></dd>
+                <?php endforeach; ?>
+            </dl>
+        </details>
         <?php endif; ?>
         
         <?php if (!empty($participants)): ?>
