@@ -38,8 +38,16 @@ $stmt = $pdo->prepare($sql_cursos);
 $stmt->execute([$view_userid, $fecha_minima]);
 $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// T-347 (03/11/2026): el enlace de Zoom se toma de acuity_location, que lleva la clave (?pwd=).
+// Antes se montaba como https://zoom.us/j/<meetingid> sin clave y Zoom pedia el codigo de acceso al alumno.
+function tus_enlace_zoom($c) {
+    if (!empty($c['acuity_location']) && preg_match('~https://[A-Za-z0-9.-]*zoom\.us/j/[0-9]+\?pwd=[A-Za-z0-9._-]+~', $c['acuity_location'], $m)) { return $m[0]; }
+    if (!empty($c['zoom_url'])) { return $c['zoom_url']; }
+    return 'https://zoom.us/j/' . $c['zoom_meetingid'];
+}
+
 // Próxima clase - EXCLUYE CANCELADAS
-$sql_proxima = "SELECT az.acuity_datetime, az.zoom_meetingid, az.zoom_url, az.acuity_type, CONCAT(t.firstname, ' ', t.lastname) as profesor
+$sql_proxima = "SELECT az.acuity_datetime, az.zoom_meetingid, az.zoom_url, az.acuity_location, az.acuity_type, CONCAT(t.firstname, ' ', t.lastname) as profesor
 FROM mdl_i3code_acuityZoom az LEFT JOIN mdl_user t ON t.id = az.teacherid LEFT JOIN own_acuity_course oac2 ON oac2.courseid = az.courseid
 WHERE az.studentid = ? AND az.zoom_clasecompletada = 3 AND (az.zoom_meetingid IS NOT NULL OR az.zoom_url IS NOT NULL) AND az.acuity_canceled = 0 AND az.acuity_datetime > NOW()
 ORDER BY az.acuity_datetime ASC LIMIT 1";
@@ -53,7 +61,7 @@ if ($view_courseid > 0) {
     foreach ($cursos as $c) { if ($c['courseid'] == $view_courseid) { $curso_actual = $c; break; } }
     // Detalle de clases - INCLUYE CANCELADAS para mostrarlas tachadas
     $sql_clases = "SELECT az.acuity_datetime as fecha, az.acuity_type as grupo, az.acuity_duration as duracion,
-        az.zoom_clasecompletada as estado, az.zoom_meetingid, az.zoom_url, CONCAT(t.firstname, ' ', t.lastname) as profesor,
+        az.zoom_clasecompletada as estado, az.zoom_meetingid, az.zoom_url, az.acuity_location, CONCAT(t.firstname, ' ', t.lastname) as profesor,
         az.acuity_canceled, az.acuity_rescheduled, az.acuity_original_datetime
     FROM mdl_i3code_acuityZoom az LEFT JOIN mdl_user t ON t.id = az.teacherid LEFT JOIN own_acuity_course oac2 ON oac2.courseid = az.courseid
     WHERE az.studentid = ? AND az.courseid = ? AND az.acuity_datetime >= COALESCE(oac2.fecha_inicio, ?)
@@ -188,7 +196,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
     </div>
     <?php if ($contratadas > 0 && ($asistidas + $agendadas) >= $contratadas): ?><div style="background:#fff3cd;border:1px solid #f39c12;border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:8px"><span style="font-size:1.3em">⚠️</span><span style="color:#856404"><strong>Límite alcanzado:</strong> Ya has realizado o reservado todas las <?php echo $contratadas; ?> sesiones previstas. Si necesitas ampliarlas, escribe a soporte@tuspeaking.com.</span></div><?php endif; ?>
     <?php $proxima_curso = null; foreach ($clases as $cl) { if ($cl['estado'] == 3 && ($cl['zoom_meetingid'] || $cl['zoom_url']) && !$cl['acuity_canceled'] && strtotime($cl['fecha']) > time()) { $proxima_curso = $cl; } } if ($proxima_curso): ?>
-    <a href="<?php echo $proxima_curso['zoom_url'] ?: 'https://zoom.us/j/'.$proxima_curso['zoom_meetingid']; ?>" target="_blank" class="btn-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar a la sesión · <?php echo date('d/m H:i', strtotime($proxima_curso['fecha'])); ?> · <?php echo htmlspecialchars($proxima_curso['profesor']); ?></a>
+    <a href="<?php echo htmlspecialchars(tus_enlace_zoom($proxima_curso)); ?>" target="_blank" class="btn-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar a la sesión · <?php echo date('d/m H:i', strtotime($proxima_curso['fecha'])); ?> · <?php echo htmlspecialchars($proxima_curso['profesor']); ?></a>
     <?php endif; ?>
 </div>
 <h3 class="section">📅 Historial de sesiones / tutorías (<?php echo count($clases); ?>)</h3>
@@ -216,7 +224,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
         <?php endif; ?>
     </div>
     <?php if ($es_proxima && ($cl['zoom_meetingid'] || $cl['zoom_url'])): ?>
-    <a href="<?php echo $cl['zoom_url'] ?: 'https://zoom.us/j/'.$cl['zoom_meetingid']; ?>" target="_blank" class="badge-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar</a>
+    <a href="<?php echo htmlspecialchars(tus_enlace_zoom($cl)); ?>" target="_blank" class="badge-conectar"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar</a>
     <?php else: ?>
     <span class="badge" style="background:<?php echo $e[1]; ?>"><?php echo $e[2]; ?></span>
     <?php endif; ?>
@@ -227,7 +235,7 @@ h3.section{margin-top:28px;color:var(--ts-dark);border-bottom:2px solid #f1f5f9;
 <?php if ($proxima): ?>
 <div class="proxima-clase">
     <div class="proxima-clase-info"><div class="proxima-clase-icon">🕐</div><div class="proxima-clase-text"><strong>Próxima clase: <?php echo date('d/m/Y H:i', strtotime($proxima['acuity_datetime'])); ?></strong><span>con <?php echo htmlspecialchars($proxima['profesor']); ?></span><span class="chevron">›</span></div></div>
-    <a href="<?php echo $proxima['zoom_url'] ?: 'https://zoom.us/j/'.$proxima['zoom_meetingid']; ?>" target="_blank" class="btn-conectar" style="margin:0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar ahora</a>
+    <a href="<?php echo htmlspecialchars(tus_enlace_zoom($proxima)); ?>" target="_blank" class="btn-conectar" style="margin:0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Conectar ahora</a>
 </div>
 <?php endif; ?>
 <h3 class="section">📖 Mis Ediciones / Cursos</h3>
