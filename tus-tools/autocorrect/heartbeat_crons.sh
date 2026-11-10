@@ -56,11 +56,18 @@ chk "/home/coreadmin/logs/healthcheck-cesce.log" 1 "Healthcheck CESCE (cada 5m)"
 # ── Backup del día (MON-3: solo cuenta el AUTOMÁTICO de las 3:00) ──
 # Los volcados manuales llevan sufijo (_fundae_manual, etc.) y NO deben puntuar:
 # uno manual enmascarando la ausencia del automático es justo el fallo a evitar.
-today=$(date +%Y%m%d)
+# MON-5 (10-nov-2026): el servidor va en UTC y el backup corre a las 03:00 UTC. Entre las
+# 00:00 y las 04:00 el de «hoy» todavía no existe → daba un falso «NO existe» cada noche
+# a las 00:00. Antes de las 04:00 se comprueba el de AYER; desde las 04:00, el de hoy.
+if [ "$(date -u +%H)" -lt 4 ]; then
+  today=$(date -u -d yesterday +%Y%m%d); cual="de ayer"
+else
+  today=$(date -u +%Y%m%d); cual="de hoy"
+fi
 for db in aula cesce; do
   f="${BACKUPS}/db_${db}_${today}_0300.sql.gz"
   if [ ! -f "$f" ]; then
-    prob+="- Backup ${db} (3:00): NO existe el automático de hoy\n"
+    prob+="- Backup ${db} (3:00): NO existe el automático ${cual} (${today})\n"
   else
     mb=$(( $(stat -c %s "$f") / 1048576 ))
     min=100; [ "$db" = "aula" ] && min=800
