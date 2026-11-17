@@ -298,6 +298,56 @@ if ($esCancelacion || $previa) {
 }
 /* ═══ Fin ING-9 · a partir de aqui, ALTA NUEVA ═══════════════════════════ */
 
+/* T-448 (17-nov-2026), regla de En: TOPE DE CLASES POR SEMANA (lunes a domingo) en los cursos que lo tengan
+ * configurado (config_plugins tuspeaking_semana / c<courseid>; SEM = 2, para que no hagan maratones).
+ * Cuentan las clases no canceladas del alumno en ese curso esa semana: reservadas, dadas y ausencias.
+ * Si esta reserva NUEVA pasa del tope, se cancela en Acuity como admin (Acuity manda al alumno su correo de
+ * cancelación con el motivo), se anota en acuity_webhooks.log y se avisa a Hansel. No se crean eventos ni filas:
+ * la cancelación que Acuity reenvía (cancelAcuity.php → este fichero) entra por la rama ING-9 y no encuentra nada.
+ * Solo altas: una reprogramación que mueva una clase a una semana llena no se frena aquí (pendiente si hace falta).
+ * Si Acuity no la cancela, la reserva se da de alta como siempre y el aviso de error lo cuenta para cancelarla a mano. */
+$topeSemana = (int)get_config('tuspeaking_semana', 'c' . (int)$courseID);
+if ($topeSemana > 0 && !empty($appointment['datetime'])) {
+	$semanaCita = (int)date('oW', strtotime($appointment['datetime']));   // = YEARWEEK(fecha, 3) de MySQL
+	$yaEnSemana = (int)$DB->count_records_sql("SELECT COUNT(*) FROM {i3code_acuityZoom}
+		WHERE studentid = ? AND courseid = ? AND acuity_canceled = 0 AND acuityid <> ?
+		  AND YEARWEEK(LEFT(acuity_datetime, 10), 3) = ?", array((int)$studentID, (int)$courseID, (int)$acuityID, $semanaCita));
+	if ($yaEnSemana >= $topeSemana) {
+		$motivoTope = "Reserva cancelada automáticamente: en tu curso puedes reservar como máximo $topeSemana clases por semana "
+			. "(de lunes a domingo) y esa semana ya tienes $yaEnSemana. Puedes reservarla en otra semana.";
+		$cc = curl_init('https://acuityscheduling.com/api/v1/appointments/' . (int)$acuityID . '/cancel?admin=true');
+		curl_setopt($cc, CURLOPT_CUSTOMREQUEST, 'PUT');
+		curl_setopt($cc, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($cc, CURLOPT_USERPWD, $CFG->ts_acuity_userid . ':' . $CFG->ts_acuity_key);
+		curl_setopt($cc, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+		curl_setopt($cc, CURLOPT_POSTFIELDS, json_encode(array('cancelNote' => $motivoTope)));
+		$respTope = json_decode((string)curl_exec($cc), true);
+		$codTope = (int)curl_getinfo($cc, CURLINFO_HTTP_CODE);
+		curl_close($cc);
+		$okTope = ($codTope === 200 && !empty($respTope['canceled']));
+		@file_put_contents($CFG->dataroot . '/acuity_webhooks.log', date('c') . " T-448 tope semanal: id=$acuityID alumno=$studentID curso=$courseID"
+			. " semana=$semanaCita ya=$yaEnSemana tope=$topeSemana cancelada=" . ($okTope ? 'si' : "NO (HTTP $codTope)") . "\n", FILE_APPEND);
+		if ($okTope) {
+			try {
+				$avisoTope = $DB->get_record('user', array('email' => 'hfernandez@tuspeaking.com', 'deleted' => 0));
+				if ($avisoTope) {
+					$txtTope = "Cancelada por tope semanal ($yaEnSemana de $topeSemana ya reservadas): cita $acuityID, "
+						. ($appointment['firstName'] ?? '') . ' ' . ($appointment['lastName'] ?? '') . ", curso $courseID, " . ($appointment['datetime'] ?? '') . '.';
+					email_to_user($avisoTope, core_user::get_noreply_user(), 'Aula · reserva cancelada por tope semanal', $txtTope, $txtTope);
+				}
+			} catch (Exception $eTope) {
+				@file_put_contents($CFG->dataroot . '/newacuity_errors.log', date('c') . " T-448 aviso NO enviado: " . $eTope->getMessage() . "\n", FILE_APPEND);
+			}
+			http_response_code(200);
+			echo "Recibido.";
+			goto fin;
+		}
+		$error .= "T-448: la cita $acuityID pasa del tope semanal ($yaEnSemana ya reservadas, tope $topeSemana) y Acuity NO la ha cancelado "
+			. "(HTTP $codTope). Se da de alta igual: cancélala a mano.<br>";
+	}
+}
+/* Fin T-448 */
+
 try {
 	$conn = new PDO("mysql:host=".$CFG->dbhost.";dbname=".$CFG->dbname, $CFG->dbuser, $CFG->dbpass);
 	// set the PDO error mode to exception

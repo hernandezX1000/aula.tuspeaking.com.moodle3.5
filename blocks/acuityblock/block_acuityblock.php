@@ -90,6 +90,12 @@ class block_acuityblock extends block_base {
 				$quedan = max(0, $tope - $usadas);
 				$this->content->text .= html_writer::tag('p', "Tutorías de tu curso: $tope · " . ($quedan > 0 ? "te quedan $quedan por reservar." : "ya las tienes todas reservadas o realizadas. Si cancelas una con al menos 2 horas de antelación, podrás reservar otra."), array('style' => 'margin:4px 0 8px;font-size:.9em'));
 			}
+			// T-448 (17/11/2026): tope de clases por semana (config_plugins tuspeaking_semana / c<courseid>). Lo hace cumplir newAcuity.php
+			// (cancela en Acuity la que pasa del tope); aquí solo se avisa al alumno antes de reservar.
+			$topeSemana = (int)get_config('tuspeaking_semana', 'c' . (int)$courseid);
+			if ($topeSemana > 0) {
+				$this->content->text .= html_writer::tag('p', "Puedes reservar como máximo $topeSemana clases por semana (de lunes a domingo). Si reservas más, la que sobre se cancelará automáticamente.", array('style' => 'margin:4px 0 8px;font-size:.9em'));
+			}
 			if ($tope <= 0 || $usadas < $tope) {
 				$url = new moodle_url('https://tuspeaking.as.me', array('field:5837866' => $userid, 'field:5915926' => $courseid, 'firstName' => $firstname, 'lastName' => $lastname, 'email' => $email, 'phone' => $phone, 'owner' => 15680788, 'appointmentType' => $acuityid));
 				$this->content->text .= html_writer::tag("a", "Reservar", array("href" => $url, "target" => "_blank", "class" => "acuity-embed-button", "style" => "background: #00bcd4; color: #fff; padding: 8px 12px; border: 0px; -webkit-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;-moz-box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;box-shadow: 0 -2px 0 rgba(0,0,0,0.15) inset;border-radius: 4px; text-decoration: none; display: inline-block;"));
